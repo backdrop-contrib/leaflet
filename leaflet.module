@@ -20,27 +20,27 @@ function leaflet_library() {
   $libraries['leaflet'] = array(
     'title' => 'Leaflet',
     'website' => 'http://leaflet.cloudmade.com',
-    'version' => '0.4',
+    'version' => '0.6',
     'js' => array(
       array(
         'type' => 'inline',
-        'data' => 'L_ROOT_URL = "' . base_path() . libraries_get_path('leaflet') . '/dist/";',
+        'data' => 'L_ROOT_URL = "' . base_path() . libraries_get_path('leaflet') . '/";',
         'group' => JS_LIBRARY,
         'preprocess' => FALSE
       ),
       array(
         'type' => 'file',
-        'data' => libraries_get_path('leaflet') . '/dist/leaflet.js',
+        'data' => libraries_get_path('leaflet') . '/leaflet.js',
         'group' => JS_LIBRARY,
         'preprocess' => FALSE
       ),
     ),
     'css' => array(
-      libraries_get_path('leaflet') . '/dist/leaflet.css' => array(
+      libraries_get_path('leaflet') . '/leaflet.css' => array(
         'type' => 'file',
         'media' => 'screen',
       ),
-      libraries_get_path('leaflet') . '/dist/leaflet.ie.css' => array(
+      libraries_get_path('leaflet') . '/leaflet.ie.css' => array(
         'browsers' => array(
           'IE' => 'lte IE 8',
           '!IE' => FALSE,

@@ -12,7 +12,7 @@ function leaflet_requirements($phase) {
   $requirements = array();
 
   // Ensure js library is available.
-  if ($phase == 'runtime' && !file_exists(libraries_get_path('leaflet') . '/dist/leaflet.js')) {
+  if ($phase == 'runtime' && !file_exists(libraries_get_path('leaflet') . '/leaflet.js')) {
     $requirements['leaflet'] = array(
       'title' => t('Leaflet library not found'),
       'value' => t('The !leaflet javascript library was not found. Please !download it into the libraries folder. Also ensure that the library is named leaflet with a lower case "l".',
