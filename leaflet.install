@@ -15,10 +15,10 @@ function leaflet_requirements($phase) {
   if ($phase == 'runtime' && !file_exists(libraries_get_path('leaflet') . '/leaflet.js')) {
     $requirements['leaflet'] = array(
       'title' => t('Leaflet library not found'),
-      'value' => t('The !leaflet javascript library was not found. Please !download it into the libraries folder. Also ensure that the library is named leaflet with a lower case "l".',
+      'value' => t('The !leaflet javascript library was not found. Please !download it into the <em>sites/all/libraries</em> folder, stripping its name of the version number. Ensure that it is named <strong>leaflet</strong> with a lowercase "l".',
         array(
-          '!leaflet' => l('leaflet', 'http://leaflet.cloudmade.com'),
-          '!download' => l('download', 'http://leaflet.cloudmade.com/download.html'),
+          '!leaflet' => l('Leaflet', 'http://leafletjs.com'),
+          '!download' => l('download', 'http://leafletjs.com/download.html'),
         )
       ),
       'severity' => REQUIREMENT_ERROR,
