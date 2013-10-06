@@ -38,7 +38,7 @@ function leaflet_library() {
     'css' => array(
       libraries_get_path('leaflet') . '/leaflet.css' => array(
         'type' => 'file',
-        'media' => 'screen',
+        'media' => 'all',
       ),
       libraries_get_path('leaflet') . '/leaflet.ie.css' => array(
         'browsers' => array(
