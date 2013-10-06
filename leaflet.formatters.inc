@@ -258,6 +258,10 @@ function leaflet_process_geofield($items = array()) {
     if ($item['geo_type'] == 'multilinestring') {
       $item['geo_type'] = 'multipolyline';
     }
+    // Geofield 7.x-2.x compatibility.
+    if (!isset($item['wkt']) && isset($item['geom'])) {
+      $item['wkt'] = $item['geom'];
+    }
     $datum = array('type' => $item['geo_type']);
     switch ($item['geo_type']) {
       case 'point':
