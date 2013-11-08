@@ -125,6 +125,9 @@
           case 'json':
             lFeature = Drupal.leaflet.create_json(feature.json)
             break;
+		  case 'circle':
+		    lFeature = Drupal.leaflet.create_circle(feature);
+			break;
         }
 
         // assign our given unique ID, useful for associating nodes
@@ -175,6 +178,17 @@
         }
       }
       return map_layer;
+    },
+
+	create_circle: function(circle) {
+      var latLng = new L.LatLng(circle.lat, circle.lon);
+      this.bounds.push(latLng);
+      if (circle.options) {
+        return new L.Circle(latLng, circle.radius, circle.options);
+      }
+      else {
+        return new L.Circle(latLng, circle.radius);
+      }
     },
 
     create_point: function(marker) {
