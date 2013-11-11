@@ -5,6 +5,7 @@
  * Extension of the Views Plugin Style for Leaflet Map
  * Adapted from the GeoField Map views module and the OpenLayers Views module.
  */
+
 class leaflet_views_plugin_style extends views_plugin_style {
 
   /**
@@ -23,7 +24,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
   }
 
   /**
-   * Set default options
+   * Set default options.
    */
   function option_definition() {
     $options = parent::option_definition();
@@ -38,12 +39,12 @@ class leaflet_views_plugin_style extends views_plugin_style {
   }
 
   /**
-   * Options form
+   * Options form.
    */
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
 
-    // Get list of fields in this view & flag available geodata fields
+    // Get list of fields in this view & flag available geodata fields:
     $handlers = $this->display->handler->get_handlers('field');
 
     $fields = array();
@@ -56,7 +57,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
       }
     }
 
-    // Check whether we have a geofield we can work with
+    // Check whether we have a geofield we can work with:
     if (!count($fields_data)) {
       $form['error'] = array(
         '#markup' => t('Please add at least one geofield to the view'),
@@ -74,7 +75,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#required' => TRUE,
     );
 
-    // Name field
+    // Name field.
     $form['name_field'] = array(
       '#type' => 'select',
       '#title' => t('Title Field'),
@@ -88,7 +89,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
         '' => '',
     ), $fields);
 
-    // Add an option to render the entire entity using a view mode
+    // Add an option to render the entire entity using a view mode.
     if ($this->entity_type) {
       $desc_options += array(
         '#rendered_entity' => '<' . t('!entity entity', array('!entity' => $this->entity_type)) . '>',
@@ -105,23 +106,22 @@ class leaflet_views_plugin_style extends views_plugin_style {
     );
 
     // Taken from openlayers_views_style_data::options_form().
-    // Create view mode options
+    // Create view mode options:
     if ($this->entity_type) {
 
-      // Get the labels (human readable) of the view modes
+      // Get the labels (human readable) of the view modes:
       $view_mode_options = array();
       foreach ($this->entity_info['view modes'] as $key => $view_mode) {
         $view_mode_options[$key] = $view_mode['label'];
       }
 
-      //output the form
+      // Output the form:
       $form['view_mode'] = array(
         '#type' => 'select',
         '#title' => t('View mode'),
         '#description' => t('View modes are ways of displaying entities.'),
         '#options' => $view_mode_options,
-        '#default_value' => !empty($this->options['view_mode']) ?
-          $this->options['view_mode'] : 'full',
+        '#default_value' => !empty($this->options['view_mode']) ? $this->options['view_mode'] : 'full',
         '#states' => array(
           'visible' => array(
             ':input[name="style_options[description_field]"]' => array('value' => '#rendered_entity'),
@@ -130,7 +130,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
       );
     }
 
-    // Choose a map preset
+    // Choose a map preset:
     $map_options = array();
     foreach (leaflet_map_get_info() as $key => $map) {
       $map_options[$key] = t($map['label']);
@@ -157,7 +157,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#title' => t('Hide empty'),
       '#type' => 'checkbox',
       '#description' => t('Hide the Leaflet map if there are no results to display.'),
-      '#default_value' => isset($this->options['hide_empty']) ? $this->options['hide_empty'] : TRUE
+      '#default_value' => isset($this->options['hide_empty']) ? $this->options['hide_empty'] : TRUE,
     );
 
     $form['icon'] = array(
@@ -173,7 +173,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#type' => 'textfield',
       '#maxlength' => 999,
       '#default_value' => isset($this->options['icon']['iconUrl']) ? $this->options['icon']['iconUrl'] : '',
-      '#element_validate' => array('leaflet_icon_validate')
+      '#element_validate' => array('leaflet_icon_validate'),
     );
 
     $form['icon']['shadowUrl'] = array(
@@ -181,14 +181,14 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#type' => 'textfield',
       '#maxlength' => 999,
       '#default_value' => isset($this->options['icon']['shadowUrl']) ? $this->options['icon']['shadowUrl'] : '',
-      '#element_validate' => array('leaflet_icon_validate')
+      '#element_validate' => array('leaflet_icon_validate'),
     );
 
     $form['icon']['iconSize'] = array(
       '#title' => t('Icon Size'),
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
-      '#description' => t('Size of the icon image in pixels.')
+      '#description' => t('Size of the icon image in pixels.'),
     );
 
     $form['icon']['iconSize']['x'] = array(
@@ -213,7 +213,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#title' => t('Icon Anchor'),
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
-      '#description' => t('The coordinates of the "tip" of the icon (relative to its top left corner). The icon will be aligned so that this point is at the marker\'s geographical location.')
+      '#description' => t('The coordinates of the "tip" of the icon (relative to its top left corner). The icon will be aligned so that this point is at the marker\'s geographical location.'),
     );
 
     $form['icon']['iconAnchor']['x'] = array(
@@ -238,7 +238,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#title' => t('Shadow Anchor'),
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
-      '#description' => t('The point from which the shadow is shown.')
+      '#description' => t('The point from which the shadow is shown.'),
     );
     $form['icon']['shadowAnchor']['x'] = array(
       '#title' => t('X'),
@@ -261,7 +261,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#title' => t('Popup Anchor'),
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
-      '#description' => t('The point from which the marker popup opens, relative to the anchor point.')
+      '#description' => t('The point from which the marker popup opens, relative to the anchor point.'),
     );
 
     $form['icon']['popupAnchor']['x'] = array(
@@ -293,7 +293,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
   }
 
   /**
-   * Renders view
+   * Renders view:
    */
   function render() {
     if (!empty($this->view->live_preview)) {
@@ -310,7 +310,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
         if (!empty($geofield)) {
           $points = leaflet_process_geofield($geofield);
 
-          // Render the entity with the selected view mode
+          // Render the entity with the selected view mode:
           if ($this->options['description_field'] === '#rendered_entity' && is_object($result)) {
             $entities = entity_load($this->entity_type, array($result->{$this->entity_info['entity keys']['id']}));
 
@@ -323,19 +323,19 @@ class leaflet_views_plugin_style extends views_plugin_style {
             $description = drupal_render($build);
           }
 
-          // Normal rendering via fields
+          // Normal rendering via fields:
           elseif ($this->options['description_field']) {
             $description = $this->rendered_fields[$id][$this->options['description_field']];
           }
 
-          // Attach pop-ups if we have a description field
+          // Attach pop-ups if we have a description field:
           if (isset($description)) {
             foreach ($points as &$point) {
               $point['popup'] = $description;
             }
           }
 
-          // Attach also titles, they might be used later on
+          // Attach also titles, they might be used later on.
           if ($this->options['name_field']) {
             foreach ($points as &$point) {
               $point['label'] = $this->rendered_fields[$id][$this->options['name_field']];
@@ -347,7 +347,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
 
           $data = array_merge($data, $points);
 
-          if (!empty($this->options['icon']) && $this->options['icon']['iconUrl']) {
+          if (!$use_html_marker && !empty($this->options['icon']) && $this->options['icon']['iconUrl']) {
             foreach ($data as $key => $feature) {
               $data[$key]['icon'] = $this->options['icon'];
             }
