@@ -267,32 +267,36 @@
       }
     },
 
-    create_json: function(json) {
-      lJSON = new L.GeoJSON();
+    create_json:function(json) {
+      lJSON = new L.GeoJSON(json, {
+        onEachFeature:function (feature, layer) {
+          var has_properties = (typeof feature.properties != 'undefined');
 
-      lJSON.on('featureparse', function (e) {
-        e.layer.bindPopup(e.properties.popup);
-
-        for (var layer_id in e.layer._layers) {
-          for (var i in e.layer._layers[layer_id]._latlngs) {
-            Drupal.leaflet.bounds.push(e.layer._layers[layer_id]._latlngs[i]);
+          // bind popups
+          if (has_properties && typeof feature.properties.popup != 'undefined') {
+            layer.bindPopup(feature.properties.popup);
           }
-        }
 
-        if (e.properties.style) {
-          e.layer.setStyle(e.properties.style);
-        }
+          for (var layer_id in layer._layers) {
+            for (var i in layer._layers[layer_id]._latlngs) {
+              Drupal.leaflet.bounds.push(layer._layers[layer_id]._latlngs[i]);
+            }
+          }
 
-        if (e.properties.leaflet_id) {
-          e.layer._leaflet_id = e.properties.leaflet_id;
+          if (has_properties && typeof feature.properties.style != 'undefined') {
+            layer.setStyle(feature.properties.style);
+          }
+
+          if (has_properties && typeof feature.properties.leaflet_id != 'undefined') {
+            layer._leaflet_id = feature.properties.leaflet_id;
+          }
         }
       });
 
-      lJSON.addData(json);
       return lJSON;
     },
 
-    fitbounds: function(lMap) {
+    fitbounds:function (lMap) {
       if (this.bounds.length > 0) {
         lMap.fitBounds(new L.LatLngBounds(this.bounds));
       }
