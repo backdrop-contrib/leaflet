@@ -196,7 +196,11 @@
       this.bounds.push(latLng);
       var lMarker;
 
-      if (marker.icon) {
+      if (marker.html) {
+        var icon = new L.DivIcon({html: marker.html, className: marker.html_class});
+        lMarker = new L.Marker(latLng, {icon:icon});
+      }
+      else if (marker.icon) {
         var icon = new L.Icon({iconUrl: marker.icon.iconUrl});
 
         // override applicable marker defaults

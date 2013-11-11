@@ -167,6 +167,16 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#collapsed' => !isset($this->options['icon']['iconUrl']),
     );
 
+    $form['icon']['iconType'] = array(
+      '#type' => 'radios',
+      '#title' => t('Icon Source'),
+      '#default_value' => isset($this->options['icon']['iconType']) ? $this->options['icon']['iconType'] : 'marker',
+      '#options' => array(
+        'marker' => "Icon File",
+        'html' => "Field (html DivIcon)",
+      ),
+    );
+
     $form['icon']['iconUrl'] = array(
       '#title' => t('Icon URL'),
       '#description' => t('Can be an absolute or relative URL.'),
@@ -174,6 +184,11 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#maxlength' => 999,
       '#default_value' => isset($this->options['icon']['iconUrl']) ? $this->options['icon']['iconUrl'] : '',
       '#element_validate' => array('leaflet_icon_validate'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="style_options[icon][iconType]"]' => array('value' => 'marker'),
+        ),
+      ),
     );
 
     $form['icon']['shadowUrl'] = array(
@@ -182,6 +197,11 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#maxlength' => 999,
       '#default_value' => isset($this->options['icon']['shadowUrl']) ? $this->options['icon']['shadowUrl'] : '',
       '#element_validate' => array('leaflet_icon_validate'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="style_options[icon][iconType]"]' => array('value' => 'marker'),
+        ),
+      ),
     );
 
     $form['icon']['iconSize'] = array(
@@ -189,6 +209,11 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
       '#description' => t('Size of the icon image in pixels.'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="style_options[icon][iconType]"]' => array('value' => 'marker'),
+        ),
+      ),
     );
 
     $form['icon']['iconSize']['x'] = array(
@@ -214,6 +239,11 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
       '#description' => t('The coordinates of the "tip" of the icon (relative to its top left corner). The icon will be aligned so that this point is at the marker\'s geographical location.'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="style_options[icon][iconType]"]' => array('value' => 'marker'),
+        ),
+      ),
     );
 
     $form['icon']['iconAnchor']['x'] = array(
@@ -239,7 +269,13 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
       '#description' => t('The point from which the shadow is shown.'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="style_options[icon][iconType]"]' => array('value' => 'marker'),
+        ),
+      ),
     );
+
     $form['icon']['shadowAnchor']['x'] = array(
       '#title' => t('X'),
       '#type' => 'textfield',
@@ -248,6 +284,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#default_value' => isset($this->options['icon']['shadowAnchor']['x']) ? $this->options['icon']['shadowAnchor']['x'] : '',
       '#element_validate' => array('element_validate_number'),
     );
+
     $form['icon']['shadowAnchor']['y'] = array(
       '#title' => t('Y'),
       '#type' => 'textfield',
@@ -262,6 +299,11 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
       '#description' => t('The point from which the marker popup opens, relative to the anchor point.'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="style_options[icon][iconType]"]' => array('value' => 'marker'),
+        ),
+      ),
     );
 
     $form['icon']['popupAnchor']['x'] = array(
@@ -281,6 +323,34 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#default_value' => isset($this->options['icon']['popupAnchor']['y']) ? $this->options['icon']['popupAnchor']['y'] : '',
       '#element_validate' => array('element_validate_number'),
     );
+
+    $form['icon']['html'] = array(
+      '#type' => 'select',
+      '#title' => t('Marker HTML field'),
+      '#description' => t('Views field to use as output for a map marker.'),
+      '#options' => array_merge(array('' => ''), $fields),
+      '#default_value' => isset($this->options['icon']['html']) ? $this->options['icon']['html'] : '',
+      '#states' => array(
+        'visible' => array(
+          ':input[name="style_options[icon][iconType]"]' => array('value' => 'html'),
+        ),
+        'required' => array(
+          ':input[name="style_options[icon][iconType]"]' => array('value' => 'html'),
+        ),
+      ),
+    );
+
+    $form['icon']['htmlClass'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Marker HTML class'),
+      '#description' => t('Optional class name for the div used to wrap field output. For multiple classes, separate with a space.'),
+      '#default_value' => isset($this->options['icon']['htmlClass']) ? $this->options['icon']['htmlClass'] : '',
+      '#states' => array(
+        'visible' => array(
+          ':input[name="style_options[icon][iconType]"]' => array('value' => 'html'),
+        ),
+      ),
+    );
   }
 
   /**
@@ -293,7 +363,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
   }
 
   /**
-   * Renders view:
+   * Renders view.
    */
   function render() {
     if (!empty($this->view->live_preview)) {
@@ -344,6 +414,22 @@ class leaflet_views_plugin_style extends views_plugin_style {
 
           // Let modules modify the points data.
           drupal_alter('leaflet_views_alter_points_data', $result, $points);
+
+          // Check for field-based html icon configuration:
+          $use_html_marker = $this->options['icon']['iconType'] == 'html';
+          if ($use_html_marker) {
+            $html = $this->get_field($id, $this->options['icon']['html']);
+
+            // Clean the user-entered classes.
+            $classes = explode(' ', $this->options['icon']['htmlClass']);
+            array_walk($classes, 'drupal_html_class');
+            $classes = implode(' ', $classes);
+
+            foreach ($points as $key => $point) {
+              $points[$key]['html'] = $html;
+              $points[$key]['html_class'] = $classes;
+            }
+          }
 
           $data = array_merge($data, $points);
 
