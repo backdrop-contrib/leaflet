@@ -48,7 +48,7 @@ $features = array(
     'lat' => 12.32,
     'lon' => 123.45,
     'icon' => array(
-      'iconUrl' => 'sites/default/files/mymarker.png
+      'iconUrl' => 'sites/default/files/mymarker.png'
     ),
     'popup' => l($node->title, 'node/' . $node->nid),
     'leaflet_id' => 'some unique ID'
