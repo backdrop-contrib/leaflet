@@ -1,5 +1,5 @@
 <?php
-require_once ('leaflet.formatters.inc');
+module_load_include('inc', 'leaflet', 'leaflet.formatters');
 
 /**
  * Implements hook_theme().
