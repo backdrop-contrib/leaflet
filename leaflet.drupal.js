@@ -228,6 +228,11 @@
       else {
         lMarker = new L.Marker(latLng);
       }
+
+      if (marker.label) {
+        lMarker.options.title = marker.label;
+      }
+
       return lMarker;
     },
 
