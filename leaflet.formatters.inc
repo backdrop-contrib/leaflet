@@ -342,6 +342,39 @@ function leaflet_process_geofield($items = array()) {
 
         $data[] = $datum;
         break;
+
+      case 'geometrycollection':
+        $geom = geoPHP::load($item['wkt'], 'wkt');
+        foreach ($geom as $geom_items) {
+          foreach ($geom_items as $geom_item) {
+            $class = get_class($geom_item);
+            switch ($class) {
+              case 'Point':
+                $datum = array();
+                $datum['type'] = 'point';
+                $datum += array(
+                  'lat' => (float) $geom_item->coords[1],
+                  'lon' => (float) $geom_item->coords[0],
+                );
+                $data[] = $datum;
+                break;
+
+              case 'LineString':
+                $points = $geom_item->getComponents();
+                $datum = array();
+                $datum['type'] = 'linestring';
+                foreach ($points as $component) {
+                  $datum['points'][] = array(
+                    'lat' => $component->getY(),
+                    'lon' => $component->getX(),
+                  );
+                }
+                $data[] = $datum;
+                break;
+            }
+          }
+        }
+        break;
     }
   }
 
