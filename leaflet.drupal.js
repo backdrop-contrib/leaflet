@@ -123,7 +123,7 @@
             lFeature = Drupal.leaflet.create_multipoly(feature);
             break;
           case 'json':
-            lFeature = Drupal.leaflet.create_json(feature.json)
+            lFeature = Drupal.leaflet.create_json(feature.json);
             break;
 		  case 'circle':
 		    lFeature = Drupal.leaflet.create_circle(feature);
@@ -147,7 +147,7 @@
       }
 
     }
-  }
+  };
 
   Drupal.leaflet = {
 
@@ -175,7 +175,7 @@
             x: tilePoint.x,
             y: Math.pow(2, zoom) - tilePoint.y - 1
           }, this.options));
-        }
+        };
       }
       return map_layer;
     },
@@ -205,22 +205,22 @@
 
         // override applicable marker defaults
         if (marker.icon.iconSize) {
-          icon.options.iconSize = new L.Point(parseInt(marker.icon.iconSize.x), parseInt(marker.icon.iconSize.y));
+          icon.options.iconSize = new L.Point(parseInt(marker.icon.iconSize.x, 10), parseInt(marker.icon.iconSize.y, 10));
         }
         if (marker.icon.iconAnchor) {
-          icon.options.iconAnchor = new L.Point(parseFloat(marker.icon.iconAnchor.x), parseFloat(marker.icon.iconAnchor.y));
+          icon.options.iconAnchor = new L.Point(parseFloat(marker.icon.iconAnchor.x, 10), parseFloat(marker.icon.iconAnchor.y, 10));
         }
         if (marker.icon.popupAnchor) {
-          icon.options.popupAnchor = new L.Point(parseFloat(marker.icon.popupAnchor.x), parseFloat(marker.icon.popupAnchor.y));
+          icon.options.popupAnchor = new L.Point(parseFloat(marker.icon.popupAnchor.x, 10), parseFloat(marker.icon.popupAnchor.y, 10));
         }
         if (marker.icon.shadowUrl !== undefined) {
           icon.options.shadowUrl = marker.icon.shadowUrl;
         }
         if (marker.icon.shadowSize) {
-          icon.options.shadowSize = new L.Point(parseInt(marker.icon.shadowSize.x), parseInt(marker.icon.shadowSize.y));
+          icon.options.shadowSize = new L.Point(parseInt(marker.icon.shadowSize.x, 10), parseInt(marker.icon.shadowSize.y, 10));
         }
         if (marker.icon.shadowAnchor) {
-          icon.options.shadowAnchor = new L.Point(parseInt(marker.icon.shadowAnchor.x), parseInt(marker.icon.shadowAnchor.y));
+          icon.options.shadowAnchor = new L.Point(parseInt(marker.icon.shadowAnchor.x, 10), parseInt(marker.icon.shadowAnchor.y, 10));
         }
 
         lMarker = new L.Marker(latLng, {icon:icon});
@@ -310,7 +310,6 @@
         lMap.fitBounds(new L.LatLngBounds(this.bounds));
       }
     }
-
-  }
+  };
 
 })(jQuery);
