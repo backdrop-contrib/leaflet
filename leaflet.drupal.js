@@ -180,8 +180,9 @@
       return map_layer;
     },
 
-	create_circle: function(circle) {
+    create_circle: function(circle) {
       var latLng = new L.LatLng(circle.lat, circle.lon);
+      latLng = latLng.wrap();
       this.bounds.push(latLng);
       if (circle.options) {
         return new L.Circle(latLng, circle.radius, circle.options);
@@ -193,6 +194,7 @@
 
     create_point: function(marker) {
       var latLng = new L.LatLng(marker.lat, marker.lon);
+      latLng = latLng.wrap();
       this.bounds.push(latLng);
       var lMarker;
 
@@ -240,6 +242,7 @@
       var latlngs = [];
       for (var i = 0; i < polyline.points.length; i++) {
         var latlng = new L.LatLng(polyline.points[i].lat, polyline.points[i].lon);
+        latlng = latlng.wrap();
         latlngs.push(latlng);
         this.bounds.push(latlng);
       }
@@ -250,6 +253,7 @@
       var latlngs = [];
       for (var i = 0; i < polygon.points.length; i++) {
         var latlng = new L.LatLng(polygon.points[i].lat, polygon.points[i].lon);
+        latlng = latlng.wrap();
         latlngs.push(latlng);
         this.bounds.push(latlng);
       }
@@ -263,6 +267,7 @@
         var polygon = multipoly.component[x];
         for (var i = 0; i < polygon.points.length; i++) {
           var latlng = new L.LatLng(polygon.points[i].lat, polygon.points[i].lon);
+          latlng = latlng.wrap();
           latlngs.push(latlng);
           this.bounds.push(latlng);
         }
