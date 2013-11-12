@@ -10,7 +10,12 @@ function leaflet_field_formatter_info() {
     $formatters['geofield_leaflet'] = array(
       'label' => t('Leaflet'),
       'field types' => array('geofield'),
-      'settings' => array('leaflet_map' => '', 'icon' => '', 'height' => 400, 'popup' => 0),
+      'settings' => array(
+        'leaflet_map' => '',
+        'icon' => '',
+        'height' => 400,
+        'popup' => 0,
+      ),
     );
   }
 
@@ -39,6 +44,7 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#default_value' => $settings['leaflet_map'],
       '#required' => TRUE,
     );
+
     $element['height'] = array(
       '#title' => t('Map Height'),
       '#type' => 'textfield',
@@ -46,12 +52,14 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#field_suffix' => t('px'),
       '#element_validate' => array('element_validate_integer_positive'),
     );
+
     $element['popup'] = array(
       '#title' => t('Popup'),
       '#description' => t('Show a popup for single location fields.'),
       '#type' => 'checkbox',
       '#default_value' => $settings['popup'],
     );
+
     $element['icon'] = array(
       '#title' => t('Map Icon'),
       '#description' => t('These settings will overwrite the icon settings defined in the map definition.'),
@@ -59,28 +67,31 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#collapsible' => TRUE,
       '#collapsed' => !isset($settings['icon']['iconUrl']),
     );
+
     $element['icon']['iconUrl'] = array(
       '#title' => t('Icon URL'),
       '#description' => t('Can be an absolute or relative URL.'),
       '#type' => 'textfield',
       '#maxlength' => 999,
       '#default_value' => $settings['icon']['iconUrl'],
-      '#element_validate' => array('leaflet_icon_validate')
+      '#element_validate' => array('leaflet_icon_validate'),
     );
+
     $element['icon']['shadowUrl'] = array(
       '#title' => t('Icon Shadow URL'),
       '#type' => 'textfield',
       '#maxlength' => 999,
       '#default_value' => $settings['icon']['shadowUrl'],
-      '#element_validate' => array('leaflet_icon_validate')
+      '#element_validate' => array('leaflet_icon_validate'),
     );
 
     $element['icon']['iconSize'] = array(
       '#title' => t('Icon Size'),
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
-      '#description' => t('Size of the icon image in pixels.')
+      '#description' => t('Size of the icon image in pixels.'),
     );
+
     $element['icon']['iconSize']['x'] = array(
       '#title' => t('Width'),
       '#type' => 'textfield',
@@ -89,6 +100,7 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#default_value' => isset($settings['icon']['iconSize']['x']) ? $settings['icon']['iconSize']['x'] : '',
       '#element_validate' => array('element_validate_integer_positive'),
     );
+
     $element['icon']['iconSize']['y'] = array(
       '#title' => t('Height'),
       '#type' => 'textfield',
@@ -103,8 +115,9 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
       '#description' => t('The coordinates of the "tip" of the icon (relative to
-        its top left corner). The icon will be aligned so that this point is at the marker\'s geographical location.')
+        its top left corner). The icon will be aligned so that this point is at the marker\'s geographical location.'),
     );
+
     $element['icon']['iconAnchor']['x'] = array(
       '#title' => t('X'),
       '#type' => 'textfield',
@@ -113,6 +126,7 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#default_value' => isset($settings['icon']['iconAnchor']['x']) ? $settings['icon']['iconAnchor']['x'] : '',
       '#element_validate' => array('element_validate_number'),
     );
+
     $element['icon']['iconAnchor']['y'] = array(
       '#title' => t('Y'),
       '#type' => 'textfield',
@@ -126,8 +140,9 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#title' => t('Shadow Anchor'),
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
-      '#description' => t('The point from which the shadow is shown.')
+      '#description' => t('The point from which the shadow is shown.'),
     );
+
     $element['icon']['shadowAnchor']['x'] = array(
       '#title' => t('X'),
       '#type' => 'textfield',
@@ -136,6 +151,7 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#default_value' => isset($settings['icon']['shadowAnchor']['x']) ? $settings['icon']['shadowAnchor']['x'] : '',
       '#element_validate' => array('element_validate_number'),
     );
+
     $element['icon']['shadowAnchor']['y'] = array(
       '#title' => t('Y'),
       '#type' => 'textfield',
@@ -149,8 +165,7 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#title' => t('Popup Anchor'),
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
-      '#description' => t('The point from which the marker popup opens, relative
-        to the anchor point.')
+      '#description' => t('The point from which the marker popup opens, relative to the anchor point.'),
     );
     $element['icon']['popupAnchor']['x'] = array(
       '#title' => t('X'),
@@ -160,6 +175,7 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#default_value' => isset($settings['icon']['popupAnchor']['x']) ? $settings['icon']['popupAnchor']['x'] : '',
       '#element_validate' => array('element_validate_number'),
     );
+
     $element['icon']['popupAnchor']['y'] = array(
       '#title' => t('Y'),
       '#type' => 'textfield',
@@ -175,10 +191,6 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
 
 /**
  * Validation callback for icon urls.
- *
- * @param $element
- * @param $form_state
- * @param $form
  */
 function leaflet_icon_validate($element, &$form_state, $form) {
   if (!empty($element['#value']) && !valid_url($element['#value'])) {
@@ -219,7 +231,7 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
 
         $features = leaflet_process_geofield($items);
 
-        // if only a single feature, set the popup content to the entity title
+        // If only a single feature, set the popup content to the entity title:
         if ($settings['popup'] && count($items) == 1) {
           $features[0]['popup'] = entity_label($entity_type, $entity);
         }
@@ -230,7 +242,9 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
           }
         }
 
-        $element[0] = array('#markup' => leaflet_render_map($map, $features, $settings['height'] . 'px'));
+        $element[0] = array(
+          '#markup' => leaflet_render_map($map, $features, $settings['height'] . 'px'),
+        );
 
         break;
     }
@@ -240,13 +254,14 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
 }
 
 /**
- * Convert a geofield into an array of map points for consumption by the
- * leaflet module as expected by leaflet_render_map().
+ * Convert a geofield into an array of map points.
  *
  * @param array $items
  *   A collection of geofield values.
  *
  * @return array
+ *   Points built for consumption by the leaflet module as expected by
+ * leaflet_render_map().
  */
 function leaflet_process_geofield($items = array()) {
   $data = array();
@@ -254,7 +269,7 @@ function leaflet_process_geofield($items = array()) {
   geophp_load();
 
   foreach ($items as $delta => $item) {
-    // translate linestring to polyline
+    // Translate linestring to polyline:
     if ($item['geo_type'] == 'multilinestring') {
       $item['geo_type'] = 'multipolyline';
     }
@@ -272,6 +287,7 @@ function leaflet_process_geofield($items = array()) {
 
         $data[] = $datum;
         break;
+
       case 'linestring':
         $geom = geoPHP::load($item['wkt'], 'wkt');
         $components = $geom->getComponents();
@@ -285,6 +301,7 @@ function leaflet_process_geofield($items = array()) {
 
         $data[] = $datum;
         break;
+
       case 'polygon':
         $geom = geoPHP::load($item['wkt'], 'wkt');
         $tmp = $geom->getComponents();
@@ -299,6 +316,7 @@ function leaflet_process_geofield($items = array()) {
 
         $data[] = $datum;
         break;
+
       case 'multipolygon':
       case 'multipolyline':
         $geom = geoPHP::load($item['wkt'], 'wkt');
