@@ -10,6 +10,7 @@ function leaflet_field_formatter_info() {
     $formatters['geofield_leaflet'] = array(
       'label' => t('Leaflet'),
       'field types' => array('geofield'),
+      'settings' => array('leaflet_map' => '', 'icon' => '', 'height' => 400, 'popup' => ''),
       'settings' => array(
         'leaflet_map' => '',
         'icon' => '',
@@ -28,6 +29,7 @@ function leaflet_field_formatter_info() {
 function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
+  $entity_type = $instance['entity_type'];
 
   $element = array();
 
@@ -53,11 +55,33 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#element_validate' => array('element_validate_integer_positive'),
     );
 
-    $element['popup'] = array(
+    $element['popup']['show'] = array(
       '#title' => t('Popup'),
       '#description' => t('Show a popup for single location fields.'),
       '#type' => 'checkbox',
-      '#default_value' => $settings['popup'],
+      '#default_value' => $settings['popup']['show'],
+    );
+    $element['popup']['text'] = array(
+      '#title' => t('Popup text'),
+      '#description' => t('Enter the text for the popup.'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['popup']['text'],
+      '#states' => array(
+        'visible' => array(
+          ':input[name$="[popup][show]"]' => array('checked' => TRUE),
+        ),
+      ),
+    );
+    $element['popup']['tokens'] = array(
+      '#type' => 'container',
+      '#theme' => 'token_tree',
+      '#token_types' => array($entity_type),
+      '#dialog' => TRUE,
+      '#states' => array(
+        'visible' => array(
+          ':input[name$="[popup][show]"]' => array('checked' => TRUE),
+        ),
+      ),
     );
 
     $element['icon'] = array(
@@ -233,7 +257,7 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
 
         // If only a single feature, set the popup content to the entity title:
         if ($settings['popup'] && count($items) == 1) {
-          $features[0]['popup'] = entity_label($entity_type, $entity);
+          $features[0]['popup'] = token_replace($settings['popup']['text'], array($entity_type => $entity), array('clear' => TRUE));
         }
 
         if (!empty($settings['icon']) && $settings['icon']['iconUrl']) {
