@@ -125,9 +125,12 @@
           case 'json':
             lFeature = Drupal.leaflet.create_json(feature.json);
             break;
-		  case 'circle':
-		    lFeature = Drupal.leaflet.create_circle(feature);
-			break;
+          case 'popup':
+            lFeature = Drupal.leaflet.create_popup(feature);
+            break;
+          case 'circle':
+            lFeature = Drupal.leaflet.create_circle(feature);
+            break;
         }
 
         // assign our given unique ID, useful for associating nodes
@@ -308,6 +311,17 @@
       });
 
       return lJSON;
+    },
+
+    create_popup: function(popup) {
+      var latLng = new L.LatLng(popup.lat, popup.lon);
+      this.bounds.push(latLng);
+      var lPopup = new L.Popup();
+      lPopup.setLatLng(latLng);
+      if (popup.content) {
+        lPopup.setContent(popup.content);
+      }
+      return lPopup;
     },
 
     fitbounds:function (lMap) {
