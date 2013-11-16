@@ -10,7 +10,6 @@ function leaflet_field_formatter_info() {
     $formatters['geofield_leaflet'] = array(
       'label' => t('Leaflet'),
       'field types' => array('geofield'),
-      'settings' => array('leaflet_map' => '', 'icon' => '', 'height' => 400, 'popup' => ''),
       'settings' => array(
         'leaflet_map' => '',
         'icon' => '',
