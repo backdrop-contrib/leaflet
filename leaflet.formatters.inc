@@ -13,9 +13,9 @@ function leaflet_field_formatter_info() {
       'settings' => array(
         'leaflet_map' => '',
         'icon' => '',
+        'vector_display' => '',
         'height' => 400,
         'popup' => 0,
-        'options' => '',
       ),
     );
   }
@@ -83,74 +83,13 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
         ),
       ),
     );
-    $element['options'] = array(
-      '#title' => t('Options'),
-      '#description' => t('These settings will overwrite the default options and constants shared between vector overlays (Polygon, Polyline, Circle). For mor information visit !url', array('!url' => l(t('dash pattern'), 'https://developer.mozilla.org/en/SVG/Attribute/stroke-dasharray'))),
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-    );
-    $element['options']['stroke'] = array(
-      '#title' => t('Stroke'),
-      '#description' => t('Whether to draw stroke along the path. Set it to false to disable borders on polygons or circles. Default: true'),
-      '#type' => 'checkbox',
-      '#default_value' => isset($settings['options']['stroke']) ? $settings['options']['stroke'] : 1,
-    );
-    $element['options']['color'] = array(
-      '#title' => t('Stroke Color'),
-      '#description' => t('Stroke color. Default: #03f'),
-      '#type' => 'textfield',
-      '#default_value' => isset($settings['options']['color']) ? $settings['options']['color'] : '',
-    );
-    $element['options']['weight'] = array(
-      '#title' => t('Stroke Weight'),
-      '#description' => t('Stroke width in pixels. Default: 5'),
-      '#type' => 'textfield',
-      '#default_value' => isset($settings['options']['weight']) ? $settings['options']['weight'] : '',
-    );
-    $element['options']['opacity'] = array(
-      '#title' => t('Stroke Opacity'),
-      '#description' => t('Stroke opacity. Default: 0.5'),
-      '#type' => 'textfield',
-      '#default_value' => isset($settings['options']['opacity']) ? $settings['options']['opacity'] : '',
-    );
-    $element['options']['dashArray'] = array(
-      '#title' => t('Dash Array'),
-      '#description' => t("A string that defines the stroke !url. Doesn't work on canvas-powered layers (e.g. Android 2). Sample: 5, 5", array('!url' => l(t('dash pattern'), 'https://developer.mozilla.org/en/SVG/Attribute/stroke-dasharray'))),
-      '#type' => 'textfield',
-      '#default_value' => isset($settings['options']['dashArray']) ? $settings['options']['dashArray'] : '',
-    );
-    $element['options']['fill'] = array(
-      '#title' => t('Fill'),
-      '#description' => t('Whether to fill the path with color. Set it to false to disable filling on polygons or circles. Default: depends'),
-      '#type' => 'checkbox',
-      '#default_value' => isset($settings['options']['fill']) ? $settings['options']['fill'] : 1,
-    );
-    $element['options']['fillColor'] = array(
-      '#title' => t('Fill Color'),
-      '#description' => t('Fill color. Default: #03f'),
-      '#type' => 'textfield',
-      '#default_value' => isset($settings['options']['fillColor']) ? $settings['options']['fillColor'] : '',
-    );
-    $element['options']['fillOpacity'] = array(
-      '#title' => t('Fill Opacity'),
-      '#description' => t('Fill opacity. Default: 0.2'),
-      '#type' => 'textfield',
-      '#default_value' => isset($settings['options']['fillOpacity']) ? $settings['options']['fillOpacity'] : '',
-    );
-    $element['options']['clickable'] = array(
-      '#title' => t('Clickable'),
-      '#description' => t('If false, the vector will not emit mouse events and will act as a part of the underlying map. Default: true'),
-      '#type' => 'checkbox',
-      '#default_value' => isset($settings['options']['clickable']) ? $settings['options']['clickable'] : 1,
-    );
-    foreach($form['#fields'] as $field) {
-      $field_options[$field] = $field;
     foreach ($form['#fields'] as $fieldname) {
       $field_options[$fieldname] = $fieldname;
     }
     $fieldpath = 'fields[' . $field['field_name'] . '][settings_edit_form][settings]';
     $element['icon'] = leaflet_form_elements('icon', $settings, array('path' => $fieldpath, 'fields' => $field_options));
+    $element['vector_display'] = leaflet_form_elements('vector_display', $settings, array('path' => $fieldpath));
+
   }
   return $element;
 }
@@ -226,12 +165,12 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
           }
         }
 
-        if (!empty($settings['options'])) {
+        if (!empty($settings['vector_display'])) {
           foreach ($features as $key => $feature) {
             if ($feature['type'] != 'point') {
               // To avoid overwrite the options with empty values removes all
               // NULL, FALSE and empty Strings and leaves zero values.
-              $options = array_filter($settings['options'], 'strlen');
+              $options = array_filter($settings['vector_display'], 'strlen');
               $features[$key]['options'] = $options;
             }
           }
@@ -414,7 +353,6 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
       );
-
       $form_element['iconType'] = array(
         '#type' => 'radios',
         '#title' => t('Icon Source'),
@@ -585,6 +523,105 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
       );
       break;
 
+    case "vector_display":
+      $form_element = array(
+        '#title' => t('Vector Display Options'),
+        '#description' => t('These settings will overwrite the !options and constants shared between vector overlays (Polygon, Polyline, Circle).', array('!options' => l(t("default options"), 'http://leafletjs.com/reference.html#path'))),
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+      );
+      $form_element['stroke'] = array(
+        '#title' => t('Stroke'),
+        '#description' => t('Draw an outline around the shape. Uncheck to disable borders on polygons and circles. (Default: True)'),
+        '#type' => 'checkbox',
+        '#default_value' => isset($settings[$group]['stroke']) ? $settings[$group]['stroke'] : 1,
+      );
+      $form_element['stroke'] = array(
+        '#title' => t('Stroke'),
+        '#description' => t('Draw an outline around the shape. Uncheck to disable borders on polygons and circles. (Default: True)'),
+        '#type' => 'checkbox',
+        '#default_value' => isset($settings[$group]['stroke']) ? $settings[$group]['stroke'] : 1,
+      );
+      $form_element['color'] = array(
+        '#title' => t('Line Color'),
+        '#description' => t('Line color. (Default: #00030f)'),
+        '#type' => 'textfield',
+        '#default_value' => isset($settings[$group]['color']) ? $settings[$group]['color'] : '',
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][stroke]"]' => array('checked' => TRUE),
+          ),
+        ),
+      );
+      $form_element['weight'] = array(
+        '#title' => t('Line Weight'),
+        '#description' => t('Line width in pixels. (Default: 5)'),
+        '#type' => 'textfield',
+        '#default_value' => isset($settings[$group]['weight']) ? $settings[$group]['weight'] : '',
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][stroke]"]' => array('checked' => TRUE),
+          ),
+        ),
+      );
+      $form_element['opacity'] = array(
+        '#title' => t('Line Opacity'),
+        '#description' => t('Line opacity. A number between 0 (would make the line invisible) to 1 (no transparency at all). (Default: 0.5)'),
+        '#type' => 'textfield',
+        '#default_value' => isset($settings[$group]['opacity']) ? $settings[$group]['opacity'] : '',
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][stroke]"]' => array('checked' => TRUE),
+          ),
+        ),
+      );
+      $form_element['dashArray'] = array(
+        '#title' => t('Line Dash Pattern'),
+        '#description' => t("A string that defines the line's !url. Depending on your line weight, this can be hard to see. Note that this is ignored by canvas-powered layers (e.g. Android 2). Sample: 5, 5", array('!url' => l(t('dash pattern'), 'https://developer.mozilla.org/en/SVG/Attribute/stroke-dasharray'))),
+        '#type' => 'textfield',
+        '#default_value' => isset($settings[$group]['dashArray']) ? $settings[$group]['dashArray'] : '',
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][stroke]"]' => array('checked' => TRUE),
+          ),
+        ),
+      );
+      $form_element['fill'] = array(
+        '#title' => t('Fill'),
+        '#description' => t('Fill the shape with color. Default: "!depends"', array('!depends' => l(t("depends"), 'http://leafletjs.com/reference.html#path-fill'))),
+        '#type' => 'checkbox',
+        '#default_value' => isset($settings[$group]['fill']) ? $settings[$group]['fill'] : 1,
+      );
+      $form_element['fillColor'] = array(
+        '#title' => t('Fill Color'),
+        '#description' => t('Fill color. Default: #00030f'),
+        '#type' => 'textfield',
+        '#default_value' => isset($settings[$group]['fillColor']) ? $settings[$group]['fillColor'] : '',
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][fill]"]' => array('checked' => TRUE),
+          ),
+        ),
+      );
+      $form_element['fillOpacity'] = array(
+        '#title' => t('Fill Opacity'),
+        '#description' => t('Fill opacity. A number between 0 (would make the fill invisible) to 1 (no transparency at all). Default: 0.2'),
+        '#type' => 'textfield',
+        '#default_value' => isset($settings[$group]['fillOpacity']) ? $settings[$group]['fillOpacity'] : '',
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][fill]"]' => array('checked' => TRUE),
+          ),
+        ),
+      );
+      $form_element['clickable'] = array(
+        '#title' => t('Clickable'),
+        '#description' => t('If disabled, the vector will not emit mouse events, essentially acting as a part of the underlying map. Default: True'),
+        '#type' => 'checkbox',
+        '#default_value' => isset($settings[$group]['clickable']) ? $settings[$group]['clickable'] : 1,
+      );
+      break;
   }
   return $form_element;
 }
