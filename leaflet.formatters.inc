@@ -15,6 +15,7 @@ function leaflet_field_formatter_info() {
         'icon' => '',
         'height' => 400,
         'popup' => 0,
+        'options' => '',
       ),
     );
   }
@@ -82,6 +83,71 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
         ),
       ),
     );
+    $element['options'] = array(
+      '#title' => t('Options'),
+      '#description' => t('These settings will overwrite the default options and constants shared between vector overlays (Polygon, Polyline, Circle). For mor information visit !url', array('!url' => l(t('dash pattern'), 'https://developer.mozilla.org/en/SVG/Attribute/stroke-dasharray'))),
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    $element['options']['stroke'] = array(
+      '#title' => t('Stroke'),
+      '#description' => t('Whether to draw stroke along the path. Set it to false to disable borders on polygons or circles. Default: true'),
+      '#type' => 'checkbox',
+      '#default_value' => isset($settings['options']['stroke']) ? $settings['options']['stroke'] : 1,
+    );
+    $element['options']['color'] = array(
+      '#title' => t('Stroke Color'),
+      '#description' => t('Stroke color. Default: #03f'),
+      '#type' => 'textfield',
+      '#default_value' => isset($settings['options']['color']) ? $settings['options']['color'] : '',
+    );
+    $element['options']['weight'] = array(
+      '#title' => t('Stroke Weight'),
+      '#description' => t('Stroke width in pixels. Default: 5'),
+      '#type' => 'textfield',
+      '#default_value' => isset($settings['options']['weight']) ? $settings['options']['weight'] : '',
+    );
+    $element['options']['opacity'] = array(
+      '#title' => t('Stroke Opacity'),
+      '#description' => t('Stroke opacity. Default: 0.5'),
+      '#type' => 'textfield',
+      '#default_value' => isset($settings['options']['opacity']) ? $settings['options']['opacity'] : '',
+    );
+    $element['options']['dashArray'] = array(
+      '#title' => t('Dash Array'),
+      '#description' => t("A string that defines the stroke !url. Doesn't work on canvas-powered layers (e.g. Android 2). Sample: 5, 5", array('!url' => l(t('dash pattern'), 'https://developer.mozilla.org/en/SVG/Attribute/stroke-dasharray'))),
+      '#type' => 'textfield',
+      '#default_value' => isset($settings['options']['dashArray']) ? $settings['options']['dashArray'] : '',
+    );
+    $element['options']['fill'] = array(
+      '#title' => t('Fill'),
+      '#description' => t('Whether to fill the path with color. Set it to false to disable filling on polygons or circles. Default: depends'),
+      '#type' => 'checkbox',
+      '#default_value' => isset($settings['options']['fill']) ? $settings['options']['fill'] : 1,
+    );
+    $element['options']['fillColor'] = array(
+      '#title' => t('Fill Color'),
+      '#description' => t('Fill color. Default: #03f'),
+      '#type' => 'textfield',
+      '#default_value' => isset($settings['options']['fillColor']) ? $settings['options']['fillColor'] : '',
+    );
+    $element['options']['fillOpacity'] = array(
+      '#title' => t('Fill Opacity'),
+      '#description' => t('Fill opacity. Default: 0.2'),
+      '#type' => 'textfield',
+      '#default_value' => isset($settings['options']['fillOpacity']) ? $settings['options']['fillOpacity'] : '',
+    );
+    $element['options']['clickable'] = array(
+      '#title' => t('Clickable'),
+      '#description' => t('If false, the vector will not emit mouse events and will act as a part of the underlying map. Default: true'),
+      '#type' => 'checkbox',
+      '#default_value' => isset($settings['options']['clickable']) ? $settings['options']['clickable'] : 1,
+    );
+    foreach($form['#fields'] as $field) {
+      $field_options[$field] = $field;
+    }
+    $element['icon'] = leaflet_form_elements('icon', $settings, array('path' => 'fields[field_geolocation][settings_edit_form][settings]', 'fields' => $field_options));
   }
   return $element;
 }
@@ -157,6 +223,14 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
           }
         }
 
+        if (!empty($settings['options'])) {
+          foreach ($features as $key => $feature) {
+            if ($feature['type'] != 'point') {
+              // To avoid overwrite the options with empty values removes all
+              // NULL, FALSE and empty Strings and leaves zero values.
+              $options = array_filter($settings['options'], 'strlen');
+              $features[$key]['options'] = $options;
+            }
           }
         }
 

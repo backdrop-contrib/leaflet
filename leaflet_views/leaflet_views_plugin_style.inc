@@ -35,6 +35,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
     $options['map'] = array('default' => '');
     $options['height'] = array('default' => '400');
     $options['icon'] = array();
+    $options['options'] = array();
     return $options;
   }
 
@@ -160,6 +161,77 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#default_value' => isset($this->options['hide_empty']) ? $this->options['hide_empty'] : TRUE,
     );
 
+    $form['options'] = array(
+      '#title' => t('Options'),
+      '#description' => t('These settings will overwrite the default options and constants shared between vector overlays (Polygon, Polyline, Circle). For mor information visit !url', array('!url' => l(t('dash pattern'), 'https://developer.mozilla.org/en/SVG/Attribute/stroke-dasharray'))),
+      '#type' => 'fieldset', 
+      '#collapsible' => TRUE, 
+      '#collapsed' => TRUE,
+    ); 
+
+    $form['options']['stroke'] = array(
+      '#title' => t('Stroke'),
+      '#description' => t('Whether to draw stroke along the path. Set it to false to disable borders on polygons or circles. Default: true'),
+      '#type' => 'checkbox', 
+      '#default_value' => isset($this->options['options']['stroke']) ? $this->options['options']['stroke'] : 1,
+    ); 
+
+    $form['options']['color'] = array(
+      '#title' => t('Stroke Color'),
+      '#description' => t('Stroke color. Default: #03f'),
+      '#type' => 'textfield', 
+      '#default_value' => isset($this->options['options']['color']) ? $this->options['options']['color'] : '',
+    ); 
+
+    $form['options']['weight'] = array(
+      '#title' => t('Stroke Weight'),
+      '#description' => t('Stroke width in pixels. Default: 5'),
+      '#type' => 'textfield', 
+      '#default_value' => isset($this->options['options']['weight']) ? $this->options['options']['weight'] : '',
+    ); 
+
+    $form['options']['opacity'] = array(
+      '#title' => t('Stroke Opacity'),
+      '#description' => t('Stroke opacity. Default: 0.5'),
+      '#type' => 'textfield', 
+      '#default_value' => isset($this->options['options']['opacity']) ? $this->options['options']['opacity'] : '',
+    ); 
+
+    $form['options']['dashArray'] = array(
+      '#title' => t('Dash Array'),
+      '#description' => t("A string that defines the stroke !url. Doesn't work on canvas-powered layers (e.g. Android 2). Sample: 5, 5", array('!url' => l(t('dash pattern'), 'https://developer.mozilla.org/en/SVG/Attribute/stroke-dasharray'))),
+      '#type' => 'textfield', 
+      '#default_value' => isset($this->options['options']['dashArray']) ? $this->options['options']['dashArray'] : '',
+    ); 
+
+    $form['options']['fill'] = array(
+      '#title' => t('Fill'),
+      '#description' => t('Whether to fill the path with color. Set it to false to disable filling on polygons or circles. Default: depends'),
+      '#type' => 'checkbox', 
+      '#default_value' => isset($this->options['options']['fill']) ? $this->options['options']['fill'] : 1,
+    ); 
+
+    $form['options']['fillColor'] = array(
+      '#title' => t('Fill Color'),
+      '#description' => t('Fill color. Default: #03f'),
+      '#type' => 'textfield', 
+      '#default_value' => isset($this->options['options']['fillColor']) ? $this->options['options']['fillColor'] : '',
+    ); 
+
+    $form['options']['fillOpacity'] = array(
+      '#title' => t('Fill Opacity'),
+      '#description' => t('Fill opacity. Default: 0.2'),
+      '#type' => 'textfield', 
+      '#default_value' => isset($this->options['options']['fillOpacity']) ? $this->options['options']['fillOpacity'] : '',
+    ); 
+
+    $form['options']['clickable'] = array(
+      '#title' => t('Clickable'),
+      '#description' => t('If false, the vector will not emit mouse events and will act as a part of the underlying map. Default: true'),
+      '#type' => 'checkbox', 
+      '#default_value' => isset($this->options['options']['clickable']) ? $this->options['options']['clickable'] : 1,
+    ); 
+
     $form['icon'] = leaflet_form_elements('icon', $this->options, array('path' => 'style_options', 'fields' => $fields));
   }
 
@@ -248,6 +320,18 @@ class leaflet_views_plugin_style extends views_plugin_style {
               $data[$key]['icon'] = $this->options['icon'];
             }
           }
+          
+          if (!empty($this->options['options'])) {
+            foreach ($data as $key => $feature) {
+              if ($feature['type'] != 'point') {
+                // To avoid overwrite the options with empty values removes all
+                // NULL, FALSE and empty Strings and leaves zero values.
+                $options = array_filter($this->options['options'], 'strlen' );
+                $data[$key]['options'] = $options;
+              }
+            }
+          }
+          
         }
       }
 
