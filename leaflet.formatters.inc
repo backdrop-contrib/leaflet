@@ -341,17 +341,15 @@ function leaflet_process_geofield($items = array()) {
         break;
 
       case 'multipolygon':
-      case 'multipolyline':
         $geom = geoPHP::load($item['wkt'], 'wkt');
 
-        if ($item['geo_type'] == 'multipolyline') {
-          $components = $geom->getComponents();
+        $tmp = $geom->getComponents();
+        foreach ($tmp as $polygon) {
+          $polygon_component = $polygon->getComponents();
+          foreach ($polygon_component as $linestring) {
+            $components[] = $linestring;
+          }
         }
-        else {
-          $tmp = $geom->getComponents();
-          $components = $tmp[0]->getComponents();
-        }
-
         foreach ($components as $key => $component) {
           $subcomponents = $component->getComponents();
           foreach ($subcomponents as $subcomponent) {
@@ -364,6 +362,21 @@ function leaflet_process_geofield($items = array()) {
         }
 
         $data[] = $datum;
+        break;
+
+      case 'multipolyline':
+        $geom = geoPHP::load($item['wkt'], 'wkt');
+        $components = $geom->getComponents();
+        foreach ($components as $key => $component) {
+          $subcomponents = $component->getComponents();
+          foreach ($subcomponents as $subcomponent) {
+            $datum['component'][$key]['points'][] = array(
+              'lat' => $subcomponent->getY(),
+              'lon' => $subcomponent->getX(),
+            );
+          }
+          unset($subcomponent);
+        }
         break;
 
       case 'geometrycollection':
