@@ -408,29 +408,28 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
   switch ($group) {
     case 'icon':
       $form_element = array(
-        '#title' => t('Map Icon!'),
+        '#title' => t('Point Icon'),
         '#description' => t('These settings will overwrite the icon settings defined in the map definition.'),
         '#type' => 'fieldset',
         '#collapsible' => TRUE,
-        '#collapsed' => !isset($settings['icon']['iconUrl']),
+        '#collapsed' => TRUE,
       );
 
       $form_element['iconType'] = array(
         '#type' => 'radios',
         '#title' => t('Icon Source'),
-        '#default_value' => isset($settings['icon']['iconType']) ? $settings['icon']['iconType'] : 'marker',
+        '#default_value' => isset($settings[$group]['iconType']) ? $settings[$group]['iconType'] : 'marker',
         '#options' => array(
           'marker' => "Icon File",
           'html' => "Field (html DivIcon)",
         ),
       );
-
       $form_element['iconUrl'] = array(
         '#title' => t('Icon URL'),
         '#description' => t('Can be an absolute or relative URL.'),
         '#type' => 'textfield',
         '#maxlength' => 999,
-        '#default_value' => isset($settings['icon']['iconUrl']) ? $settings['icon']['iconUrl'] : '',
+        '#default_value' => isset($settings[$group]['iconUrl']) ? $settings[$group]['iconUrl'] : '',
         '#element_validate' => array('leaflet_icon_validate'),
         '#states' => array(
           'visible' => array(
@@ -438,12 +437,11 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           ),
         ),
       );
-
       $form_element['shadowUrl'] = array(
         '#title' => t('Icon Shadow URL'),
         '#type' => 'textfield',
         '#maxlength' => 999,
-        '#default_value' => isset($settings['icon']['shadowUrl']) ? $settings['icon']['shadowUrl'] : '',
+        '#default_value' => isset($settings[$group]['shadowUrl']) ? $settings[$group]['shadowUrl'] : '',
         '#element_validate' => array('leaflet_icon_validate'),
         '#states' => array(
           'visible' => array(
@@ -451,7 +449,6 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           ),
         ),
       );
-
       $form_element['iconSize'] = array(
         '#title' => t('Icon Size'),
         '#type' => 'fieldset',
@@ -463,25 +460,22 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           ),
         ),
       );
-
       $form_element['iconSize']['x'] = array(
         '#title' => t('Width'),
         '#type' => 'textfield',
         '#maxlength' => 3,
         '#size' => 3,
-        '#default_value' => isset($settings['icon']['iconSize']['x']) ? $settings['icon']['iconSize']['x'] : '',
+        '#default_value' => isset($settings[$group]['iconSize']['x']) ? $settings[$group]['iconSize']['x'] : '',
         '#element_validate' => array('element_validate_integer_positive'),
       );
-
       $form_element['iconSize']['y'] = array(
         '#title' => t('Height'),
         '#type' => 'textfield',
         '#maxlength' => 3,
         '#size' => 3,
-        '#default_value' => isset($settings['icon']['iconSize']['y']) ? $settings['icon']['iconSize']['y'] : '',
+        '#default_value' => isset($settings[$group]['iconSize']['y']) ? $settings[$group]['iconSize']['y'] : '',
         '#element_validate' => array('element_validate_integer_positive'),
       );
-
       $form_element['iconAnchor'] = array(
         '#title' => t('Icon Anchor'),
         '#type' => 'fieldset',
@@ -493,25 +487,22 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           ),
         ),
       );
-
       $form_element['iconAnchor']['x'] = array(
         '#title' => t('X'),
         '#type' => 'textfield',
         '#maxlength' => 3,
         '#size' => 3,
-        '#default_value' => isset($settings['icon']['iconAnchor']['x']) ? $settings['icon']['iconAnchor']['x'] : '',
+        '#default_value' => isset($settings[$group]['iconAnchor']['x']) ? $settings[$group]['iconAnchor']['x'] : '',
         '#element_validate' => array('element_validate_number'),
       );
-
       $form_element['iconAnchor']['y'] = array(
         '#title' => t('Y'),
         '#type' => 'textfield',
         '#maxlength' => 3,
         '#size' => 3,
-        '#default_value' => isset($settings['icon']['iconAnchor']['y']) ? $settings['icon']['iconAnchor']['y'] : '',
+        '#default_value' => isset($settings[$group]['iconAnchor']['y']) ? $settings[$group]['iconAnchor']['y'] : '',
         '#element_validate' => array('element_validate_number'),
       );
-
       $form_element['shadowAnchor'] = array(
         '#title' => t('Shadow Anchor'),
         '#type' => 'fieldset',
@@ -523,25 +514,22 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           ),
         ),
       );
-
       $form_element['shadowAnchor']['x'] = array(
         '#title' => t('X'),
         '#type' => 'textfield',
         '#maxlength' => 3,
         '#size' => 3,
-        '#default_value' => isset($settings['icon']['shadowAnchor']['x']) ? $settings['icon']['shadowAnchor']['x'] : '',
+        '#default_value' => isset($settings[$group]['shadowAnchor']['x']) ? $settings[$group]['shadowAnchor']['x'] : '',
         '#element_validate' => array('element_validate_number'),
       );
-
       $form_element['shadowAnchor']['y'] = array(
         '#title' => t('Y'),
         '#type' => 'textfield',
         '#maxlength' => 3,
         '#size' => 3,
-        '#default_value' => isset($settings['icon']['shadowAnchor']['y']) ? $settings['icon']['shadowAnchor']['y'] : '',
+        '#default_value' => isset($settings[$group]['shadowAnchor']['y']) ? $settings[$group]['shadowAnchor']['y'] : '',
         '#element_validate' => array('element_validate_number'),
       );
-
       $form_element['popupAnchor'] = array(
         '#title' => t('Popup Anchor'),
         '#type' => 'fieldset',
@@ -553,31 +541,28 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           ),
         ),
       );
-
       $form_element['popupAnchor']['x'] = array(
         '#title' => t('X'),
         '#type' => 'textfield',
         '#maxlength' => 3,
         '#size' => 3,
-        '#default_value' => isset($settings['icon']['popupAnchor']['x']) ? $settings['icon']['popupAnchor']['x'] : '',
+        '#default_value' => isset($settings[$group]['popupAnchor']['x']) ? $settings[$group]['popupAnchor']['x'] : '',
         '#element_validate' => array('element_validate_number'),
       );
-
       $form_element['popupAnchor']['y'] = array(
         '#title' => t('Y'),
         '#type' => 'textfield',
         '#maxlength' => 3,
         '#size' => 3,
-        '#default_value' => isset($settings['icon']['popupAnchor']['y']) ? $settings['icon']['popupAnchor']['y'] : '',
+        '#default_value' => isset($settings[$group]['popupAnchor']['y']) ? $settings[$group]['popupAnchor']['y'] : '',
         '#element_validate' => array('element_validate_number'),
       );
-
       $form_element['html'] = array(
         '#type' => 'select',
         '#title' => t('Marker HTML field'),
         '#description' => t('Views field to use as output for a map marker.'),
         '#options' => array_merge(array('' => ''), $options['fields']),
-        '#default_value' => isset($settings['icon']['html']) ? $settings['icon']['html'] : '',
+        '#default_value' => isset($settings[$group]['html']) ? $settings[$group]['html'] : '',
         '#states' => array(
           'visible' => array(
             ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
@@ -587,12 +572,11 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           ),
         ),
       );
-
       $form_element['htmlClass'] = array(
         '#type' => 'textfield',
         '#title' => t('Marker HTML class'),
         '#description' => t('Optional class name for the div used to wrap field output. For multiple classes, separate with a space.'),
-        '#default_value' => isset($settings['icon']['htmlClass']) ? $settings['icon']['htmlClass'] : '',
+        '#default_value' => isset($settings[$group]['htmlClass']) ? $settings[$group]['htmlClass'] : '',
         '#states' => array(
           'visible' => array(
             ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
