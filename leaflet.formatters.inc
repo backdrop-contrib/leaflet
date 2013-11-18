@@ -72,25 +72,16 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
         ),
       ),
     );
-    $element['popup']['tokens'] = array(
-      '#type' => 'container',
-      '#theme' => 'token_tree',
-      '#token_types' => array($entity_type),
-      '#dialog' => TRUE,
-      '#states' => array(
-        'visible' => array(
-          ':input[name$="[popup][show]"]' => array('checked' => TRUE),
-        ),
-      ),
-    );
     foreach ($form['#fields'] as $fieldname) {
       $field_options[$fieldname] = $fieldname;
     }
     $fieldpath = 'fields[' . $field['field_name'] . '][settings_edit_form][settings]';
     $element['icon'] = leaflet_form_elements('icon', $settings, array('path' => $fieldpath, 'fields' => $field_options));
     $element['vector_display'] = leaflet_form_elements('vector_display', $settings, array('path' => $fieldpath));
-
+    // Show the list of available tokens.
+    $element['tokens'] = leaflet_form_elements('tokens', $settings, array('weight' => 999, 'entity_type' => $entity_type));
   }
+
   return $element;
 }
 
@@ -136,13 +127,18 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
 
         $features = leaflet_process_geofield($items);
 
+        // Replace tokens in all settings.
+        $args = array('data' => array($entity_type => $entity), 'options' => array('clear' => TRUE));
+        array_walk_recursive($settings, 'leaflet_token_replace', $args);
+
         // If only a single feature, set the popup content to the entity title:
         if ($settings['popup'] && count($items) == 1) {
-          $features[0]['popup'] = token_replace($settings['popup']['text'], array($entity_type => $entity), array('clear' => TRUE));
+          $features[0]['popup'] = $settings['popup']['text'];
         }
 
         if (!empty($settings['icon'])) {
-          $use_html_marker = 'html' == $settings['icon']['iconType'];
+
+          $use_html_marker = ('html' == $settings['icon']['iconType']);
           if ($use_html_marker) {
             $icon_display = array(
               'label' => 'hidden',
@@ -184,6 +180,18 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
     }
 
     return $element;
+  }
+}
+
+/**
+ * Replaces all tokens in a given string with appropriate values.
+ *
+ * This is a wrapper arround token_replace, to apply token_replace only
+ * to strings.
+ */
+function leaflet_token_replace(&$subject, $key, $data = array()) {
+  if (is_string($subject) && $subject) {
+    $subject = token_replace($subject, $data['data'], $data['options']);
   }
 }
 
@@ -622,6 +630,22 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#default_value' => isset($settings[$group]['clickable']) ? $settings[$group]['clickable'] : 1,
       );
       break;
+
+    case "tokens":
+      $form_element = array(
+        '#title' => t('Tokens'),
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#weight' => $options['weight'],
+      );
+      $form_element['token_help'] = array(
+        '#type' => 'container',
+        '#theme' => 'token_tree',
+        '#token_types' => array($options['entity_type']),
+      );
+      break;
+
   }
   return $form_element;
 }

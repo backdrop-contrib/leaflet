@@ -163,6 +163,8 @@ class leaflet_views_plugin_style extends views_plugin_style {
 
     $form['icon'] = leaflet_form_elements('icon', $this->options, array('path' => 'style_options', 'fields' => $fields));
     $form['vector_display'] = leaflet_form_elements('vector_display', $this->options, array('path' => 'style_options'));
+    $form['tokens'] = leaflet_form_elements('tokens', $this->options, array('weight' => 999, 'entity_type' => $this->entity_type));
+
   }
 
   /**
@@ -190,6 +192,11 @@ class leaflet_views_plugin_style extends views_plugin_style {
         $geofield = $this->get_field_value($id, $this->options['data_source']);
 
         if (!empty($geofield)) {
+
+          // Replace tokens in all configuration settings.
+          $args = array('data' => array($this->entity_type => $this), 'options' => array('clear' => TRUE));
+          array_walk_recursive($this->options, 'leaflet_token_replace', $args);
+
           $points = leaflet_process_geofield($geofield);
 
           // Render the entity with the selected view mode:
@@ -228,7 +235,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
           drupal_alter('leaflet_views_alter_points_data', $result, $points);
 
           // Check for field-based html icon configuration:
-          $use_html_marker = $this->options['icon']['iconType'] == 'html';
+          $use_html_marker = ('html' == $this->options['icon']['iconType']);
           if ($use_html_marker) {
             $html = $this->get_field($id, $this->options['icon']['html']);
 
