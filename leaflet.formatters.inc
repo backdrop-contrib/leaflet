@@ -146,8 +146,11 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
     );
     foreach($form['#fields'] as $field) {
       $field_options[$field] = $field;
+    foreach ($form['#fields'] as $fieldname) {
+      $field_options[$fieldname] = $fieldname;
     }
-    $element['icon'] = leaflet_form_elements('icon', $settings, array('path' => 'fields[field_geolocation][settings_edit_form][settings]', 'fields' => $field_options));
+    $fieldpath = 'fields[' . $field['field_name'] . '][settings_edit_form][settings]';
+    $element['icon'] = leaflet_form_elements('icon', $settings, array('path' => $fieldpath, 'fields' => $field_options));
   }
   return $element;
 }
