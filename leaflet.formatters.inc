@@ -82,133 +82,7 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
         ),
       ),
     );
-
-    $element['icon'] = array(
-      '#title' => t('Map Icon'),
-      '#description' => t('These settings will overwrite the icon settings defined in the map definition.'),
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#collapsed' => !isset($settings['icon']['iconUrl']),
-    );
-
-    $element['icon']['iconUrl'] = array(
-      '#title' => t('Icon URL'),
-      '#description' => t('Can be an absolute or relative URL.'),
-      '#type' => 'textfield',
-      '#maxlength' => 999,
-      '#default_value' => $settings['icon']['iconUrl'],
-      '#element_validate' => array('leaflet_icon_validate'),
-    );
-
-    $element['icon']['shadowUrl'] = array(
-      '#title' => t('Icon Shadow URL'),
-      '#type' => 'textfield',
-      '#maxlength' => 999,
-      '#default_value' => $settings['icon']['shadowUrl'],
-      '#element_validate' => array('leaflet_icon_validate'),
-    );
-
-    $element['icon']['iconSize'] = array(
-      '#title' => t('Icon Size'),
-      '#type' => 'fieldset',
-      '#collapsible' => FALSE,
-      '#description' => t('Size of the icon image in pixels.'),
-    );
-
-    $element['icon']['iconSize']['x'] = array(
-      '#title' => t('Width'),
-      '#type' => 'textfield',
-      '#maxlength' => 3,
-      '#size' => 3,
-      '#default_value' => isset($settings['icon']['iconSize']['x']) ? $settings['icon']['iconSize']['x'] : '',
-      '#element_validate' => array('element_validate_integer_positive'),
-    );
-
-    $element['icon']['iconSize']['y'] = array(
-      '#title' => t('Height'),
-      '#type' => 'textfield',
-      '#maxlength' => 3,
-      '#size' => 3,
-      '#default_value' => isset($settings['icon']['iconSize']['y']) ? $settings['icon']['iconSize']['y'] : '',
-      '#element_validate' => array('element_validate_integer_positive'),
-    );
-
-    $element['icon']['iconAnchor'] = array(
-      '#title' => t('Icon Anchor'),
-      '#type' => 'fieldset',
-      '#collapsible' => FALSE,
-      '#description' => t('The coordinates of the "tip" of the icon (relative to
-        its top left corner). The icon will be aligned so that this point is at the marker\'s geographical location.'),
-    );
-
-    $element['icon']['iconAnchor']['x'] = array(
-      '#title' => t('X'),
-      '#type' => 'textfield',
-      '#maxlength' => 3,
-      '#size' => 3,
-      '#default_value' => isset($settings['icon']['iconAnchor']['x']) ? $settings['icon']['iconAnchor']['x'] : '',
-      '#element_validate' => array('element_validate_number'),
-    );
-
-    $element['icon']['iconAnchor']['y'] = array(
-      '#title' => t('Y'),
-      '#type' => 'textfield',
-      '#maxlength' => 3,
-      '#size' => 3,
-      '#default_value' => isset($settings['icon']['iconAnchor']['y']) ? $settings['icon']['iconAnchor']['y'] : '',
-      '#element_validate' => array('element_validate_number'),
-    );
-
-    $element['icon']['shadowAnchor'] = array(
-      '#title' => t('Shadow Anchor'),
-      '#type' => 'fieldset',
-      '#collapsible' => FALSE,
-      '#description' => t('The point from which the shadow is shown.'),
-    );
-
-    $element['icon']['shadowAnchor']['x'] = array(
-      '#title' => t('X'),
-      '#type' => 'textfield',
-      '#maxlength' => 3,
-      '#size' => 3,
-      '#default_value' => isset($settings['icon']['shadowAnchor']['x']) ? $settings['icon']['shadowAnchor']['x'] : '',
-      '#element_validate' => array('element_validate_number'),
-    );
-
-    $element['icon']['shadowAnchor']['y'] = array(
-      '#title' => t('Y'),
-      '#type' => 'textfield',
-      '#maxlength' => 3,
-      '#size' => 3,
-      '#default_value' => isset($settings['icon']['shadowAnchor']['y']) ? $settings['icon']['shadowAnchor']['y'] : '',
-      '#element_validate' => array('element_validate_number'),
-    );
-
-    $element['icon']['popupAnchor'] = array(
-      '#title' => t('Popup Anchor'),
-      '#type' => 'fieldset',
-      '#collapsible' => FALSE,
-      '#description' => t('The point from which the marker popup opens, relative to the anchor point.'),
-    );
-    $element['icon']['popupAnchor']['x'] = array(
-      '#title' => t('X'),
-      '#type' => 'textfield',
-      '#maxlength' => 3,
-      '#size' => 3,
-      '#default_value' => isset($settings['icon']['popupAnchor']['x']) ? $settings['icon']['popupAnchor']['x'] : '',
-      '#element_validate' => array('element_validate_number'),
-    );
-
-    $element['icon']['popupAnchor']['y'] = array(
-      '#title' => t('Y'),
-      '#type' => 'textfield',
-      '#maxlength' => 3,
-      '#size' => 3,
-      '#default_value' => isset($settings['icon']['popupAnchor']['y']) ? $settings['icon']['popupAnchor']['y'] : '',
-      '#element_validate' => array('element_validate_number'),
-    );
   }
-
   return $element;
 }
 
@@ -259,9 +133,30 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
           $features[0]['popup'] = token_replace($settings['popup']['text'], array($entity_type => $entity), array('clear' => TRUE));
         }
 
-        if (!empty($settings['icon']) && $settings['icon']['iconUrl']) {
-          foreach ($features as $key => $feature) {
-            $features[$key]['icon'] = $settings['icon'];
+        if (!empty($settings['icon'])) {
+          $use_html_marker = 'html' == $settings['icon']['iconType'];
+          if ($use_html_marker) {
+            $icon_display = array(
+              'label' => 'hidden',
+            );
+            $icon_field = field_view_field($entity_type, $entity, $settings['icon']['html'], $icon_display);
+            // Clean the user-entered classes.
+            $classes = explode(' ', $settings['icon']['htmlClass']);
+            array_walk($classes, 'drupal_html_class');
+            $classes = implode(' ', $classes);
+
+            foreach ($features as $key => $point) {
+              $features[$key]['html'] = render($icon_field);
+              $features[$key]['html_class'] = $classes;
+            }
+          }
+          elseif ($settings['icon']['iconUrl']) {
+            foreach ($features as $key => $feature) {
+              $features[$key]['icon'] = $settings['icon'];
+            }
+          }
+        }
+
           }
         }
 
@@ -415,4 +310,220 @@ function leaflet_process_geofield($items = array()) {
   }
 
   return $data;
+}
+
+/**
+ * Helper function to standardize forms between views and field formatters.
+ * 
+ * $group - String
+ *  The name of the group element to generate.
+ * 
+ * $settings - Array
+ *  Current form settings (for defaults, etc)
+ * 
+ * $options - Array
+ *  Special options needed for this form element, if necessary.
+ * 
+ * Return - A fully loaded form element.
+ */
+function leaflet_form_elements($group, $settings, $options = NULL) {
+  $form_element = NULL;
+  switch ($group) {
+    case 'icon':
+      $form_element = array(
+        '#title' => t('Map Icon!'),
+        '#description' => t('These settings will overwrite the icon settings defined in the map definition.'),
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#collapsed' => !isset($settings['icon']['iconUrl']),
+      );
+
+      $form_element['iconType'] = array(
+        '#type' => 'radios',
+        '#title' => t('Icon Source'),
+        '#default_value' => isset($settings['icon']['iconType']) ? $settings['icon']['iconType'] : 'marker',
+        '#options' => array(
+          'marker' => "Icon File",
+          'html' => "Field (html DivIcon)",
+        ),
+      );
+
+      $form_element['iconUrl'] = array(
+        '#title' => t('Icon URL'),
+        '#description' => t('Can be an absolute or relative URL.'),
+        '#type' => 'textfield',
+        '#maxlength' => 999,
+        '#default_value' => isset($settings['icon']['iconUrl']) ? $settings['icon']['iconUrl'] : '',
+        '#element_validate' => array('leaflet_icon_validate'),
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'marker'),
+          ),
+        ),
+      );
+
+      $form_element['shadowUrl'] = array(
+        '#title' => t('Icon Shadow URL'),
+        '#type' => 'textfield',
+        '#maxlength' => 999,
+        '#default_value' => isset($settings['icon']['shadowUrl']) ? $settings['icon']['shadowUrl'] : '',
+        '#element_validate' => array('leaflet_icon_validate'),
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'marker'),
+          ),
+        ),
+      );
+
+      $form_element['iconSize'] = array(
+        '#title' => t('Icon Size'),
+        '#type' => 'fieldset',
+        '#collapsible' => FALSE,
+        '#description' => t('Size of the icon image in pixels.'),
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'marker'),
+          ),
+        ),
+      );
+
+      $form_element['iconSize']['x'] = array(
+        '#title' => t('Width'),
+        '#type' => 'textfield',
+        '#maxlength' => 3,
+        '#size' => 3,
+        '#default_value' => isset($settings['icon']['iconSize']['x']) ? $settings['icon']['iconSize']['x'] : '',
+        '#element_validate' => array('element_validate_integer_positive'),
+      );
+
+      $form_element['iconSize']['y'] = array(
+        '#title' => t('Height'),
+        '#type' => 'textfield',
+        '#maxlength' => 3,
+        '#size' => 3,
+        '#default_value' => isset($settings['icon']['iconSize']['y']) ? $settings['icon']['iconSize']['y'] : '',
+        '#element_validate' => array('element_validate_integer_positive'),
+      );
+
+      $form_element['iconAnchor'] = array(
+        '#title' => t('Icon Anchor'),
+        '#type' => 'fieldset',
+        '#collapsible' => FALSE,
+        '#description' => t("The coordinates of the 'tip' of the icon (relative to its top left corner). The icon will be aligned so that this point is at the marker's geographical location."),
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'marker'),
+          ),
+        ),
+      );
+
+      $form_element['iconAnchor']['x'] = array(
+        '#title' => t('X'),
+        '#type' => 'textfield',
+        '#maxlength' => 3,
+        '#size' => 3,
+        '#default_value' => isset($settings['icon']['iconAnchor']['x']) ? $settings['icon']['iconAnchor']['x'] : '',
+        '#element_validate' => array('element_validate_number'),
+      );
+
+      $form_element['iconAnchor']['y'] = array(
+        '#title' => t('Y'),
+        '#type' => 'textfield',
+        '#maxlength' => 3,
+        '#size' => 3,
+        '#default_value' => isset($settings['icon']['iconAnchor']['y']) ? $settings['icon']['iconAnchor']['y'] : '',
+        '#element_validate' => array('element_validate_number'),
+      );
+
+      $form_element['shadowAnchor'] = array(
+        '#title' => t('Shadow Anchor'),
+        '#type' => 'fieldset',
+        '#collapsible' => FALSE,
+        '#description' => t('The point from which the shadow is shown.'),
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'marker'),
+          ),
+        ),
+      );
+
+      $form_element['shadowAnchor']['x'] = array(
+        '#title' => t('X'),
+        '#type' => 'textfield',
+        '#maxlength' => 3,
+        '#size' => 3,
+        '#default_value' => isset($settings['icon']['shadowAnchor']['x']) ? $settings['icon']['shadowAnchor']['x'] : '',
+        '#element_validate' => array('element_validate_number'),
+      );
+
+      $form_element['shadowAnchor']['y'] = array(
+        '#title' => t('Y'),
+        '#type' => 'textfield',
+        '#maxlength' => 3,
+        '#size' => 3,
+        '#default_value' => isset($settings['icon']['shadowAnchor']['y']) ? $settings['icon']['shadowAnchor']['y'] : '',
+        '#element_validate' => array('element_validate_number'),
+      );
+
+      $form_element['popupAnchor'] = array(
+        '#title' => t('Popup Anchor'),
+        '#type' => 'fieldset',
+        '#collapsible' => FALSE,
+        '#description' => t('The point from which the marker popup opens, relative to the anchor point.'),
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'marker'),
+          ),
+        ),
+      );
+
+      $form_element['popupAnchor']['x'] = array(
+        '#title' => t('X'),
+        '#type' => 'textfield',
+        '#maxlength' => 3,
+        '#size' => 3,
+        '#default_value' => isset($settings['icon']['popupAnchor']['x']) ? $settings['icon']['popupAnchor']['x'] : '',
+        '#element_validate' => array('element_validate_number'),
+      );
+
+      $form_element['popupAnchor']['y'] = array(
+        '#title' => t('Y'),
+        '#type' => 'textfield',
+        '#maxlength' => 3,
+        '#size' => 3,
+        '#default_value' => isset($settings['icon']['popupAnchor']['y']) ? $settings['icon']['popupAnchor']['y'] : '',
+        '#element_validate' => array('element_validate_number'),
+      );
+
+      $form_element['html'] = array(
+        '#type' => 'select',
+        '#title' => t('Marker HTML field'),
+        '#description' => t('Views field to use as output for a map marker.'),
+        '#options' => array_merge(array('' => ''), $options['fields']),
+        '#default_value' => isset($settings['icon']['html']) ? $settings['icon']['html'] : '',
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
+          ),
+          'required' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
+          ),
+        ),
+      );
+
+      $form_element['htmlClass'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Marker HTML class'),
+        '#description' => t('Optional class name for the div used to wrap field output. For multiple classes, separate with a space.'),
+        '#default_value' => isset($settings['icon']['htmlClass']) ? $settings['icon']['htmlClass'] : '',
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
+          ),
+        ),
+      );
+      break;
+
+  }
+  return $form_element;
 }
