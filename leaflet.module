@@ -92,6 +92,8 @@ function leaflet_render_map($map, $features = array(), $height = '400px') {
     'features' => $features,
   );
 
+  drupal_alter('leaflet_map_prerender', $settings);
+
   drupal_add_js(array('leaflet' => array($settings)), 'setting');
 
   return theme('leaflet_map', array('map_id' => $map_id, 'height' => $height));
