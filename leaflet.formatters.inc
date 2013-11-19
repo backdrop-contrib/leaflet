@@ -143,54 +143,8 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
     switch ($display['type']) {
       case 'geofield_leaflet':
         $map = leaflet_map_get_info($settings['leaflet_map']);
-
         $features = leaflet_process_geofield($items);
-
-        // Replace tokens in all settings.
-        $args = array('data' => array($entity_type => $entity), 'options' => array('clear' => TRUE));
-        array_walk_recursive($settings, 'leaflet_token_replace', $args);
-
-        // If only a single feature, set the popup content to the entity title:
-        if ($settings['popup'] && count($items) == 1) {
-          $features[0]['popup'] = $settings['popup']['text'];
-        }
-
-        if (!empty($settings['icon'])) {
-
-          $use_html_marker = ('html' == $settings['icon']['iconType']);
-          if ($use_html_marker) {
-            $icon_display = array(
-              'label' => 'hidden',
-            );
-            $icon_field = field_view_field($entity_type, $entity, $settings['icon']['html'], $icon_display);
-            // Clean the user-entered classes.
-            $classes = explode(' ', $settings['icon']['htmlClass']);
-            array_walk($classes, 'drupal_html_class');
-            $classes = implode(' ', $classes);
-
-            foreach ($features as $key => $point) {
-              $features[$key]['html'] = render($icon_field);
-              $features[$key]['html_class'] = $classes;
-            }
-          }
-          elseif ($settings['icon']['iconUrl']) {
-            foreach ($features as $key => $feature) {
-              $features[$key]['icon'] = $settings['icon'];
-            }
-          }
-        }
-
-        if (!empty($settings['vector_display'])) {
-          foreach ($features as $key => $feature) {
-            if ($feature['type'] != 'point') {
-              // To avoid overwrite the options with empty values removes all
-              // NULL, FALSE and empty Strings and leaves zero values.
-              $options = array_filter($settings['vector_display'], 'strlen');
-              $features[$key]['options'] = $options;
-            }
-          }
-        }
-
+        leaflet_apply_map_settings($map, $features, $settings, $entity_type, $entity);
         $element[0] = array(
           '#markup' => leaflet_render_map($map, $features, $settings['height'] . 'px'),
         );
@@ -199,18 +153,6 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
     }
 
     return $element;
-  }
-}
-
-/**
- * Replaces all tokens in a given string with appropriate values.
- *
- * This is a wrapper arround token_replace, to apply token_replace only
- * to strings.
- */
-function leaflet_token_replace(&$subject, $key, $data = array()) {
-  if (is_string($subject) && $subject) {
-    $subject = token_replace($subject, $data['data'], $data['options']);
   }
 }
 
@@ -353,6 +295,67 @@ function leaflet_process_geofield($items = array()) {
   }
 
   return $data;
+}
+
+function leaflet_apply_map_settings(&$map, &$features, $settings, $entity_type, $entity) {
+  // Replace tokens in all settings.
+  $args = array('data' => array($entity_type => $entity), 'options' => array('clear' => TRUE));
+  array_walk_recursive($settings, 'leaflet_token_replace', $args);
+
+  // If only a single feature, set the popup content to the entity title:
+  if (isset($settings['popup']['show']) && $settings['popup']['show']) {
+    foreach($features as $feat) {
+      $feat['popup'] = $settings['popup']['text'];
+    }
+  }
+
+  // Apply Icon settings:
+  if (!empty($settings['icon'])) {
+    $use_html_marker = ('html' == $settings['icon']['iconType']);
+    if ($use_html_marker) {
+      $icon_display = array(
+        'label' => 'hidden',
+      );
+      $icon_field = field_view_field($entity_type, $entity, $settings['icon']['html'], $icon_display);
+      // Clean the user-entered classes.
+      $classes = explode(' ', $settings['icon']['htmlClass']);
+      array_walk($classes, 'drupal_html_class');
+      $classes = implode(' ', $classes);
+      foreach ($features as $key => $point) {
+        $features[$key]['html'] = render($icon_field);
+        $features[$key]['html_class'] = $classes;
+      }
+    }
+    elseif ($settings['icon']['iconUrl']) {
+      foreach ($features as $key => $feature) {
+        $features[$key]['icon'] = $settings['icon'];
+      }
+    }
+  }
+
+  if (!empty($settings['vector_display']) && $settings['vector_display']['stroke_override']) {
+    foreach ($features as $key => $feature) {
+      if ($feature['type'] != 'point') {
+        // To avoid overwrite the options with empty values removes all
+        // NULL, FALSE and empty Strings and leaves zero values.
+        $options = array_filter($settings['vector_display'], 'strlen');
+        unset($options['vector_display']['stroke_override']);
+        $features[$key]['options'] = $options;
+      }
+    }
+  }
+}
+
+/**
+ * Replaces all tokens in a given string with appropriate values.
+ *
+ * This is a wrapper arround token_replace, to apply token_replace only
+ * to strings.
+ */
+function leaflet_token_replace(&$subject, $key, $data = array()) {
+  if (is_string($subject) && $subject) {
+    $subject = token_replace($subject, $data['data'], $data['options']);
+  }
 }
 
 /**

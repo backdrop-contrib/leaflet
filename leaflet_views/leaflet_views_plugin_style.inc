@@ -224,100 +224,57 @@ class leaflet_views_plugin_style extends views_plugin_style {
     if (!empty($this->view->live_preview)) {
       return t('No preview available');
     }
-
     $data = array();
-
+    $map = leaflet_map_get_info($this->options['map']);
+    // Is there a geofield selected?
     if ($this->options['data_source']) {
       $this->render_fields($this->view->result);
       foreach ($this->view->result as $id => $result) {
         $geofield = $this->get_field_value($id, $this->options['data_source']);
 
         if (!empty($geofield)) {
-
-          // Replace tokens in all configuration settings.
-          $args = array('data' => array($this->entity_type => $this), 'options' => array('clear' => TRUE));
-          array_walk_recursive($this->options, 'leaflet_token_replace', $args);
-
-          $points = leaflet_process_geofield($geofield);
-
           // Render the entity with the selected view mode:
           if ($this->options['description_field'] === '#rendered_entity' && is_object($result)) {
             $entities = entity_load($this->entity_type, array($result->{$this->entity_info['entity keys']['id']}));
-
             $build = entity_view(
               $this->entity_type,
               $entities,
               $this->options['view_mode']
             );
-
             $description = drupal_render($build);
           }
-
           // Normal rendering via fields:
           elseif ($this->options['description_field']) {
             $description = $this->rendered_fields[$id][$this->options['description_field']];
           }
 
-          // Attach pop-ups if we have a description field:
+          $points = leaflet_process_geofield($geofield);
+          // Attach pop-ups if we have rendered into $description:
           if (isset($description)) {
             foreach ($points as &$point) {
               $point['popup'] = $description;
             }
           }
-
           // Attach also titles, they might be used later on.
           if ($this->options['name_field']) {
             foreach ($points as &$point) {
               $point['label'] = $this->rendered_fields[$id][$this->options['name_field']];
             }
           }
-
           // Let modules modify the points data.
           drupal_alter('leaflet_views_alter_points_data', $result, $points);
-
-          // Check for field-based html icon configuration:
-          $use_html_marker = ('html' == $this->options['icon']['iconType']);
-          if ($use_html_marker) {
-            $html = $this->get_field($id, $this->options['icon']['html']);
-
-            // Clean the user-entered classes.
-            $classes = explode(' ', $this->options['icon']['htmlClass']);
-            array_walk($classes, 'drupal_html_class');
-            $classes = implode(' ', $classes);
-
-            foreach ($points as $key => $point) {
-              $points[$key]['html'] = $html;
-              $points[$key]['html_class'] = $classes;
-            }
-          }
-
+          // Merge these points into the $data array for map rendering:
           $data = array_merge($data, $points);
-
-          if (!$use_html_marker && !empty($this->options['icon']) && $this->options['icon']['iconUrl']) {
-            foreach ($data as $key => $feature) {
-              $data[$key]['icon'] = $this->options['icon'];
-            }
-          }
-          if (!empty($this->options['vector_display'])) {
-            foreach ($data as $key => $feature) {
-              if ($feature['type'] != 'point') {
-                // To avoid overwrite the options with empty values removes all
-                // NULL, FALSE and empty Strings and leaves zero values.
-                $options = array_filter($this->options['vector_display'], 'strlen');
-                $data[$key]['options'] = $options;
-              }
-            }
-          }
         }
       }
-
-      $map = leaflet_map_get_info($this->options['map']);
-
-      if (!empty($data) || (isset($this->options['hide_empty']) && !$this->options['hide_empty'])) {
+      leaflet_apply_map_settings($map, $data, $this->options, $this->entity_type, $this);
+      if (isset($this->options['hide_empty']) && $this->options['hide_empty']) {
+        return '';
+      }
+      else {
         return leaflet_render_map($map, $data, $this->options['height'] . 'px');
       }
     }
-
     return '';
   }
 }
