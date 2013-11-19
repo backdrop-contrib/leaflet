@@ -12,10 +12,45 @@ function leaflet_field_formatter_info() {
       'field types' => array('geofield'),
       'settings' => array(
         'leaflet_map' => '',
-        'icon' => '',
-        'vector_display' => '',
         'height' => 400,
-        'popup' => 0,
+        'popup' => array(
+          'show' => '',
+          'text' => '',
+        ),
+        'icon' => array(
+          'iconUrl' => '',
+          'shadowUrl' => '',
+          'iconSize' => array(
+            'x' => '',
+            'y' => '',
+          ),
+          'iconAnchor' => array(
+            'x' => '',
+            'y' => '',
+          ),
+          'shadowAnchor' => array(
+            'x' => '',
+            'y' => '',
+          ),
+          'popupAnchor' => array(
+            'x' => '',
+            'y' => '',
+          ),
+          'html' => '',
+          'htmlClass' => '',
+        ),
+        'vector_display' => array(
+          'stroke_override' => 0,
+          'stroke' => 1,
+          'color' => '',
+          'weight' => '',
+          'opacity' => '',
+          'dashArray' => '',
+          'fill' => 1,
+          'fillColor' => '',
+          'fillOpacity' => '',
+          'clickable' => 1,
+        ),
       ),
     );
   }
@@ -55,27 +90,11 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#element_validate' => array('element_validate_integer_positive'),
     );
 
-    $element['popup']['show'] = array(
-      '#title' => t('Popup'),
-      '#description' => t('Show a popup for single location fields.'),
-      '#type' => 'checkbox',
-      '#default_value' => $settings['popup']['show'],
-    );
-    $element['popup']['text'] = array(
-      '#title' => t('Popup text'),
-      '#description' => t('Enter the text for the popup.'),
-      '#type' => 'textfield',
-      '#default_value' => $settings['popup']['text'],
-      '#states' => array(
-        'visible' => array(
-          ':input[name$="[popup][show]"]' => array('checked' => TRUE),
-        ),
-      ),
-    );
     foreach ($form['#fields'] as $fieldname) {
       $field_options[$fieldname] = $fieldname;
     }
     $fieldpath = 'fields[' . $field['field_name'] . '][settings_edit_form][settings]';
+    $element['popup'] = leaflet_form_elements('popup', $settings, array('path' => $fieldpath));
     $element['icon'] = leaflet_form_elements('icon', $settings, array('path' => $fieldpath, 'fields' => $field_options));
     $element['vector_display'] = leaflet_form_elements('vector_display', $settings, array('path' => $fieldpath));
     // Show the list of available tokens.
@@ -353,6 +372,33 @@ function leaflet_process_geofield($items = array()) {
 function leaflet_form_elements($group, $settings, $options = NULL) {
   $form_element = NULL;
   switch ($group) {
+    case 'popup':
+      $form_element = array(
+        '#title' => t('Popup Settings'),
+        '#type' => 'fieldset',
+        '#tree' => TRUE,
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+      );
+      $form_element['show'] = array(
+        '#title' => t('Popup'),
+        '#description' => t('Show a popup when locations are clicked.'),
+        '#type' => 'checkbox',
+        '#default_value' => $settings[$group]['show'],
+      );
+      $form_element['text'] = array(
+        '#title' => t('Popup text'),
+        '#description' => t('Enter the text for the popup. Tokens are supported.'),
+        '#type' => 'textfield',
+        '#default_value' => $settings[$group]['text'],
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[popup][show]"]' => array('checked' => TRUE),
+          ),
+        ),
+      );
+      break;
+
     case 'icon':
       $form_element = array(
         '#title' => t('Point Icon'),
@@ -539,17 +585,22 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
       );
-      $form_element['stroke'] = array(
-        '#title' => t('Stroke'),
-        '#description' => t('Draw an outline around the shape. Uncheck to disable borders on polygons and circles. (Default: True)'),
+      $form_element['stroke_override'] = array(
+        '#title' => t('Override Defaults'),
+        '#description' => t('If checked, the default values will be overridden by these settings.'),
         '#type' => 'checkbox',
-        '#default_value' => isset($settings[$group]['stroke']) ? $settings[$group]['stroke'] : 1,
+        '#default_value' => isset($settings[$group]['stroke_override']) ? $settings[$group]['stroke_override'] : 1,
       );
       $form_element['stroke'] = array(
         '#title' => t('Stroke'),
         '#description' => t('Draw an outline around the shape. Uncheck to disable borders on polygons and circles. (Default: True)'),
         '#type' => 'checkbox',
         '#default_value' => isset($settings[$group]['stroke']) ? $settings[$group]['stroke'] : 1,
+        '#states' => array(
+          'enabled' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][stroke_override]"]' => array('checked' => TRUE),
+          ),
+        ),
       );
       $form_element['color'] = array(
         '#title' => t('Line Color'),
@@ -559,6 +610,9 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#states' => array(
           'visible' => array(
             ':input[name="' . $options['path'] . '[' . $group . '][stroke]"]' => array('checked' => TRUE),
+          ),
+          'enabled' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][stroke_override]"]' => array('checked' => TRUE),
           ),
         ),
       );
@@ -571,6 +625,9 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           'visible' => array(
             ':input[name="' . $options['path'] . '[' . $group . '][stroke]"]' => array('checked' => TRUE),
           ),
+          'enabled' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][stroke_override]"]' => array('checked' => TRUE),
+          ),
         ),
       );
       $form_element['opacity'] = array(
@@ -581,6 +638,9 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#states' => array(
           'visible' => array(
             ':input[name="' . $options['path'] . '[' . $group . '][stroke]"]' => array('checked' => TRUE),
+          ),
+          'enabled' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][stroke_override]"]' => array('checked' => TRUE),
           ),
         ),
       );
@@ -593,6 +653,9 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           'visible' => array(
             ':input[name="' . $options['path'] . '[' . $group . '][stroke]"]' => array('checked' => TRUE),
           ),
+          'enabled' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][stroke_override]"]' => array('checked' => TRUE),
+          ),
         ),
       );
       $form_element['fill'] = array(
@@ -600,6 +663,11 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#description' => t('Fill the shape with color. Default: "!depends"', array('!depends' => l(t("depends"), 'http://leafletjs.com/reference.html#path-fill'))),
         '#type' => 'checkbox',
         '#default_value' => isset($settings[$group]['fill']) ? $settings[$group]['fill'] : 1,
+        '#states' => array(
+          'enabled' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][stroke_override]"]' => array('checked' => TRUE),
+          ),
+        ),
       );
       $form_element['fillColor'] = array(
         '#title' => t('Fill Color'),
@@ -609,6 +677,9 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#states' => array(
           'visible' => array(
             ':input[name="' . $options['path'] . '[' . $group . '][fill]"]' => array('checked' => TRUE),
+          ),
+          'enabled' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][stroke_override]"]' => array('checked' => TRUE),
           ),
         ),
       );
@@ -621,6 +692,9 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           'visible' => array(
             ':input[name="' . $options['path'] . '[' . $group . '][fill]"]' => array('checked' => TRUE),
           ),
+          'enabled' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][stroke_override]"]' => array('checked' => TRUE),
+          ),
         ),
       );
       $form_element['clickable'] = array(
@@ -628,6 +702,11 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#description' => t('If disabled, the vector will not emit mouse events, essentially acting as a part of the underlying map. Default: True'),
         '#type' => 'checkbox',
         '#default_value' => isset($settings[$group]['clickable']) ? $settings[$group]['clickable'] : 1,
+        '#states' => array(
+          'enabled' => array(
+            ':input[name="' . $options['path'] . '[' . $group . '][stroke_override]"]' => array('checked' => TRUE),
+          ),
+        ),
       );
       break;
 

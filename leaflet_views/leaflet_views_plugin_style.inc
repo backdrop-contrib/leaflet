@@ -34,8 +34,48 @@ class leaflet_views_plugin_style extends views_plugin_style {
     $options['view_mode'] = array('default' => 'full');
     $options['map'] = array('default' => '');
     $options['height'] = array('default' => '400');
-    $options['icon'] = array();
-    $options['options'] = array();
+    $options['popup']['contains'] = array(
+      'show' => array('default' => ''),
+      'text' => array('default' => ''),
+    );
+    $options['icon']['contains'] = array(
+      'iconUrl' => array('default' => ''),
+      'shadowUrl' => array('default' => ''),
+      'iconSize' => array(
+        'contains' => array(
+          'x' => array('default' => ''),
+          'y' => array('default' => ''),
+        )),
+      'iconAnchor' => array(
+        'contains' => array(
+          'x' => array('default' => ''),
+          'y' => array('default' => ''),
+        )),
+      'shadowAnchor' => array(
+        'contains' => array(
+          'x' => array('default' => ''),
+          'y' => array('default' => ''),
+        )),
+      'popupAnchor' => array(
+        'contains' => array(
+          'x' => array('default' => ''),
+          'y' => array('default' => ''),
+        )),
+      'html' => array('default' => ''),
+      'htmlClass' => array('default' => ''),
+    );
+    $options['vector_display']['contains'] = array(
+      'stroke_override' => array('default' => 0),
+      'stroke' => array('default' => 1),
+      'color' => array('default' => ''),
+      'weight' => array('default' => ''),
+      'opacity' => array('default' => ''),
+      'dashArray' => array('default' => ''),
+      'fill' => array('default' => 1),
+      'fillColor' => array('default' => ''),
+      'fillOpacity' => array('default' => ''),
+      'clickable' => array('default' => 1),
+    );
     return $options;
   }
 
@@ -161,6 +201,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#default_value' => isset($this->options['hide_empty']) ? $this->options['hide_empty'] : TRUE,
     );
 
+    $form['popup'] = leaflet_form_elements('popup', $this->options, array('path' => 'style_options'));
     $form['icon'] = leaflet_form_elements('icon', $this->options, array('path' => 'style_options', 'fields' => $fields));
     $form['vector_display'] = leaflet_form_elements('vector_display', $this->options, array('path' => 'style_options'));
     $form['tokens'] = leaflet_form_elements('tokens', $this->options, array('weight' => 999, 'entity_type' => $this->entity_type));
