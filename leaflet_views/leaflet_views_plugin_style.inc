@@ -38,6 +38,11 @@ class leaflet_views_plugin_style extends views_plugin_style {
       'show' => array('default' => ''),
       'text' => array('default' => ''),
     );
+    $options['zoom']['contains'] = array(
+      'initialZoom' => array('default' => ''),
+      'minZoom' => array('default' => 0),
+      'maxZoom' => array('default' => 18),
+    );
     $options['icon']['contains'] = array(
       'iconUrl' => array('default' => ''),
       'shadowUrl' => array('default' => ''),
@@ -202,6 +207,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
     );
 
     $form['popup'] = leaflet_form_elements('popup', $this->options, array('path' => 'style_options'));
+    $form['zoom'] = leaflet_form_elements('zoom', $this->options);
     $form['icon'] = leaflet_form_elements('icon', $this->options, array('path' => 'style_options', 'fields' => $fields));
     $form['vector_display'] = leaflet_form_elements('vector_display', $this->options, array('path' => 'style_options'));
     $form['tokens'] = leaflet_form_elements('tokens', $this->options, array('weight' => 999, 'entity_type' => $this->entity_type));
