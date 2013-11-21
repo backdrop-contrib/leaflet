@@ -202,7 +202,19 @@
       var lMarker;
 
       if (marker.html) {
-        var icon = new L.DivIcon({html: marker.html, className: marker.html_class});
+        if (marker.html_class) {
+          var icon = new L.DivIcon({html: marker.html, className: marker.html_class});
+        }
+        else {
+          var icon = new L.DivIcon({html: marker.html});
+        }
+        // override applicable marker defaults
+        if (marker.icon.iconSize) {
+          icon.options.iconSize = new L.Point(parseInt(marker.icon.iconSize.x, 10), parseInt(marker.icon.iconSize.y, 10));
+        }
+        if (marker.icon.iconAnchor) {
+          icon.options.iconAnchor = new L.Point(parseFloat(marker.icon.iconAnchor.x), parseFloat(marker.icon.iconAnchor.y));
+        }
         lMarker = new L.Marker(latLng, {icon:icon});
       }
       else if (marker.icon) {
