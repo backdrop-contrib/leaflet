@@ -206,7 +206,6 @@ class leaflet_views_plugin_style extends views_plugin_style {
       '#default_value' => isset($this->options['hide_empty']) ? $this->options['hide_empty'] : TRUE,
     );
 
-    $form['popup'] = leaflet_form_elements('popup', $this->options, array('path' => 'style_options'));
     $form['zoom'] = leaflet_form_elements('zoom', $this->options);
     $form['icon'] = leaflet_form_elements('icon', $this->options, array('path' => 'style_options', 'fields' => $fields));
     $form['vector_display'] = leaflet_form_elements('vector_display', $this->options, array('path' => 'style_options'));
