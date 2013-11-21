@@ -150,11 +150,14 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
       case 'geofield_leaflet':
         $map = leaflet_map_get_info($settings['leaflet_map']);
         $features = leaflet_process_geofield($items);
-        leaflet_apply_map_settings($map, $features, $settings, $entity_type, $entity);
         $element[0] = array(
           '#markup' => leaflet_render_map($map, $features, $settings['height'] . 'px'),
         );
 
+        foreach ($features as &$feat) {
+          $feat['entity'] = $entity;
+        }
+        leaflet_apply_map_settings($map, $features, $settings, $entity_type);
         break;
     }
 
@@ -315,61 +318,101 @@ function leaflet_process_geofield($items = array()) {
   return $data;
 }
 
-function leaflet_apply_map_settings(&$map, &$features, $settings, $entity_type, $entity) {
-  // Replace tokens in all settings.
-  $args = array('data' => array($entity_type => $entity), 'options' => array('clear' => TRUE));
-  array_walk_recursive($settings, 'leaflet_token_replace', $args);
+/**
+ * Universal method for applying map settings from leaflet_form_elements items.
+ * 
+ * @param $map
+ * @param $features
+ * @param $settings
+ * @param $entity_type
+ */
+function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_type) {
+  // These are the settings key that will be tokenized by entity:
+  $token_by_entity = array(
+    'popup',
+    'icon',
+  );
 
   // Apply zoom settings (will override hook_leaflet_map_info() values):
-  if (isset($settings['zoom']['initialZoom']) && $settings['zoom']['initialZoom'] >= 0) {
-    $map['settings']['zoom'] = strval($settings['zoom']['initialZoom']);
+  if (isset($map_settings['zoom']['initialZoom']) && $map_settings['zoom']['initialZoom'] >= 0) {
+    $map['settings']['zoom'] = strval($map_settings['zoom']['initialZoom']);
   }
-  if (isset($settings['zoom']['minZoom']) && $settings['zoom']['minZoom'] >= 0) {
-    $map['settings']['minZoom'] = strval($settings['zoom']['minZoom']);
+  if (isset($map_settings['zoom']['minZoom']) && $map_settings['zoom']['minZoom'] >= 0) {
+    $map['settings']['minZoom'] = strval($map_settings['zoom']['minZoom']);
   }
-  if (isset($settings['zoom']['maxZoom']) && $settings['zoom']['maxZoom'] >= 0) {
-    $map['settings']['maxZoom'] = strval($settings['zoom']['maxZoom']);
+  if (isset($map_settings['zoom']['maxZoom']) && $map_settings['zoom']['maxZoom'] >= 0) {
+    $map['settings']['maxZoom'] = strval($map_settings['zoom']['maxZoom']);
   }
 
-  // If only a single feature, set the popup content to the entity title:
-  if (isset($settings['popup']['show']) && $settings['popup']['show']) {
-    foreach($features as $feat) {
+  $icon = 'none';
+  if (isset($map_settings['icon']['iconType'])) {
+    $icon = $map_settings['icon']['iconType'];
+    $classes = NULL;
+    if ($icon == 'html' && isset($map_settings['icon']['htmlClass'])) {
+      // Clean the user-entered classes.
+      $classes = explode(' ', $map_settings['icon']['htmlClass']);
+      array_walk($classes, 'drupal_html_class');
+      $map_settings['icon']['htmlClass'] = implode(' ', $classes);
+    }
+    elseif (!$map_settings['icon']['iconUrl']) {
+      $icon = 'none';
+    }
+  }
+
+  $vector_settings = FALSE;
+  if (!empty($map_settings['vector_display']) && $map_settings['vector_display']['stroke_override']) {
+    $vector_settings = TRUE;
+  }
+
+  foreach ($features as &$feat) {
+    // Apply tokens where relevant:
+    $settings = $map_settings;
+    $token_args = array('data' => array($entity_type => $feat['entity']), 'options' => array('clear' => TRUE));
+    foreach ($token_by_entity as $key) {
+      array_walk_recursive($settings[$key], 'leaflet_token_replace', $token_args);
+    }
+
+    if (isset($settings['popup']['show']) && $settings['popup']['show']) {
       $feat['popup'] = $settings['popup']['text'];
     }
-  }
 
-  // Apply Icon settings:
-  if (!empty($settings['icon'])) {
-    $use_html_marker = ('html' == $settings['icon']['iconType']);
-    if ($use_html_marker) {
-      $icon_display = array(
-        'label' => 'hidden',
-      );
-      $icon_field = field_view_field($entity_type, $entity, $settings['icon']['html'], $icon_display);
-      // Clean the user-entered classes.
-      $classes = explode(' ', $settings['icon']['htmlClass']);
-      array_walk($classes, 'drupal_html_class');
-      $classes = implode(' ', $classes);
-      foreach ($features as $key => $point) {
-        $features[$key]['html'] = render($icon_field);
-        $features[$key]['html_class'] = $classes;
+    // Apply Icon settings:
+    if ($icon == 'html') {
+      $icon_field = field_view_field($entity_type, $feat['entity'], $settings['icon']['html'], array('label' => 'hidden'));
+      if (!empty($settings['icon']['iconSize']['x']) || !empty($settings['icon']['iconSize']['y'])) {
+        // We hand the size off to the API, but the rendered HTML will dictate
+        // its own size, so we override that as well.
+        // @todo: actually allow the API settings to control this.
+        $feat['icon']['iconSize'] = $settings['icon']['iconSize'];
+        foreach (element_children($icon_field) as $i) {
+          if (!empty($settings['icon']['iconSize']['x'])) {
+            $icon_field[$i]['#item']['width'] = $settings['icon']['iconSize']['x'];
+            unset($icon_field[$i]['#item']['width']);
+          }
+          if (!empty($settings['icon']['iconSize']['y'])) {
+            $icon_field[$i]['#item']['height'] = $settings['icon']['iconSize']['y'];
+            unset($icon_field[$i]['#item']['width']);
+          }
+        }
       }
+      $feat['html'] = render($icon_field);
+      $feat['html_class'] = $settings['icon']['htmlClass'];
+      $feat['icon']['iconAnchor'] = $settings['icon']['iconAnchor'];
     }
-    elseif ($settings['icon']['iconUrl']) {
-      foreach ($features as $key => $feature) {
-        $features[$key]['icon'] = $settings['icon'];
-      }
+    if ($icon == 'marker') {
+      $feat['icon'] = $settings['icon'];
+      unset($feat['icon']['html']);
+      unset($feat['icon']['html_class']);
     }
-  }
 
-  if (!empty($settings['vector_display']) && $settings['vector_display']['stroke_override']) {
-    foreach ($features as $key => $feature) {
-      if ($feature['type'] != 'point') {
+    // Apply vector display settings:
+    if ($vector_settings) {
+      if ($feat['type'] != 'point') {
         // To avoid overwrite the options with empty values removes all
         // NULL, FALSE and empty Strings and leaves zero values.
         $options = array_filter($settings['vector_display'], 'strlen');
-        unset($options['vector_display']['stroke_override']);
-        $features[$key]['options'] = $options;
+        unset($options['stroke_override']);
+        $feat['options'] = $options;
       }
     }
   }

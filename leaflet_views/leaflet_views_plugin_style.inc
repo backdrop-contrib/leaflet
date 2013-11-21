@@ -210,8 +210,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
     $form['zoom'] = leaflet_form_elements('zoom', $this->options);
     $form['icon'] = leaflet_form_elements('icon', $this->options, array('path' => 'style_options', 'fields' => $fields));
     $form['vector_display'] = leaflet_form_elements('vector_display', $this->options, array('path' => 'style_options'));
-    $form['tokens'] = leaflet_form_elements('tokens', $this->options, array('weight' => 999, 'entity_type' => $this->entity_type));
-
+    $form['tokens'] = leaflet_form_elements('tokens', $this->options, array('weight' => 998, 'entity_type' => $this->entity_type));
   }
 
   /**
@@ -241,12 +240,8 @@ class leaflet_views_plugin_style extends views_plugin_style {
         if (!empty($geofield)) {
           // Render the entity with the selected view mode:
           if ($this->options['description_field'] === '#rendered_entity' && is_object($result)) {
-            $entities = entity_load($this->entity_type, array($result->{$this->entity_info['entity keys']['id']}));
-            $build = entity_view(
-              $this->entity_type,
-              $entities,
-              $this->options['view_mode']
-            );
+            $entity = entity_load_single($this->entity_type, $result->{$this->entity_info['entity keys']['id']});
+            $build = entity_view($this->entity_type, array($entity), $this->options['view_mode']);
             $description = drupal_render($build);
           }
           // Normal rendering via fields:
@@ -261,10 +256,11 @@ class leaflet_views_plugin_style extends views_plugin_style {
               $point['popup'] = $description;
             }
           }
-          // Attach also titles, they might be used later on.
+          // Attach also titles & entities, they might be used later on.
           if ($this->options['name_field']) {
             foreach ($points as &$point) {
               $point['label'] = $this->rendered_fields[$id][$this->options['name_field']];
+              $point['entity'] = $entity;
             }
           }
           // Let modules modify the points data.
@@ -273,7 +269,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
           $data = array_merge($data, $points);
         }
       }
-      leaflet_apply_map_settings($map, $data, $this->options, $this->entity_type, $this);
+      leaflet_apply_map_settings($map, $data, $this->options, $this->entity_type);
       if (isset($this->options['hide_empty']) && $this->options['hide_empty']) {
         return '';
       }
