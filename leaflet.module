@@ -26,13 +26,13 @@ function leaflet_library() {
         'type' => 'inline',
         'data' => 'L_ROOT_URL = "' . base_path() . libraries_get_path('leaflet') . '/";',
         'group' => JS_LIBRARY,
-        'preprocess' => FALSE
+        'preprocess' => FALSE,
       ),
       array(
         'type' => 'file',
         'data' => libraries_get_path('leaflet') . '/leaflet.js',
         'group' => JS_LIBRARY,
-        'preprocess' => FALSE
+        'preprocess' => FALSE,
       ),
     ),
     'css' => array(
@@ -77,7 +77,7 @@ function leaflet_render_map($map, $features = array(), $height = '400px') {
   $map_id = drupal_html_id('leaflet_map');
   drupal_add_library('leaflet', 'leaflet-drupal');
 
-  // Allow map definitions to provide a default icon
+  // Allow map definitions to provide a default icon:
   if (isset($map['icon']['iconUrl'])) {
     foreach ($features as &$feature) {
       if (!isset($feature['icon'])) {
@@ -163,8 +163,8 @@ function leaflet_leaflet_map_info() {
         'earth' => array(
           'urlTemplate' => 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
           'options' => array(
-            'attribution' => 'OSM Mapnik'
-          )
+            'attribution' => 'OSM Mapnik',
+          ),
         ),
       ),
     ),
