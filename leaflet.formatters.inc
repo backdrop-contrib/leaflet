@@ -901,34 +901,34 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
 
 /**
  * Validation callback for the initial zoom level.
- *
- * @param $element
- * @param $form_state
- * @param $form
  */
 function leaflet_initial_zoom_validate($element, &$form_state, $form) {
-  $field_name = check_plain($form_state['formatter_settings_edit']);
-  $min_zoom = (int) $form_state['input']['fields'][$field_name]['settings_edit_form']['settings']['zoom']['minZoom'];
-  $max_zoom = (int) $form_state['input']['fields'][$field_name]['settings_edit_form']['settings']['zoom']['maxZoom'];
-  $initial_zoom = (int) $form_state['input']['fields'][$field_name]['settings_edit_form']['settings']['zoom']['initialZoom'];
-  if (!empty($initial_zoom) && (!empty($min_zoom) || (!empty($max_zoom)))) {
-    if (($min_zoom > $initial_zoom || empty($min_zoom)) || ($initial_zoom > $max_zoom || empty($max_zoom))) {
-      form_error($element, t('The initial zoom level should be between the minimum and maximum zoom settings'));
+  $input_root = _leaflet_get_form_input_path($form_state['input'], $element['#parents']);
+  $min_zoom = (int) $input_root['minZoom'];
+  $max_zoom = (int) $input_root['maxZoom'];
+  $initial_zoom = (int) $input_root['initialZoom'];
+  if (isset($initial_zoom) && $initial_zoom != -1) {
+    if (isset($min_zoom)) {
+      if ($min_zoom > $initial_zoom) {
+        form_error($element, t('The initial zoom level should be greater than the minimum zoom settings'));
+      }
+    }
+    elseif (isset($max_zoom) && $max_zoom != -1) {
+      if ($max_zoom < $initial_zoom) {
+        form_error($element, t('The initial zoom level should be less than the maximum zoom settings'));
+      }
     }
   }
 }
+
 /**
  * Validation callback for min zoom level.
- *
- * @param $element
- * @param $form_state
- * @param $form
  */
 function leaflet_min_zoom_validate($element, &$form_state, $form) {
-  $field_name = check_plain($form_state['formatter_settings_edit']);
-  $min_zoom = (int) $form_state['input']['fields'][$field_name]['settings_edit_form']['settings']['zoom']['minZoom'];
-  $max_zoom = (int) $form_state['input']['fields'][$field_name]['settings_edit_form']['settings']['zoom']['maxZoom'];
-  if (!empty($min_zoom) && !empty($max_zoom)) {
+  $input_root = _leaflet_get_form_input_path($form_state['input'], $element['#parents']);
+  $min_zoom = (int) $input_root['minZoom'];
+  $max_zoom = (int) $input_root['maxZoom'];
+  if (isset($max_zoom) && $max_zoom != "-1" && isset($min_zoom)) {
     if ($min_zoom > $max_zoom) {
       form_error($element, t('The minimum zoom setting must be less than or equal to the maximum zoom setting'));
     }
@@ -936,18 +936,25 @@ function leaflet_min_zoom_validate($element, &$form_state, $form) {
 }
 /**
  * Validation callback for max zoom level.
- *
- * @param $element
- * @param $form_state
- * @param $form
  */
 function leaflet_max_zoom_validate($element, &$form_state, $form) {
-  $field_name = check_plain($form_state['formatter_settings_edit']);
-  $min_zoom = (int) $form_state['input']['fields'][$field_name]['settings_edit_form']['settings']['zoom']['minZoom'];
-  $max_zoom = (int) $form_state['input']['fields'][$field_name]['settings_edit_form']['settings']['zoom']['maxZoom'];
-  if (!empty($min_zoom) && !empty($max_zoom)) {
+  $input_root = _leaflet_get_form_input_path($form_state['input'], $element['#parents']);
+  $min_zoom = (int) $input_root['minZoom'];
+  $max_zoom = (int) $input_root['maxZoom'];
+  if (isset($max_zoom) && $max_zoom != "-1" && isset($min_zoom)) {
     if ($min_zoom > $max_zoom) {
       form_error($element, t('The maximum zoom setting must be greater than or equal to the minimum zoom setting'));
     }
   }
+}
+
+/**
+ * Helper function to find the correct values for input validation.
+ */
+function _leaflet_get_form_input_path($path, $path_items) {
+  array_pop($path_items);
+  while ($item = array_shift($path_items)) {
+    $path = $path[$item];
+  }
+  return $path;
 }
