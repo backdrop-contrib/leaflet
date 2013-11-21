@@ -273,7 +273,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
         return '';
       }
       else {
-        return leaflet_render_map($map, $data, $this->options['height'] . 'px');
+        return leaflet_build_map($map, $data, $this->options['height'] . 'px');
       }
     }
     return '';

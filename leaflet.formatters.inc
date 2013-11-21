@@ -150,14 +150,11 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
       case 'geofield_leaflet':
         $map = leaflet_map_get_info($settings['leaflet_map']);
         $features = leaflet_process_geofield($items);
-        $element[0] = array(
-          '#markup' => leaflet_render_map($map, $features, $settings['height'] . 'px'),
-        );
-
         foreach ($features as &$feat) {
           $feat['entity'] = $entity;
         }
         leaflet_apply_map_settings($map, $features, $settings, $entity_type);
+        $element[0] = leaflet_build_map($map, $features, $settings['height'] . 'px');
         break;
     }
 

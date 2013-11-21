@@ -27,7 +27,7 @@ Installation
 
 API Usage
 ---------
-Rendering a map is as simple as calling a single method, leaflet_render_map(),
+Building a map is as simple as calling a single method, leaflet_build_map(),
 which takes 3 parameters.
 
 $map (array)

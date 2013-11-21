@@ -65,6 +65,61 @@ function leaflet_library() {
 }
 
 /**
+ * Attach Leaflet-required client files and return renderable array for a map.
+ *
+ * @param array $map
+ * @param array $features
+ * @param string $height
+ *
+ * @return array
+ *  A renderable array.
+ */
+function leaflet_build_map($map, $features = array(), $height = '400px') {
+  $map_id = drupal_html_id('leaflet_map');
+  $build = array(
+    '#theme' => 'html_tag',
+    '#tag' => 'div',
+    '#value' => '',
+    '#attributes' => array(
+      'id' => $map_id,
+      'style' => 'height: ' . $height,
+    ),
+    '#attached' => array(
+      'js' => array(),
+      'library' => array(),
+    ),
+  );
+
+  // Allow map definitions to provide a default icon:
+  if (isset($map['icon']['iconUrl'])) {
+    foreach ($features as &$feature) {
+      if (!isset($feature['icon'])) {
+        $feature['icon'] = $map['icon'];
+      }
+    }
+  }
+
+  $settings = array(
+    'mapId' => $map_id,
+    'map' => $map,
+    'features' => $features,
+  );
+  drupal_alter('leaflet_map_prebuild', $settings);
+
+  $build['#attached']['js'][] = array(
+    'data' => array('leaflet' => array($settings)),
+    'type' => 'setting',
+  );
+  $build['#attached']['js'][] = array(
+    'data' => drupal_get_path('module', 'leaflet') . '/leaflet.drupal.js',
+    'type' => 'file',
+  );
+  $build['#attached']['library'][] = array('leaflet', 'leaflet-drupal');
+
+  return $build;
+}
+
+/**
  * Load all Leaflet required client files and return markup for a map.
  *
  * @param array $map
@@ -92,7 +147,7 @@ function leaflet_render_map($map, $features = array(), $height = '400px') {
     'features' => $features,
   );
 
-  drupal_alter('leaflet_map_prerender', $settings);
+  drupal_alter('leaflet_map_prebuild', $settings);
 
   drupal_add_js(array('leaflet' => array($settings)), 'setting');
 
