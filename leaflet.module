@@ -120,6 +120,8 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
 }
 
 /**
+ * DEPRECATED. Use leaflet_build_map() instead.
+ * 
  * Load all Leaflet required client files and return markup for a map.
  *
  * @param array $map
@@ -129,29 +131,8 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
  * @return string map markup
  */
 function leaflet_render_map($map, $features = array(), $height = '400px') {
-  $map_id = drupal_html_id('leaflet_map');
-  drupal_add_library('leaflet', 'leaflet-drupal');
-
-  // Allow map definitions to provide a default icon:
-  if (isset($map['icon']['iconUrl'])) {
-    foreach ($features as &$feature) {
-      if (!isset($feature['icon'])) {
-        $feature['icon'] = $map['icon'];
-      }
-    }
-  }
-
-  $settings = array(
-    'mapId' => $map_id,
-    'map' => $map,
-    'features' => $features,
-  );
-
-  drupal_alter('leaflet_map_prebuild', $settings);
-
-  drupal_add_js(array('leaflet' => array($settings)), 'setting');
-
-  return theme('leaflet_map', array('map_id' => $map_id, 'height' => $height));
+  $build = leaflet_build_map($map, $features, $height);
+  return render($build);
 }
 
 /**
@@ -225,4 +206,3 @@ function leaflet_leaflet_map_info() {
     ),
   );
 }
-
