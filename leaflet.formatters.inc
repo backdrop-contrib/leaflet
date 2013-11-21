@@ -226,6 +226,18 @@ function leaflet_process_geofield($items = array()) {
         $data[] = $datum;
         break;
 
+      case 'multipoint':
+        $geom = geoPHP::load($item['wkt'], 'wkt');
+        $points = $geom->getComponents();
+        foreach ($points as $point) {
+          $data[] = array(
+            'type' => 'point',
+            'lat' => $point->getY(),
+            'lon' => $point->getX(),
+          );
+        }
+        break;
+
       case 'multipolygon':
         $geom = geoPHP::load($item['wkt'], 'wkt');
 
