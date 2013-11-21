@@ -477,7 +477,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
     case 'zoom':
       $form_element = array(
         '#title' => t('Zoom Settings'),
-        '#description' => t("These settings will override the zoom settings defined in the map definition. Exceeding the map's min/max zoom will have no effect."),
+        '#description' => t("These settings will override the zoom settings defined in the map definition. Low values are 'zoomed out', high values are 'zoomed in'."),
         '#type' => 'fieldset',
         '#tree' => TRUE,
         '#collapsible' => TRUE,
@@ -489,7 +489,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#type' => 'select',
         '#options' => array(
           -1 => t('Use map defined setting'),
-          0 => t('0 - Low'),
+          0 => t('0 - Low/Far'),
           1 => 1,
           2 => 2,
           3 => 3,
@@ -507,13 +507,13 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           15 => 15,
           16 => 16,
           17 => 17,
-          18 => t('18 - High')),
+          18 => t('18 - High/Close')),
         '#default_value' => isset($settings[$group]['initialZoom']) ? $settings[$group]['initialZoom'] : -1,
         '#element_validate' => array('leaflet_initial_zoom_validate'),
       );
       $form_element['minZoom'] = array(
         '#title' => t('Minimum zoom level'),
-        '#description' => t('The minimum zoom level allowed'),
+        '#description' => t('The minimum zoom level allowed. (How far away can you view from?)'),
         '#type' => 'select',
         '#options' => array(
           -1 => t('Use map defined setting'),
@@ -541,11 +541,11 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
       );
       $form_element['maxZoom'] = array(
         '#title' => t('Maximum zoom level'),
-        '#description' => t('The maximum zoom level allowed'),
+        '#description' => t('The maximum zoom level allowed. (How close in can you get?).'),
         '#type' => 'select',
         '#options' => array(
           -1 => t('Use map defined setting'),
-          0 => t('0 - Low'),
+          0 => t('0 - Low/Far'),
           1 => 1,
           2 => 2,
           3 => 3,
@@ -563,7 +563,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           15 => 15,
           16 => 16,
           17 => 17,
-          18 => t('18 - High')),
+          18 => t('18 - High/Close')),
         '#default_value' => isset($settings[$group]['maxZoom']) ? $settings[$group]['maxZoom'] : -1,
         '#element_validate' => array('leaflet_max_zoom_validate'),
       );
@@ -601,6 +601,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
       );
       $form_element['shadowUrl'] = array(
         '#title' => t('Icon Shadow URL'),
+        '#description' => t('Can be an absolute or relative URL.'),
         '#type' => 'textfield',
         '#maxlength' => 999,
         '#default_value' => isset($settings[$group]['shadowUrl']) ? $settings[$group]['shadowUrl'] : '',
@@ -611,16 +612,37 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           ),
         ),
       );
+      $form_element['html'] = array(
+        '#type' => 'select',
+        '#title' => t('Marker field'),
+        '#description' => t('Field to use as output for a map marker.'),
+        '#options' => array_merge(array('' => ''), $options['fields']),
+        '#default_value' => isset($settings[$group]['html']) ? $settings[$group]['html'] : '',
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
+          ),
+          'required' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
+          ),
+        ),
+      );
+      $form_element['htmlClass'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Marker HTML class'),
+        '#description' => t('Optional class name for the div used to wrap field output. For multiple classes, separate with a space.'),
+        '#default_value' => isset($settings[$group]['htmlClass']) ? $settings[$group]['htmlClass'] : '',
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
+          ),
+        ),
+      );
       $form_element['iconSize'] = array(
         '#title' => t('Icon Size'),
         '#type' => 'fieldset',
-        '#collapsible' => FALSE,
+        '#collapsible' => TRUE,
         '#description' => t('Size of the icon image in pixels.'),
-        '#states' => array(
-          'visible' => array(
-            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'marker'),
-          ),
-        ),
       );
       $form_element['iconSize']['x'] = array(
         '#title' => t('Width'),
@@ -641,13 +663,8 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
       $form_element['iconAnchor'] = array(
         '#title' => t('Icon Anchor'),
         '#type' => 'fieldset',
-        '#collapsible' => FALSE,
+        '#collapsible' => TRUE,
         '#description' => t("The coordinates of the 'tip' of the icon (relative to its top left corner). The icon will be aligned so that this point is at the marker's geographical location."),
-        '#states' => array(
-          'visible' => array(
-            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'marker'),
-          ),
-        ),
       );
       $form_element['iconAnchor']['x'] = array(
         '#title' => t('X'),
@@ -668,7 +685,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
       $form_element['shadowAnchor'] = array(
         '#title' => t('Shadow Anchor'),
         '#type' => 'fieldset',
-        '#collapsible' => FALSE,
+        '#collapsible' => TRUE,
         '#description' => t('The point from which the shadow is shown.'),
         '#states' => array(
           'visible' => array(
@@ -695,7 +712,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
       $form_element['popupAnchor'] = array(
         '#title' => t('Popup Anchor'),
         '#type' => 'fieldset',
-        '#collapsible' => FALSE,
+        '#collapsible' => TRUE,
         '#description' => t('The point from which the marker popup opens, relative to the anchor point.'),
         '#states' => array(
           'visible' => array(
@@ -719,32 +736,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#default_value' => isset($settings[$group]['popupAnchor']['y']) ? $settings[$group]['popupAnchor']['y'] : '',
         '#element_validate' => array('element_validate_number'),
       );
-      $form_element['html'] = array(
-        '#type' => 'select',
-        '#title' => t('Marker HTML field'),
-        '#description' => t('Views field to use as output for a map marker.'),
-        '#options' => array_merge(array('' => ''), $options['fields']),
-        '#default_value' => isset($settings[$group]['html']) ? $settings[$group]['html'] : '',
-        '#states' => array(
-          'visible' => array(
-            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
-          ),
-          'required' => array(
-            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
-          ),
-        ),
-      );
-      $form_element['htmlClass'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Marker HTML class'),
-        '#description' => t('Optional class name for the div used to wrap field output. For multiple classes, separate with a space.'),
-        '#default_value' => isset($settings[$group]['htmlClass']) ? $settings[$group]['htmlClass'] : '',
-        '#states' => array(
-          'visible' => array(
-            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
-          ),
-        ),
-      );
+
       break;
 
     case "vector_display":
