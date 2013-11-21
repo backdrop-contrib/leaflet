@@ -225,10 +225,10 @@
           icon.options.iconSize = new L.Point(parseInt(marker.icon.iconSize.x, 10), parseInt(marker.icon.iconSize.y, 10));
         }
         if (marker.icon.iconAnchor) {
-          icon.options.iconAnchor = new L.Point(parseFloat(marker.icon.iconAnchor.x, 10), parseFloat(marker.icon.iconAnchor.y, 10));
+          icon.options.iconAnchor = new L.Point(parseFloat(marker.icon.iconAnchor.x), parseFloat(marker.icon.iconAnchor.y));
         }
         if (marker.icon.popupAnchor) {
-          icon.options.popupAnchor = new L.Point(parseFloat(marker.icon.popupAnchor.x, 10), parseFloat(marker.icon.popupAnchor.y, 10));
+          icon.options.popupAnchor = new L.Point(parseFloat(marker.icon.popupAnchor.x), parseFloat(marker.icon.popupAnchor.y));
         }
         if (marker.icon.shadowUrl !== undefined) {
           icon.options.shadowUrl = marker.icon.shadowUrl;
