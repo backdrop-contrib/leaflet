@@ -239,8 +239,14 @@
         if (marker.icon.shadowAnchor) {
           icon.options.shadowAnchor = new L.Point(parseInt(marker.icon.shadowAnchor.x, 10), parseInt(marker.icon.shadowAnchor.y, 10));
         }
-
-        lMarker = new L.Marker(latLng, {icon:icon});
+        if (marker.icon.zIndexOffset) {
+          icon.options.zIndexOffset = marker.icon.zIndexOffset;
+        }
+        var options = {icon:icon};
+        if (marker.zIndexOffset) {
+          options.zIndexOffset = marker.zIndexOffset;
+        }
+        lMarker = new L.Marker(latLng, options);
       }
       else {
         lMarker = new L.Marker(latLng);
