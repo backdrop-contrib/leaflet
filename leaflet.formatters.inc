@@ -275,6 +275,8 @@ function leaflet_process_geofield($items = array()) {
           }
           unset($subcomponent);
         }
+
+        $data[] = $datum;
         break;
 
       case 'geometrycollection':
