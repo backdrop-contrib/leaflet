@@ -18,6 +18,7 @@
 
         // instantiate our new map
         var lMap = new L.Map(this.mapId, settings);
+        lMap.bounds = [];
 
         // add map layers
         var layers = {}, overlays = {};
@@ -45,7 +46,7 @@
             var lGroup = new L.LayerGroup();
             for (var groupKey in feature.features) {
               var groupFeature = feature.features[groupKey];
-              lFeature = leaflet_create_feature(groupFeature);
+              lFeature = leaflet_create_feature(groupFeature, lMap);
               if (groupFeature.popup) {
                 lFeature.bindPopup(groupFeature.popup);
               }
@@ -58,7 +59,7 @@
             lMap.addLayer(lGroup);
           }
           else {
-            lFeature = leaflet_create_feature(feature);
+            lFeature = leaflet_create_feature(feature, lMap);
             lMap.addLayer(lFeature);
 
             if (feature.popup) {
@@ -106,30 +107,30 @@
         this.features = null;
       });
 
-      function leaflet_create_feature(feature) {
+      function leaflet_create_feature(feature, lMap) {
         var lFeature;
         switch (feature.type) {
           case 'point':
-            lFeature = Drupal.leaflet.create_point(feature);
+            lFeature = Drupal.leaflet.create_point(feature, lMap);
             break;
           case 'linestring':
-            lFeature = Drupal.leaflet.create_linestring(feature);
+            lFeature = Drupal.leaflet.create_linestring(feature, lMap);
             break;
           case 'polygon':
-            lFeature = Drupal.leaflet.create_polygon(feature);
+            lFeature = Drupal.leaflet.create_polygon(feature, lMap);
             break;
           case 'multipolygon':
           case 'multipolyline':
-            lFeature = Drupal.leaflet.create_multipoly(feature);
+            lFeature = Drupal.leaflet.create_multipoly(feature, lMap);
             break;
           case 'json':
-            lFeature = Drupal.leaflet.create_json(feature.json);
+            lFeature = Drupal.leaflet.create_json(feature.json, lMap);
             break;
           case 'popup':
-            lFeature = Drupal.leaflet.create_popup(feature);
+            lFeature = Drupal.leaflet.create_popup(feature, lMap);
             break;
           case 'circle':
-            lFeature = Drupal.leaflet.create_circle(feature);
+            lFeature = Drupal.leaflet.create_circle(feature, lMap);
             break;
         }
 
@@ -153,8 +154,6 @@
   };
 
   Drupal.leaflet = {
-
-    bounds: [],
 
     create_layer: function (layer, key) {
       var map_layer = new L.TileLayer(layer.urlTemplate);
@@ -183,10 +182,10 @@
       return map_layer;
     },
 
-    create_circle: function(circle) {
+    create_circle: function(circle, lMap) {
       var latLng = new L.LatLng(circle.lat, circle.lon);
       latLng = latLng.wrap();
-      this.bounds.push(latLng);
+      lMap.bounds.push(latLng);
       if (circle.options) {
         return new L.Circle(latLng, circle.radius, circle.options);
       }
@@ -195,10 +194,10 @@
       }
     },
 
-    create_point: function(marker) {
+    create_point: function(marker, lMap) {
       var latLng = new L.LatLng(marker.lat, marker.lon);
       latLng = latLng.wrap();
-      this.bounds.push(latLng);
+      lMap.bounds.push(latLng);
       var lMarker;
 
       if (marker.html) {
@@ -259,29 +258,29 @@
       return lMarker;
     },
 
-    create_linestring: function(polyline) {
+    create_linestring: function(polyline, lMap) {
       var latlngs = [];
       for (var i = 0; i < polyline.points.length; i++) {
         var latlng = new L.LatLng(polyline.points[i].lat, polyline.points[i].lon);
         latlng = latlng.wrap();
         latlngs.push(latlng);
-        this.bounds.push(latlng);
+        lMap.bounds.push(latlng);
       }
       return new L.Polyline(latlngs);
     },
 
-    create_polygon: function(polygon) {
+    create_polygon: function(polygon, lMap) {
       var latlngs = [];
       for (var i = 0; i < polygon.points.length; i++) {
         var latlng = new L.LatLng(polygon.points[i].lat, polygon.points[i].lon);
         latlng = latlng.wrap();
         latlngs.push(latlng);
-        this.bounds.push(latlng);
+        lMap.bounds.push(latlng);
       }
       return new L.Polygon(latlngs);
     },
 
-    create_multipoly: function(multipoly) {
+    create_multipoly: function(multipoly, lMap) {
       var polygons = [];
       for (var x = 0; x < multipoly.component.length; x++) {
         var latlngs = [];
@@ -290,7 +289,7 @@
           var latlng = new L.LatLng(polygon.points[i].lat, polygon.points[i].lon);
           latlng = latlng.wrap();
           latlngs.push(latlng);
-          this.bounds.push(latlng);
+          lMap.bounds.push(latlng);
         }
         polygons.push(latlngs);
       }
@@ -302,7 +301,7 @@
       }
     },
 
-    create_json:function(json) {
+    create_json:function(json, lMap) {
       lJSON = new L.GeoJSON(json, {
         onEachFeature:function (feature, layer) {
           var has_properties = (typeof feature.properties != 'undefined');
@@ -343,8 +342,8 @@
     },
 
     fitbounds:function (lMap) {
-      if (this.bounds.length > 0) {
-        lMap.fitBounds(new L.LatLngBounds(this.bounds));
+      if (lMap.bounds.length > 0) {
+        lMap.fitBounds(new L.LatLngBounds(lMap.bounds));
       }
     }
   };
