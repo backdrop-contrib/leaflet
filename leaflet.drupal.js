@@ -51,6 +51,9 @@
                 lFeature.bindPopup(groupFeature.popup);
               }
               lGroup.addLayer(lFeature);
+
+              // Allow others to do something with the feature within a group.
+              $(document).trigger('leaflet.feature', [lFeature, feature]);
             }
 
             // add the group to the layer switcher
@@ -65,10 +68,11 @@
             if (feature.popup) {
               lFeature.bindPopup(feature.popup);
             }
+
+            // Allow others to do something with the feature.
+            $(document).trigger('leaflet.feature', [lFeature, feature]);
           }
 
-          // Allow others to do something with the feature that was just added to the map
-          $(document).trigger('leaflet.feature', [lFeature, feature]);
         }
 
         // add layer switcher
