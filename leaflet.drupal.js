@@ -85,7 +85,7 @@
           lMap.setView(new L.LatLng(this.map.center.lat, this.map.center.lon), this.map.settings.zoom);
         }
         // if we have provided a zoom level, then use it after fitting bounds
-        else if (this.map.settings.zoom) {
+        else if (this.map.settings.zoom && this.features.length > 0) {
           Drupal.leaflet.fitbounds(lMap);
           lMap.setZoom(this.map.settings.zoom);
         }
