@@ -474,6 +474,17 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
       break;
 
     case 'zoom':
+      // Define zoom options.
+      $zoom_options = array(
+        -1 => t('Use map defined setting'),
+        0 => t('0 - Low/Far'),
+        18 => t('18 - High/Close'),
+      );
+      for($i=1; $i<18; $i++) {
+        $zoom_options[$i] = $i;
+      }
+      ksort($zoom_options);
+
       $form_element = array(
         '#title' => t('Zoom Settings'),
         '#description' => t("These settings will override the zoom settings defined in the map definition. Low values are 'zoomed out', high values are 'zoomed in'."),
@@ -486,27 +497,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#title' => t('Initial zoom level'),
         '#description' => t('The starting zoom level when this map is rendered.  Restricted by min and max zoom settings.'),
         '#type' => 'select',
-        '#options' => array(
-          -1 => t('Use map defined setting'),
-          0 => t('0 - Low/Far'),
-          1 => 1,
-          2 => 2,
-          3 => 3,
-          4 => 4,
-          5 => 5,
-          6 => 6,
-          7 => 7,
-          8 => 8,
-          9 => 9,
-          10 => 10,
-          11 => 11,
-          12 => 12,
-          13 => 13,
-          14 => 14,
-          15 => 15,
-          16 => 16,
-          17 => 17,
-          18 => t('18 - High/Close')),
+        '#options' => $zoom_options,
         '#default_value' => isset($settings[$group]['initialZoom']) ? $settings[$group]['initialZoom'] : -1,
         '#element_validate' => array('leaflet_initial_zoom_validate'),
       );
@@ -514,27 +505,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#title' => t('Minimum zoom level'),
         '#description' => t('The minimum zoom level allowed. (How far away can you view from?)'),
         '#type' => 'select',
-        '#options' => array(
-          -1 => t('Use map defined setting'),
-          0 => t('0 - Low'),
-          1 => 1,
-          2 => 2,
-          3 => 3,
-          4 => 4,
-          5 => 5,
-          6 => 6,
-          7 => 7,
-          8 => 8,
-          9 => 9,
-          10 => 10,
-          11 => 11,
-          12 => 12,
-          13 => 13,
-          14 => 14,
-          15 => 15,
-          16 => 16,
-          17 => 17,
-          18 => t('18 - High')),
+        '#options' => $zoom_options,
         '#default_value' => isset($settings[$group]['minZoom']) ? $settings[$group]['minZoom'] : -1,
         '#element_validate' => array('leaflet_min_zoom_validate'),
       );
@@ -542,27 +513,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#title' => t('Maximum zoom level'),
         '#description' => t('The maximum zoom level allowed. (How close in can you get?).'),
         '#type' => 'select',
-        '#options' => array(
-          -1 => t('Use map defined setting'),
-          0 => t('0 - Low/Far'),
-          1 => 1,
-          2 => 2,
-          3 => 3,
-          4 => 4,
-          5 => 5,
-          6 => 6,
-          7 => 7,
-          8 => 8,
-          9 => 9,
-          10 => 10,
-          11 => 11,
-          12 => 12,
-          13 => 13,
-          14 => 14,
-          15 => 15,
-          16 => 16,
-          17 => 17,
-          18 => t('18 - High/Close')),
+        '#options' => $zoom_options,
         '#default_value' => isset($settings[$group]['maxZoom']) ? $settings[$group]['maxZoom'] : -1,
         '#element_validate' => array('leaflet_max_zoom_validate'),
       );
