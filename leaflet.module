@@ -149,7 +149,7 @@ function leaflet_render_map($map, $features = array(), $height = '400px') {
 }
 
 /**
- * Get all avaialble Leaflet map definitions.
+ * Get all available Leaflet map definitions.
  *
  * @string $map
  *   The name of the map defined in hook_leaflet_map_get_info().
