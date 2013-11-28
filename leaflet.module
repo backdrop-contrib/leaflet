@@ -26,7 +26,7 @@ function leaflet_library() {
   $libraries['leaflet'] = array(
     'title' => 'Leaflet',
     'website' => 'http://leaflet.cloudmade.com',
-    'version' => '0.6',
+    'version' => '0.7',
     'js' => array(
       array(
         'type' => 'inline',
