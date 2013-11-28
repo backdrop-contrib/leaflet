@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * @file
+ * Provide Leaflet API integration and field formatters.
+ */
+
 module_load_include('inc', 'leaflet', 'leaflet.formatters');
 
 /**
@@ -68,11 +74,14 @@ function leaflet_library() {
  * Attach Leaflet-required client files and return renderable array for a map.
  *
  * @param array $map
+ *   Map definition as returned my leaflet_map_get_info();
  * @param array $features
+ *   Associative array of map features.
  * @param string $height
+ *   The height of the map.
  *
  * @return array
- *  A renderable array.
+ *   A renderable array.
  */
 function leaflet_build_map($map, $features = array(), $height = '400px') {
   $map_id = drupal_html_id('leaflet_map');
@@ -125,10 +134,14 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
  * Load all Leaflet required client files and return markup for a map.
  *
  * @param array $map
+ *   Map definition as returned my leaflet_map_get_info();
  * @param array $features
+ *   Associative array of map features.
  * @param string $height
+ *   The height of the map.
  *
- * @return string map markup
+ * @return string
+ *   map markup
  */
 function leaflet_render_map($map, $features = array(), $height = '400px') {
   $build = leaflet_build_map($map, $features, $height);
@@ -138,7 +151,8 @@ function leaflet_render_map($map, $features = array(), $height = '400px') {
 /**
  * Get all avaialble Leaflet map definitions.
  *
- * @param string $map
+ * @string $map
+ *   The name of the map defined in hook_leaflet_map_get_info().
  */
 function leaflet_map_get_info($map = NULL) {
   static $drupal_static_fast;
@@ -170,9 +184,9 @@ function leaflet_map_get_info($map = NULL) {
 }
 
 /**
- * Implements hook_leaflet_map_info() to return a default map.
+ * Implements hook_leaflet_map_info().
  *
- * @return array
+ * Return a default map for the module.
  */
 function leaflet_leaflet_map_info() {
   return array(

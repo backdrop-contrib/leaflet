@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Leaflet field formatter functions.
+ */
+
+/**
  * Implements hook_field_formatter_info().
  */
 function leaflet_field_formatter_info() {
@@ -76,7 +81,7 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
   if ($display['type'] == 'geofield_leaflet') {
     $options = array('' => t('-- Select --'));
     foreach (leaflet_map_get_info() as $key => $map) {
-      $options[$key] = t($map['label']);
+      $options[$key] = $map['label'];
     }
 
     $element['leaflet_map'] = array(
@@ -319,11 +324,16 @@ function leaflet_process_geofield($items = array()) {
 
 /**
  * Universal method for applying map settings from leaflet_form_elements items.
- * 
- * @param $map
- * @param $features
- * @param $settings
- * @param $entity_type
+ *
+ * @array $map
+ *   Leaflet map definition.
+ * @array $features
+ *   Associative array of map features.
+ * @array $map_settings
+ *   Map settings returned by a settings form.
+ * @string $entity_type
+ *   Entity type this map is being displayed for.
+ *
  */
 function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_type) {
   // These are the settings key that will be tokenized by entity:
@@ -480,7 +490,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         0 => t('0 - Low/Far'),
         18 => t('18 - High/Close'),
       );
-      for($i=1; $i<18; $i++) {
+      for ($i = 1; $i < 18; $i++) {
         $zoom_options[$i] = $i;
       }
       ksort($zoom_options);

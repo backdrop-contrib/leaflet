@@ -179,7 +179,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
     // Choose a map preset:
     $map_options = array();
     foreach (leaflet_map_get_info() as $key => $map) {
-      $map_options[$key] = t($map['label']);
+      $map_options[$key] = t('@label', array('@label' => $map['label']));
     }
 
     $form['map'] = array(
