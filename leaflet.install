@@ -11,30 +11,28 @@
 function leaflet_requirements($phase) {
   $requirements = array();
   $t = get_t();
-  // Ensure js library is available.
-  if ($phase != 'runtime') {
-    return $requirements;
-  }
-  // Ensure js library is installed. Show number of maps avaialble.
-  if (file_exists(libraries_get_path('leaflet') . '/leaflet.js')) {
+
+  // Verify the Leaflet library is installed correctly.
+  if (in_array($phase, array('runtime', 'update'))) {
+    $library = libraries_detect('leaflet');
     $requirements['leaflet'] = array(
-      'title' => $t('Leaflet library'),
-      'value' => $t('Installed. @maps available.', array(
-        '@maps' => format_plural(count(leaflet_map_get_info()), 'One map', '@count maps'))),
-      'severity' => REQUIREMENT_OK,
+      'title' => $t('Leaflet'),
     );
-  }
-  else {
-    $requirements['leaflet'] = array(
-      'title' => $t('Leaflet library not found'),
-      'value' => $t('The !leaflet javascript library was not found. Please !download it into the <em>sites/all/libraries</em> folder, stripping its name of the version number. Ensure that it is named <strong>leaflet</strong> with a lowercase "l".',
-        array(
-          '!leaflet' => l($t('Leaflet'), 'http://leafletjs.com'),
-          '!download' => l($t('download'), 'http://leafletjs.com/download.html'),
-        )
-      ),
-      'severity' => REQUIREMENT_ERROR,
-    );
+
+    if ($library['installed']) {
+      $requirements['leaflet'] += array(
+        'value' => $library['version'],
+        'description' => $t('The Leaflet JavaScript library is installed correctly.'),
+        'severity' => REQUIREMENT_OK,
+      );
+    }
+    else {
+      $requirements['leaflet'] += array(
+        'value' => $library['error'],
+        'description' => $library['error message'],
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
   }
 
   return $requirements;

@@ -20,50 +20,51 @@ function leaflet_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Implements hook_library().
+ * Implements hook_libraries_info().
  */
-function leaflet_library() {
+function leaflet_libraries_info() {
   $libraries['leaflet'] = array(
-    'title' => 'Leaflet',
-    'website' => 'http://leaflet.cloudmade.com',
-    'version' => '0.7',
-    'js' => array(
-      array(
-        'type' => 'inline',
-        'data' => 'L_ROOT_URL = "' . base_path() . libraries_get_path('leaflet') . '/";',
-        'group' => JS_LIBRARY,
-        'preprocess' => FALSE,
-      ),
-      array(
-        'type' => 'file',
-        'data' => libraries_get_path('leaflet') . '/leaflet.js',
-        'group' => JS_LIBRARY,
-        'preprocess' => FALSE,
-      ),
+    // Only used in administrative UI of Libraries API.
+    'name' => 'Leaflet JavaScript Library',
+    'vendor url' => 'http://leafletjs.com/',
+    'download url' => 'http://leaflet-cdn.s3.amazonaws.com/build/leaflet-0.7.zip',
+    // .7: version="0.7"
+    'version arguments' => array(
+      'file' => 'leaflet.js',
+      'pattern' => '/version="(\d+\.\d+)"/',
     ),
-    'css' => array(
-      libraries_get_path('leaflet') . '/leaflet.css' => array(
-        'type' => 'file',
-        'media' => 'all',
+    'files' => array(
+      'js' => array(
+        // This setting is needed in order to properly render market images.
+        'leaflet_root_url' => array(
+          'type' => 'inline',
+          'data' => 'L_ROOT_URL = "' . base_path() . libraries_get_path('leaflet') . '/";',
+          'group' => JS_LIBRARY,
+          'preprocess' => FALSE,
+        ),
+        'leaflet.js' => array(
+          'type' => 'file',
+          'group' => JS_LIBRARY,
+          'preprocess' => FALSE,
+        ),
       ),
-      libraries_get_path('leaflet') . '/leaflet.ie.css' => array(
-        'browsers' => array(
-          'IE' => 'lte IE 8',
-          '!IE' => FALSE,
+      'css' => array(
+        'leaflet.css' => array(
+          'type' => 'file',
+          'media' => 'all',
+        ),
+        'leaflet.ie.css' => array(
+          'browsers' => array(
+            'IE' => 'lte IE 8',
+            '!IE' => FALSE,
+          ),
         ),
       ),
     ),
-  );
-
-  $libraries['leaflet-drupal'] = array(
-    'title' => 'Leaflet initialization',
-    'website' => 'http://drupal.org/project/leaflet',
-    'version' => '7.x-1.x',
-    'js' => array(
-      drupal_get_path('module', 'leaflet') . '/leaflet.drupal.js' => array(),
-    ),
-    'dependencies' => array(
-      array('leaflet', 'leaflet'),
+    'integration files' => array(
+      'leaflet' => array(
+        'js' => array('leaflet.drupal.js'),
+      ),
     ),
   );
 
@@ -93,10 +94,6 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
       'id' => $map_id,
       'style' => 'height: ' . $height,
     ),
-    '#attached' => array(
-      'js' => array(),
-      'library' => array(),
-    ),
   );
 
   // Allow map definitions to provide a default icon:
@@ -119,11 +116,9 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
     'data' => array('leaflet' => array($settings)),
     'type' => 'setting',
   );
-  $build['#attached']['js'][] = array(
-    'data' => drupal_get_path('module', 'leaflet') . '/leaflet.drupal.js',
-    'type' => 'file',
-  );
-  $build['#attached']['library'][] = array('leaflet', 'leaflet-drupal');
+
+  // Load the leaflet library, which includes integration files.
+  libraries_load('leaflet');
 
   return $build;
 }
