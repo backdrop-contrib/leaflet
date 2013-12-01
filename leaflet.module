@@ -1,51 +1,70 @@
 <?php
+
+/**
+ * @file
+ * Provide Leaflet API integration and field formatters.
+ */
+
 module_load_include('inc', 'leaflet', 'leaflet.formatters');
 
 /**
- * Implements hook_library().
+ * Implements hook_theme().
  */
-function leaflet_library() {
-  $libraries['leaflet'] = array(
-    'title' => 'Leaflet',
-    'website' => 'http://leaflet.cloudmade.com',
-    'version' => '0.6',
-    'js' => array(
-      array(
-        'type' => 'inline',
-        'data' => 'L_ROOT_URL = "' . base_path() . libraries_get_path('leaflet') . '/";',
-        'group' => JS_LIBRARY,
-        'preprocess' => FALSE,
-      ),
-      array(
-        'type' => 'file',
-        'data' => libraries_get_path('leaflet') . '/leaflet.js',
-        'group' => JS_LIBRARY,
-        'preprocess' => FALSE,
-      ),
+function leaflet_theme($existing, $type, $theme, $path) {
+  return array(
+    'leaflet_map' => array(
+      'arguments' => array('map_id' => NULL, 'height' => '400px'),
+      'template' => 'leaflet_map',
     ),
-    'css' => array(
-      libraries_get_path('leaflet') . '/leaflet.css' => array(
-        'type' => 'file',
-        'media' => 'all',
+  );
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function leaflet_libraries_info() {
+  $libraries['leaflet'] = array(
+    // Only used in administrative UI of Libraries API.
+    'name' => 'Leaflet JavaScript Library',
+    'vendor url' => 'http://leafletjs.com/',
+    'download url' => 'http://leaflet-cdn.s3.amazonaws.com/build/leaflet-0.7.zip',
+    // .7: version="0.7"
+    'version arguments' => array(
+      'file' => 'leaflet.js',
+      'pattern' => '/version="(\d+\.\d+)"/',
+    ),
+    'files' => array(
+      'js' => array(
+        // This setting is needed in order to properly render market images.
+        'leaflet_root_url' => array(
+          'type' => 'inline',
+          'data' => 'L_ROOT_URL = "' . base_path() . libraries_get_path('leaflet') . '/";',
+          'group' => JS_LIBRARY,
+          'preprocess' => FALSE,
+        ),
+        'leaflet.js' => array(
+          'type' => 'file',
+          'group' => JS_LIBRARY,
+          'preprocess' => FALSE,
+        ),
       ),
-      libraries_get_path('leaflet') . '/leaflet.ie.css' => array(
-        'browsers' => array(
-          'IE' => 'lte IE 8',
-          '!IE' => FALSE,
+      'css' => array(
+        'leaflet.css' => array(
+          'type' => 'file',
+          'media' => 'all',
+        ),
+        'leaflet.ie.css' => array(
+          'browsers' => array(
+            'IE' => 'lte IE 8',
+            '!IE' => FALSE,
+          ),
         ),
       ),
     ),
-  );
-
-  $libraries['leaflet-drupal'] = array(
-    'title' => 'Leaflet initialization',
-    'website' => 'http://drupal.org/project/leaflet',
-    'version' => '7.x-1.x',
-    'js' => array(
-      drupal_get_path('module', 'leaflet') . '/leaflet.drupal.js' => array(),
-    ),
-    'dependencies' => array(
-      array('leaflet', 'leaflet'),
+    'integration files' => array(
+      'leaflet' => array(
+        'js' => array('leaflet.drupal.js'),
+      ),
     ),
   );
 
@@ -56,11 +75,14 @@ function leaflet_library() {
  * Attach Leaflet-required client files and return renderable array for a map.
  *
  * @param array $map
+ *   Map definition as returned my leaflet_map_get_info();
  * @param array $features
+ *   Associative array of map features.
  * @param string $height
+ *   The height of the map.
  *
  * @return array
- *  A renderable array.
+ *   A renderable array.
  */
 function leaflet_build_map($map, $features = array(), $height = '400px') {
   $map_id = drupal_html_id('leaflet_map');
@@ -71,10 +93,6 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
     '#attributes' => array(
       'id' => $map_id,
       'style' => 'height: ' . $height,
-    ),
-    '#attached' => array(
-      'js' => array(),
-      'library' => array(),
     ),
   );
 
@@ -98,11 +116,9 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
     'data' => array('leaflet' => array($settings)),
     'type' => 'setting',
   );
-  $build['#attached']['js'][] = array(
-    'data' => drupal_get_path('module', 'leaflet') . '/leaflet.drupal.js',
-    'type' => 'file',
-  );
-  $build['#attached']['library'][] = array('leaflet', 'leaflet-drupal');
+
+  // Load the leaflet library, which includes integration files.
+  libraries_load('leaflet');
 
   return $build;
 }
@@ -113,10 +129,14 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
  * Load all Leaflet required client files and return markup for a map.
  *
  * @param array $map
+ *   Map definition as returned my leaflet_map_get_info();
  * @param array $features
+ *   Associative array of map features.
  * @param string $height
+ *   The height of the map.
  *
- * @return string map markup
+ * @return string
+ *   map markup
  */
 function leaflet_render_map($map, $features = array(), $height = '400px') {
   $build = leaflet_build_map($map, $features, $height);
@@ -124,9 +144,10 @@ function leaflet_render_map($map, $features = array(), $height = '400px') {
 }
 
 /**
- * Get all avaialble Leaflet map definitions.
+ * Get all available Leaflet map definitions.
  *
- * @param string $map
+ * @string $map
+ *   The name of the map defined in hook_leaflet_map_get_info().
  */
 function leaflet_map_get_info($map = NULL) {
   static $drupal_static_fast;
@@ -158,9 +179,9 @@ function leaflet_map_get_info($map = NULL) {
 }
 
 /**
- * Implements hook_leaflet_map_info() to return a default map.
+ * Implements hook_leaflet_map_info().
  *
- * @return array
+ * Return a default map for the module.
  */
 function leaflet_leaflet_map_info() {
   return array(
