@@ -247,6 +247,7 @@ function leaflet_process_geofield($items = array()) {
         $geom = geoPHP::load($item['wkt'], 'wkt');
 
         $tmp = $geom->getComponents();
+        $components = array();
         foreach ($tmp as $polygon) {
           $polygon_component = $polygon->getComponents();
           foreach ($polygon_component as $linestring) {
