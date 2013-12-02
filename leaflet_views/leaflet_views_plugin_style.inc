@@ -237,6 +237,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
         $geofield = $this->get_field_value($id, $this->options['data_source']);
 
         if (!empty($geofield)) {
+          $entity = FALSE;
           // Render the entity with the selected view mode:
           if ($this->options['description_field'] === '#rendered_entity' && is_object($result)) {
             $entity = entity_load_single($this->entity_type, $result->{$this->entity_info['entity keys']['id']});
@@ -259,7 +260,9 @@ class leaflet_views_plugin_style extends views_plugin_style {
           if ($this->options['name_field']) {
             foreach ($points as &$point) {
               $point['label'] = $this->rendered_fields[$id][$this->options['name_field']];
-              $point['entity'] = $entity;
+              if ($entity !== FALSE) {
+                $point['entity'] = $entity;
+              }
             }
           }
           // Let modules modify the points data.
