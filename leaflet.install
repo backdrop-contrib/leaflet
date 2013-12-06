@@ -22,7 +22,8 @@ function leaflet_requirements($phase) {
     if ($library['installed']) {
       $requirements['leaflet'] += array(
         'value' => $library['version'],
-        'description' => $t('The Leaflet JavaScript library is installed correctly.'),
+        'description' => t('The Leaflet Javascript library is installed correctly. @maps available.', array(
+          '@maps' => format_plural(count(leaflet_map_get_info()),'One map', '@count maps'))),
         'severity' => REQUIREMENT_OK,
       );
     }
