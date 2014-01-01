@@ -27,11 +27,11 @@ function leaflet_libraries_info() {
     // Only used in administrative UI of Libraries API.
     'name' => 'Leaflet JavaScript Library',
     'vendor url' => 'http://leafletjs.com/',
-    'download url' => 'http://leaflet-cdn.s3.amazonaws.com/build/leaflet-0.7.zip',
+    'download url' => 'http://leaflet-cdn.s3.amazonaws.com/build/leaflet-0.7.1.zip',
     // .7: version="0.7"
     'version arguments' => array(
       'file' => 'leaflet.js',
-      'pattern' => '/version="(\d+\.\d+)"/',
+      'pattern' => '/version="([\d+\.]*\d+)"/',
     ),
     'files' => array(
       'js' => array(
