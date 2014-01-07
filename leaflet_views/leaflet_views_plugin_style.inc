@@ -272,12 +272,10 @@ class leaflet_views_plugin_style extends views_plugin_style {
         }
       }
       leaflet_apply_map_settings($map, $data, $this->options, $this->entity_type);
-      if (isset($this->options['hide_empty']) && $this->options['hide_empty']) {
+      if (empty($data) && !empty($this->options['hide_empty'])) {
         return '';
       }
-      else {
-        return leaflet_build_map($map, $data, $this->options['height'] . 'px');
-      }
+      return leaflet_build_map($map, $data, $this->options['height'] . 'px');
     }
     return '';
   }
