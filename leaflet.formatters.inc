@@ -595,9 +595,12 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#type' => 'textfield',
         '#title' => t('Marker HTML class'),
         '#description' => t('Optional class name for the div used to wrap field output. For multiple classes, separate with a space.'),
-        '#default_value' => isset($settings[$group]['htmlClass']) ? $settings[$group]['htmlClass'] : '',
+        '#default_value' => isset($settings[$group]['htmlClass']) ? $settings[$group]['htmlClass'] : 'leaflet_map_icon',
         '#states' => array(
           'visible' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
+          ),
+          'required' => array(
             ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
           ),
         ),
