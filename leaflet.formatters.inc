@@ -379,7 +379,6 @@ function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_ty
     $settings = $map_settings;
     $entity = !empty($feat['entity']) ? $feat['entity'] : NULL;
     // Unset the entity here so it does not get returned to the client in JS.
-    unset($feat['entity']);
     $token_args = array('data' => array($entity_type => $entity), 'options' => array('clear' => TRUE));
     foreach ($token_by_entity as $key) {
       if (isset($settings[$key])) {
@@ -430,6 +429,7 @@ function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_ty
         $feat['options'] = $options;
       }
     }
+    unset($feat['entity']);
   }
 }
 
