@@ -29,12 +29,21 @@
 
           layers[key] = map_layer;
 
-          // add the  layer to the map
-          if (i >= 0) {
+          // keep the reference of first layer
+          // as written in the doc (http://leafletjs.com/examples/layers-control.html)
+          // "Also note that when using multiple base layers, only one of them should be added to the map at instantiation, but all of them should be present in the base layers object when creating the layers control.""
+          if (i == 0) {
+            // add first layer to the map
             lMap.addLayer(map_layer);
           }
           i++;
         }
+
+        // keep an instance of leaflet layers
+        this.map.lLayers = layers;
+
+        // keep an instance of map_id
+        this.map.map_id = this.mapId;
 
         // add features
         for (i = 0; i < this.features.length; i++) {
