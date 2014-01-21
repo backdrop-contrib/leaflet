@@ -391,7 +391,13 @@ function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_ty
 
     // Apply Icon settings:
     if ($icon == 'html') {
-      $icon_field = field_view_field($entity_type, $feat['entity'], $settings['icon']['html'], array('label' => 'hidden'));
+      $icon_config = array(
+        'label' => 'hidden',
+        'settings' => array(
+          'image_style' => isset($settings['icon']['iconImageStyle']) ? $settings['icon']['iconImageStyle'] : '',
+        ),
+      );
+      $icon_field = field_view_field($entity_type, $feat['entity'], $settings['icon']['html'], $icon_config);
       if (!empty($settings['icon']['iconSize']['x']) || !empty($settings['icon']['iconSize']['y'])) {
         // We hand the size off to the API, but the rendered HTML will dictate
         // its own size, so we override that as well.
@@ -593,6 +599,18 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
           ),
         ),
       );
+      $form_element['iconImageStyle'] = array(
+        '#title' => t('Icon image style'),
+        '#type' => 'select',
+        '#default_value' => isset($settings[$group]['iconImageStyle']) ? $settings[$group]['iconImageStyle'] : '',
+        '#empty_option' => t('None (original image)'),
+        '#options' => image_style_options(FALSE, PASS_THROUGH),
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[icon][iconType]"]' => array('value' => 'html'),
+          ),
+        ),
+      );
       $form_element['htmlClass'] = array(
         '#type' => 'textfield',
         '#title' => t('Marker HTML class'),
@@ -609,9 +627,9 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
       );
       $form_element['iconSize'] = array(
         '#title' => t('Icon Size'),
+        '#description' => "It is usually preferable to leave this blank and use the image style system to size the icons. Sizes are in pixels.",
         '#type' => 'fieldset',
         '#collapsible' => TRUE,
-        '#description' => t('Size of the icon image in pixels.'),
       );
       $form_element['iconSize']['x'] = array(
         '#title' => t('Width'),
