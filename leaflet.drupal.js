@@ -4,10 +4,10 @@
     attach:function (context, settings) {
 
       $(settings.leaflet).each(function () {
-        // bail if the map already exists
+        // skip to the next iteration if the map already exists
         var container = L.DomUtil.get(this.mapId);
         if (!container || container._leaflet) {
-          return false;
+          return;
         }
 
         // load a settings object with all of our map settings
