@@ -380,7 +380,7 @@ function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_ty
     $entity = !empty($feat['entity']) ? $feat['entity'] : NULL;
     $token_args = array('data' => array($entity_type => $entity), 'options' => array('clear' => TRUE));
     foreach ($token_by_entity as $key) {
-      if (isset($settings[$key])) {
+      if (isset($settings[$key]) && is_array($settings[$key])) {
         array_walk_recursive($settings[$key], 'leaflet_token_replace', $token_args);
       }
     }
