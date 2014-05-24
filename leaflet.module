@@ -192,11 +192,14 @@ function leaflet_leaflet_map_info() {
         // Center is used when the map contains no items, or every time the map
         // is loaded if "force" is TRUE. Otherwise, the map will center itself
         // intelligently based on the features in the map.
-        'center' => array(
-          'lat' => 45.526513,
-          'lon' => -122.674833,
-          'force' => FALSE,
-        ),
+        // RdB: bad things happen when 'center' is specified and Leaflet
+        // MarkerCluster is used, see https://drupal.org/node/2144935
+        // Also, a hard-coded center is not a great idea.
+        //'center' => array(
+        //  'lat' => 45.526513,
+        //  'lon' => -122.674833,
+        //  'force' => FALSE,
+        //),
         'settings' => array(
           // Setting "zoom" forces a zoom level on every map load.
           //'zoom' => 17,
