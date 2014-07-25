@@ -116,6 +116,9 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
     'data' => array('leaflet' => array($settings)),
     'type' => 'setting',
   );
+  $build['#attached']['css'][] = array(
+    'data' =>  drupal_get_path('module', 'leaflet') . '/leaflet_extras.css',
+  );
 
   // Load the leaflet library, which includes integration files.
   libraries_load('leaflet');
