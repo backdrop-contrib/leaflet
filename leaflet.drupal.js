@@ -31,7 +31,7 @@
 
           // keep the reference of first layer
           // as written in the doc (http://leafletjs.com/examples/layers-control.html)
-          // "Also note that when using multiple base layers, only one of them should be added to the map at instantiation, but all of them should be present in the base layers object when creating the layers control.""
+          // "Also note that when using multiple base layers, only one of them should be added to the map at instantiation, but all of them should be present in the base layers object when creating the layers control."
           if (i == 0) {
             // add first layer to the map
             lMap.addLayer(map_layer);
