@@ -33,10 +33,22 @@
           // as written in the doc (http://leafletjs.com/examples/layers-control.html)
           // "Also note that when using multiple base layers, only one of them should be added to the map at instantiation, but all of them should be present in the base layers object when creating the layers control."
           if (i == 0) {
-            // add first layer to the map
-            lMap.addLayer(map_layer);
+            // flag the first layer as the default layer.
+            var default_key = key;
           }
           i++;
+        }
+        // We loop through the layers once they have all been created to connect them to their switchlayer if necessary.
+        var switchEnable = false;
+        for (var key in layers) {
+          if (layers[key].options.switchLayer) {
+            layers[key].setSwitchLayer(layers[layers[key].options.switchLayer]);
+            switchEnable = true;
+          }
+        }
+        lMap.addLayer(layers[default_key]);
+        if (switchEnable) {
+          switchManager = new SwitchLayerManager(lMap, {baseLayers: layers});
         }
 
         // keep an instance of leaflet layers
@@ -175,7 +187,8 @@
   Drupal.leaflet = {
 
     create_layer: function (layer, key) {
-      var map_layer = new L.TileLayer(layer.urlTemplate);
+      // Use a Zoomswitch Layer extension to enable zoom-switch option.
+      var map_layer = new L.TileLayerZoomSwitch(layer.urlTemplate);
       map_layer._leaflet_id = key;
 
       if (layer.options) {
