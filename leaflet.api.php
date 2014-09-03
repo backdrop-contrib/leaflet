@@ -47,6 +47,19 @@ function hook_leaflet_map_info() {
           'urlTemplate' => 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
           'options' => array(
             'attribution' => 'OSM Mapnik',
+            // The switchZoom controls require multiple layers, referencing one
+            // another as "switchLayer".
+            'switchZoomBelow' => 15,
+            'switchLayer' => 'satellite',
+          ),
+        ),
+        'satellite' => array(
+          'urlTemplate' => 'http://otile{s}.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.png',
+          'options' => array(
+            'attribution' => 'OSM Mapnik',
+            'subdomains' => '1234',
+            'switchZoomAbove' => 15,
+            'switchLayer' => 'earth',
           ),
         ),
       ),
