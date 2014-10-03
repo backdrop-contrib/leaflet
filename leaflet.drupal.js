@@ -30,11 +30,26 @@
           layers[key] = map_layer;
 
           // keep the reference of first layer
+          // Distinguish between "base layers" and "overlays", fallback to "base"
+          // in case "layer_type" has not been defined in hook_leaflet_map_info()
+          layer.layer_type = (typeof layer.layer_type === 'undefined') ? 'base' : layer.layer_type;
           // as written in the doc (http://leafletjs.com/examples/layers-control.html)
-          // "Also note that when using multiple base layers, only one of them should be added to the map at instantiation, but all of them should be present in the base layers object when creating the layers control."
-          if (i == 0) {
-            // flag the first layer as the default layer.
-            var default_key = key;
+          // Always add overlays layers when instantiate, and keep track of
+          // them for Control.Layers.
+          // Only add the very first "base layer" when instantiating the map
+          // if we have map controls enabled
+          switch (layer.layer_type) {
+            case 'overlay':
+              lMap.addLayer(map_layer);
+              overlays[key] = map_layer;
+              break;
+            default:
+              if (i === 0 || !this.map.settings.layerControl) {
+                lMap.addLayer(map_layer);
+                i++;
+              }
+              layers[key] = map_layer;
+              break;
           }
           i++;
         }
@@ -46,7 +61,6 @@
             switchEnable = true;
           }
         }
-        lMap.addLayer(layers[default_key]);
         if (switchEnable) {
           switchManager = new SwitchLayerManager(lMap, {baseLayers: layers});
         }
