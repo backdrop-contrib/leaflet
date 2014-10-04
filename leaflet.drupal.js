@@ -115,24 +115,16 @@
           lMap.addControl(new L.Control.Layers(layers, overlays));
         }
 
-        // center the map
-        if (this.map.center && (this.map.center.force || this.features.length == 0)) {
-          if (this.map.center.force) {
-            var zoom = this.map.settings.zoom;
-          }
-          else {
-            var zoom = this.map.settings.zoomDefault;
-          }
+        // center the map, do not fit bounds when fewer than 2 features
+        var zoom = this.map.settings.zoom ? this.map.settings.zoom : this.map.settings.zoomDefault;
+        if (this.map.center && (this.map.center.force || this.features.length < 2)) {
           lMap.setView(new L.LatLng(this.map.center.lat, this.map.center.lon), zoom);
         }
-        // if we have provided a zoom level, then use it after fitting bounds
-        else if (this.map.settings.zoom && this.features.length > 0) {
-          Drupal.leaflet.fitbounds(lMap);
-          lMap.setZoom(this.map.settings.zoom);
-        }
-        // fit to bounds
         else {
           Drupal.leaflet.fitbounds(lMap);
+          if (this.map.settings.zoom) {
+            lMap.setZoom(zoom);
+          }
         }
 
         // add attribution
