@@ -380,7 +380,7 @@
     },
 
     fitbounds:function (lMap) {
-      if (lMap.bounds.length > 0) {
+      if (lMap.bounds.length > 1) {
         lMap.fitBounds(new L.LatLngBounds(lMap.bounds));
       }
     }
