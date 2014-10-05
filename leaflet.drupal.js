@@ -115,14 +115,14 @@
           lMap.addControl(new L.Control.Layers(layers, overlays));
         }
 
-        // center the map, do not fit bounds when fewer than 2 features
+        // center the map
         var zoom = this.map.settings.zoom ? this.map.settings.zoom : this.map.settings.zoomDefault;
-        if (this.map.center && (this.map.center.force || this.features.length < 2)) {
+        if (this.map.center && (this.map.center.force || this.features.length === 0)) {
           lMap.setView(new L.LatLng(this.map.center.lat, this.map.center.lon), zoom);
         }
-        else {
+        else if (this.features.length > 0) {
           Drupal.leaflet.fitbounds(lMap);
-          if (this.map.settings.zoom) {
+          if (this.map.settings.zoom) { // or: if (zoom) ?
             lMap.setZoom(zoom);
           }
         }
@@ -380,7 +380,7 @@
     },
 
     fitbounds:function (lMap) {
-      if (lMap.bounds.length > 1) {
+      if (lMap.bounds.length > 0) {
         lMap.fitBounds(new L.LatLngBounds(lMap.bounds));
       }
     }
