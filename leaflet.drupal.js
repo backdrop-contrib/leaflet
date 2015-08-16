@@ -171,6 +171,9 @@
           case 'circle':
             lFeature = Drupal.leaflet.create_circle(feature, lMap);
             break;
+          case 'circlemarker':
+            lFeature = Drupal.leaflet.create_circlemarker(feature, lMap);
+            break;
         }
 
         // assign our given unique ID, useful for associating nodes
@@ -231,6 +234,18 @@
       }
       else {
         return new L.Circle(latLng, circle.radius);
+      }
+    },
+
+    create_circlemarker: function(circle, lMap) {
+      var latLng = new L.LatLng(circle.lat, circle.lon);
+      latLng = latLng.wrap();
+      lMap.bounds.push(latLng);
+      if (circle.options) {
+        return new L.CircleMarker(latLng, circle.options);
+      }
+      else {
+        return new L.CircleMarker(latLng, circle.radius);
       }
     },
 
