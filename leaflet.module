@@ -40,12 +40,15 @@ function leaflet_libraries_info() {
           'type' => 'inline',
           'data' => 'L_ROOT_URL = "' . base_path() . libraries_get_path('leaflet') . '/";',
           'group' => JS_LIBRARY,
-          'preprocess' => FALSE,
         ),
         'leaflet.js' => array(
           'type' => 'file',
           'group' => JS_LIBRARY,
-          'preprocess' => FALSE,
+        ),
+        // For AdvAgg module. See [#2294639] This runs after leaflet.js.
+        'leaflet_imagepath' => array(
+          'type' => 'inline',
+          'data' => 'L.Icon.Default.imagePath = "' . base_path() . libraries_get_path('leaflet') . '/images";',
         ),
       ),
       'css' => array(
@@ -128,7 +131,7 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
 
 /**
  * DEPRECATED. Use leaflet_build_map() instead.
- * 
+ *
  * Load all Leaflet required client files and return markup for a map.
  *
  * @param array $map
