@@ -588,7 +588,8 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#type' => 'select',
         '#title' => t('Marker field'),
         '#description' => t('Field to use as output for a map marker.'),
-        '#options' => array_merge(array('' => ''), $options['fields']),
+        // See [#1796656]
+        '#options' => (array)array_merge(array('' => ''), $options['fields']),
         '#default_value' => isset($settings[$group]['html']) ? $settings[$group]['html'] : '',
         '#empty_option' => t('-- Select --'),
         '#states' => array(
