@@ -386,7 +386,7 @@ function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_ty
     }
 
     if (isset($settings['popup']['show']) && $settings['popup']['show']) {
-      $feat['popup'] = $settings['popup']['text'];
+      $feat['popup'] = trim($settings['popup']['text']);
     }
 
     // Apply Icon settings:
