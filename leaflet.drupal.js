@@ -281,6 +281,9 @@
         if (marker.icon.zIndexOffset) {
           icon.options.zIndexOffset = marker.icon.zIndexOffset;
         }
+        if (marker.icon.className) {
+          icon.options.className = marker.icon.className;
+        }
         var options = {icon:icon};
         if (marker.zIndexOffset) {
           options.zIndexOffset = marker.zIndexOffset;
