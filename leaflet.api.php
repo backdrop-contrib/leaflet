@@ -44,7 +44,7 @@ function hook_leaflet_map_info() {
       ),
       'layers' => array(
         'earth' => array(
-          'urlTemplate' => 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          'urlTemplate' => '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
           'options' => array(
             'attribution' => 'OSM Mapnik',
             // The switchZoom controls require multiple layers, referencing one
@@ -54,7 +54,7 @@ function hook_leaflet_map_info() {
           ),
         ),
         'satellite' => array(
-          'urlTemplate' => 'http://otile{s}.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.png',
+          'urlTemplate' => '//otile{s}.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.png',
           'options' => array(
             'attribution' => 'OSM Mapnik',
             'subdomains' => '1234',
