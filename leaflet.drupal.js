@@ -156,8 +156,10 @@
           case 'polygon':
             lFeature = Drupal.leaflet.create_polygon(feature, lMap);
             break;
-          case 'multipolygon':
           case 'multipolyline':
+            feature.multipolyline = true;
+            // no break;
+          case 'multipolygon':
             lFeature = Drupal.leaflet.create_multipoly(feature, lMap);
             break;
           case 'json':
