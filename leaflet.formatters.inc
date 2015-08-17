@@ -313,6 +313,20 @@ function leaflet_process_geofield($items = array()) {
                 }
                 $data[] = $datum;
                 break;
+
+              case 'Polygon':
+                $points = $geom_item->getComponents();
+                $components = $points[0]->getComponents();
+                $datum = array();
+                $datum['type'] = 'polygon';
+                foreach ($components as $component) {
+                  $datum['points'][] = array(
+                      'lat' => $component->getY(),
+                      'lon' => $component->getX(),
+                  );
+                }
+                $data[] = $datum;
+                break;
             }
           }
         }
