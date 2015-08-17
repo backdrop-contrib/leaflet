@@ -13,14 +13,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
    */
   function init(&$view, &$display, $options = NULL) {
     parent::init($view, $display, $options);
-
-    foreach (entity_get_info() as $key => $info) {
-      if ($view->base_table == $info['base table']) {
-        $this->entity_type = $key;
-        $this->entity_info = $info;
-        break;
-      }
-    }
+    $this->entity_type = $this->options['entity_type'];
   }
 
   /**
@@ -28,6 +21,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
    */
   function option_definition() {
     $options = parent::option_definition();
+    $options['entity_type'] = array('default' => '');
     $options['data_source'] = array('default' => '');
     $options['name_field'] = array('default' => '');
     $options['description_field'] = array('default' => '');
@@ -112,6 +106,32 @@ class leaflet_views_plugin_style extends views_plugin_style {
         '#markup' => t('Please add at least one geofield to the view'),
       );
       return;
+    }
+
+    // Get available entity types for selection.
+    $default_type = empty($this->options['entity_type']) ? '' : $this->options['entity_type'];
+    $entity_types = array('');
+    foreach (entity_get_info() as $key => $info) {
+      $entity_types[$key] = $info['label'];
+      if ($this->view->base_table == $info['base table']) {
+        // If this entity type matches the view base table, use it.
+        $default_type = $key;
+      }
+    }
+
+    // Entity type selection.
+    $form['entity_type'] = array(
+      '#type' => 'select',
+      '#title' => t('Entity Type'),
+      '#description' => t('Which type of entity is this view based on?'),
+      '#options' => $entity_types,
+      '#default_value' => $default_type,
+      '#required' => TRUE,
+    );
+
+    // Only allow users to choose the entity type if it cannot be detected.
+    if (!empty($default_type)) {
+      $form['entity_type']['#access'] = FALSE;
     }
 
     // Map preset.
