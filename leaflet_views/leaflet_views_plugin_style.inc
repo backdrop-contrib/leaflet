@@ -282,7 +282,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
           // Attach also titles & entities, they might be used later on.
           if ($this->options['name_field']) {
             foreach ($points as &$point) {
-              $point['label'] = $this->rendered_fields[$id][$this->options['name_field']];
+              $point['label'] = htmlspecialchars_decode(strip_tags($this->rendered_fields[$id][$this->options['name_field']]));
               if ($entity !== FALSE) {
                 $point['entity'] = $entity;
               }
