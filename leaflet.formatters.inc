@@ -359,13 +359,13 @@ function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_ty
 
   // Apply zoom settings (will override hook_leaflet_map_info() values):
   if (isset($map_settings['zoom']['initialZoom']) && $map_settings['zoom']['initialZoom'] >= 0) {
-    $map['settings']['zoom'] = strval($map_settings['zoom']['initialZoom']);
+    $map['settings']['zoom'] = intval($map_settings['zoom']['initialZoom']);
   }
   if (isset($map_settings['zoom']['minZoom']) && $map_settings['zoom']['minZoom'] >= 0) {
-    $map['settings']['minZoom'] = strval($map_settings['zoom']['minZoom']);
+    $map['settings']['minZoom'] = intval($map_settings['zoom']['minZoom']);
   }
   if (isset($map_settings['zoom']['maxZoom']) && $map_settings['zoom']['maxZoom'] >= 0) {
-    $map['settings']['maxZoom'] = strval($map_settings['zoom']['maxZoom']);
+    $map['settings']['maxZoom'] = intval($map_settings['zoom']['maxZoom']);
   }
 
   $icon = 'none';
