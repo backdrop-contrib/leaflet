@@ -876,16 +876,10 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
       break;
 
     case "tokens":
+      // See [#2176681]
       $form_element = array(
-        '#title' => t('Tokens'),
-        '#type' => 'fieldset',
-        '#collapsible' => TRUE,
-        '#collapsed' => TRUE,
-        '#weight' => $options['weight'],
-      );
-      $form_element['token_help'] = array(
         '#type' => 'container',
-        '#theme' => 'token_tree',
+        '#theme' => 'token_tree_link',
         '#token_types' => array($options['entity_type']),
       );
       break;
