@@ -76,3 +76,20 @@ function hook_leaflet_map_info() {
     ),
   );
 }
+
+/**
+ * Alters the js settings passed to the leaflet map.
+ *
+ * This hook is called when the leaflet map is being rendered and attaching the
+ * client side javascript settings.
+ *
+ * @param $settings
+ *  A javascript settings array used for building the leaflet map.
+ *
+ * @see leaflet_map_get_info()
+ * @see hook_leaflet_map_info()
+ */
+function hook_leaflet_map_prebuild_alter(&$settings) {
+  $settings['mapId'] = 'my-map-id';
+  $settings['features']['icon'] = 'my-icon-url';
+}
