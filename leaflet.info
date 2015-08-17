@@ -2,6 +2,7 @@ name = Leaflet
 description = Integration with the Leaflet map scripting library.
 core = 7.x
 
+dependencies[] = image
 dependencies[] = libraries
 
 files[] = leaflet.formatters.inc
