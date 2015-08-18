@@ -14,6 +14,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
   function init(&$view, &$display, $options = NULL) {
     parent::init($view, $display, $options);
     $this->entity_type = $this->options['entity_type'];
+    $this->entity_info = entity_get_info($this->entity_type);
     // Fallback for views that do not have entity_type set, for example
     // because the view was created before this option got introduced.
     if (empty($this->entity_type)) {
