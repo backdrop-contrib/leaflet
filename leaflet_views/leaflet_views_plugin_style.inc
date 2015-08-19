@@ -298,6 +298,12 @@ class leaflet_views_plugin_style extends views_plugin_style {
               }
             }
           }
+          if ($this->options['icon']['iconType'] == 'html') {
+            foreach ($points as &$point) {
+              $target_field = $this->options['icon']['html'];
+              $point['rendered_html'] = isset($this->rendered_fields[$id][$target_field]) ? $this->rendered_fields[$id][$target_field] : '';
+            }
+          }
           // Let modules modify the points data.
           drupal_alter('leaflet_views_alter_points_data', $result, $points);
           // Merge these points into the $data array for map rendering:

@@ -405,30 +405,41 @@ function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_ty
 
     // Apply Icon settings:
     if ($icon == 'html') {
-      $icon_config = array(
-        'label' => 'hidden',
-        'settings' => array(
-          'image_style' => isset($settings['icon']['iconImageStyle']) ? $settings['icon']['iconImageStyle'] : '',
-        ),
-      );
-      $icon_field = field_view_field($entity_type, $feat['entity'], $settings['icon']['html'], $icon_config);
+
+      // Maps handled by Views will have rendered HTML already.
+      if (isset($feat['rendered_html'])) {
+        $feat['html'] = $feat['rendered_html'];
+      }
+      else {
+        $icon_config = array(
+          'label' => 'hidden',
+          'settings' => array(
+            'image_style' => isset($settings['icon']['iconImageStyle']) ? $settings['icon']['iconImageStyle'] : '',
+          ),
+        );
+        $icon_field = field_view_field($entity_type, $feat['entity'], $settings['icon']['html'], $icon_config);
+        $feat['html'] = render($icon_field);
+      }
+
       if (!empty($settings['icon']['iconSize']['x']) || !empty($settings['icon']['iconSize']['y'])) {
         // We hand the size off to the API, but the rendered HTML will dictate
         // its own size, so we override that as well.
         // @todo: actually allow the API settings to control this.
         $feat['icon']['iconSize'] = $settings['icon']['iconSize'];
-        foreach (element_children($icon_field) as $i) {
-          if (!empty($settings['icon']['iconSize']['x'])) {
-            $icon_field[$i]['#item']['width'] = $settings['icon']['iconSize']['x'];
-            unset($icon_field[$i]['#item']['width']);
-          }
-          if (!empty($settings['icon']['iconSize']['y'])) {
-            $icon_field[$i]['#item']['height'] = $settings['icon']['iconSize']['y'];
-            unset($icon_field[$i]['#item']['width']);
+        if (!empty($icon_field)) {
+          foreach (element_children($icon_field) as $i) {
+            if (!empty($settings['icon']['iconSize']['x'])) {
+              $icon_field[$i]['#item']['width'] = $settings['icon']['iconSize']['x'];
+              unset($icon_field[$i]['#item']['width']);
+            }
+            if (!empty($settings['icon']['iconSize']['y'])) {
+              $icon_field[$i]['#item']['height'] = $settings['icon']['iconSize']['y'];
+              unset($icon_field[$i]['#item']['width']);
+            }
           }
         }
       }
-      $feat['html'] = render($icon_field);
+
       $feat['html_class'] = $settings['icon']['htmlClass'];
       $feat['icon']['iconAnchor'] = $settings['icon']['iconAnchor'];
     }
