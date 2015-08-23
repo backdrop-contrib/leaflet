@@ -26,6 +26,7 @@ function leaflet_field_formatter_info() {
           'initialZoom' => '',
           'minZoom' => 1,
           'maxZoom' => 19,
+          'scroolWheelZoom' => 0,
         ),
         'icon' => array(
           'iconUrl' => '',
@@ -367,7 +368,9 @@ function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_ty
   if (isset($map_settings['zoom']['maxZoom']) && $map_settings['zoom']['maxZoom'] >= 0) {
     $map['settings']['maxZoom'] = intval($map_settings['zoom']['maxZoom']);
   }
-
+  if (isset($map_settings['zoom']['scroolWheelZoom']) && $map_settings['zoom']['scroolWheelZoom']) {
+    $map['settings']['scroolWheelZoom'] = intval($map_settings['zoom']['scroolWheelZoom']);
+  }
   $icon = 'none';
   if (isset($map_settings['icon']['iconType'])) {
     $icon = $map_settings['icon']['iconType'];
@@ -563,6 +566,12 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#options' => $zoom_options,
         '#default_value' => isset($settings[$group]['maxZoom']) ? $settings[$group]['maxZoom'] : -1,
         '#element_validate' => array('leaflet_max_zoom_validate'),
+      );
+      $form_element['scrollWheelZoom'] = array(
+        '#title' => t('Scroll wheel zoom'),
+        '#description' => t('Allow map to be zoomed with the mouse wheel.'),
+        '#type' => 'checkbox',
+        '#default_value' => isset($settings[$group]['scrollWheelZoom']) ? $settings[$group]['scrollWheelZoom'] : 0,
       );
       break;
 
