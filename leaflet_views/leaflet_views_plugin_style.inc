@@ -274,7 +274,16 @@ class leaflet_views_plugin_style extends views_plugin_style {
           $entity = FALSE;
           // Render the entity with the selected view mode:
           if ($this->options['description_field'] === '#rendered_entity' && is_object($result)) {
-            $entity = entity_load_single($this->entity_type, $result->{$this->entity_info['entity keys']['id']});
+            if (!empty($result->{$this->entity_info['entity keys']['id']})) {
+              $entity_id = $result->{$this->entity_info['entity keys']['id']};
+            }
+            elseif ($result->entity){
+              $entity_id = $result->entity;
+            }
+            else {
+              return;
+            }
+            $entity = entity_load_single($this->entity_type, $entity_id);
             $build = entity_view($this->entity_type, array($entity), $this->options['view_mode']);
             $description = drupal_render($build);
           }

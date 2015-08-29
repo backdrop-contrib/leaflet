@@ -25,7 +25,7 @@ function leaflet_field_formatter_info() {
         'zoom' => array(
           'initialZoom' => '',
           'minZoom' => 1,
-          'maxZoom' => 19,
+          'maxZoom' => 19
         ),
         'icon' => array(
           'iconUrl' => '',
@@ -369,6 +369,7 @@ function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_ty
   }
   if (isset($map_settings['zoom']['scrollWheelZoom'])) {
     $map['settings']['scrollWheelZoom'] = $map_settings['zoom']['scrollWheelZoom'];
+  }
   $icon = 'none';
   if (isset($map_settings['icon']['iconType'])) {
     $icon = $map_settings['icon']['iconType'];
