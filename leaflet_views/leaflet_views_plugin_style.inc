@@ -47,6 +47,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
       'initialZoom' => array('default' => ''),
       'minZoom' => array('default' => 0),
       'maxZoom' => array('default' => 18),
+      'scrollWheelZoom' => array('default' => 1),
     );
     $options['icon']['contains'] = array(
       'iconType' => array('default' => 'marker'),
