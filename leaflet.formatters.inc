@@ -355,6 +355,7 @@ function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_ty
   $token_by_entity = array(
     'popup',
     'icon',
+    'vector_display',
   );
 
   // Apply zoom settings (will override hook_leaflet_map_info() values):

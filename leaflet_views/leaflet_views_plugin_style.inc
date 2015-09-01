@@ -260,7 +260,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
    */
   function render() {
     if (!empty($this->view->live_preview)) {
-      return t('No preview available');
+      return t('No preview available.');
     }
     $data = array();
     $map = leaflet_map_get_info($this->options['map']);
@@ -273,25 +273,23 @@ class leaflet_views_plugin_style extends views_plugin_style {
         if (!empty($geofield)) {
           $entity = FALSE;
           // Render the entity with the selected view mode:
-          if ($this->options['description_field'] === '#rendered_entity' && is_object($result)) {
+          if (is_object($result)) {
             if (!empty($result->{$this->entity_info['entity keys']['id']})) {
               $entity_id = $result->{$this->entity_info['entity keys']['id']};
             }
-            elseif ($result->entity){
+            elseif ($result->entity) {
               $entity_id = $result->entity;
             }
-            else {
-              return;
-            }
             $entity = entity_load_single($this->entity_type, $entity_id);
-            $build = entity_view($this->entity_type, array($entity), $this->options['view_mode']);
-            $description = drupal_render($build);
+            if ($this->options['description_field'] === '#rendered_entity') {
+              $build = entity_view($this->entity_type, array($entity), $this->options['view_mode']);
+              $description = drupal_render($build);
+            }
+            // Normal rendering via fields:
+            elseif ($this->options['description_field']) {
+              $description = $this->rendered_fields[$id][$this->options['description_field']];
+            }
           }
-          // Normal rendering via fields:
-          elseif ($this->options['description_field']) {
-            $description = $this->rendered_fields[$id][$this->options['description_field']];
-          }
-
           $points = leaflet_process_geofield($geofield);
           // Attach pop-ups if we have rendered into $description:
           if (isset($description)) {
