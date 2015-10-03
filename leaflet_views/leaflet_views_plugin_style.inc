@@ -318,7 +318,8 @@ class leaflet_views_plugin_style extends views_plugin_style {
           $data = array_merge($data, $points);
         }
       }
-      leaflet_apply_map_settings($map, $data, $this->options, $this->entity_type);
+      $entity_type = isset($this->entity_type) ? $this->entity_type : '';
+      leaflet_apply_map_settings($map, $data, $this->options, $entity_type);
       if (empty($data) && !empty($this->options['hide_empty'])) {
         return;
       }
