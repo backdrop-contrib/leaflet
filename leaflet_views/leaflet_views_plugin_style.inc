@@ -170,7 +170,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
     ), $fields);
 
     // Add an option to render the entire entity using a view mode.
-    if ($this->entity_type) {
+    if (isset($this->entity_type)) {
       $desc_options += array(
         '#rendered_entity' => '<' . t('!entity entity', array('!entity' => $this->entity_type)) . '>',
       );
@@ -187,7 +187,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
 
     // Taken from openlayers_views_style_data::options_form().
     // Create view mode options:
-    if ($this->entity_type) {
+    if (isset($this->entity_type)) {
 
       // Get the labels (human readable) of the view modes:
       $view_mode_options = array();
@@ -286,8 +286,14 @@ class leaflet_views_plugin_style extends views_plugin_style {
               $description = drupal_render($build);
             }
             // Normal rendering via fields:
-            elseif ($this->options['description_field']) {
-              $description = $this->rendered_fields[$id][$this->options['description_field']];
+            else {
+              $description = '';
+              if ($this->options['name_field']) {
+                $description = $this->rendered_fields[$id][$this->options['name_field']];
+              }
+              if ($this->options['description_field']) {
+                $description .= $this->rendered_fields[$id][$this->options['description_field']];
+              }
             }
           }
           $points = leaflet_process_geofield($geofield);
