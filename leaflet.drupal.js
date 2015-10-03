@@ -383,7 +383,7 @@
 
           for (var layer_id in layer._layers) {
             for (var i in layer._layers[layer_id]._latlngs) {
-              Drupal.leaflet.bounds.push(layer._layers[layer_id]._latlngs[i]);
+              lMap.bounds.push(layer._layers[layer_id]._latlngs[i]);
             }
           }
 
