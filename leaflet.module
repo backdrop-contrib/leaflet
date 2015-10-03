@@ -128,6 +128,9 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
   // See [2460643]
   $build['#attached']['libraries_load'][] = array('leaflet');
 
+  // Let other modules properly attach libraries as well [#2567387]
+  drupal_alter('leaflet_build_map', $build);
+
   return $build;
 }
 
