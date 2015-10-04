@@ -31,7 +31,7 @@ function leaflet_libraries_info() {
     'version arguments' => array(
       'file' => 'leaflet.js',
       // Better pattern, see [#2535054]
-      'pattern' => '/version[=:] *[\'"]([\d+\.]+)[-\w]*[\'"]/',
+      'pattern' => '/version[=: ]*[\'"]([\d+\.]+[-\w]*)[\'"]/',
     ),
     'files' => array(
       'js' => array(
