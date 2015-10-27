@@ -18,12 +18,32 @@ class leaflet_views_plugin_style extends views_plugin_style {
     // Fallback for views that do not have entity_type set, for example
     // because the view was created before this option got introduced.
     if (empty($this->entity_type)) {
-      $info = entity_get_info($view->base_table);
+      $info = $this->getEntityInfoByTable($view->base_table);
       if (!empty($info)) {
-        $this->entity_type = $view->base_table;
+        $this->entity_type = $info['entity type'];
         $this->entity_info = $info;
       }
     }
+  }
+
+  /**
+   * Gets entity information based on the entity table passed in.
+   *
+   * @param string $table
+   *   Table name.
+   *
+   * @return array
+   *   Returns the entity_info array.
+   */
+  function getEntityInfoByTable($table) {
+    $info = entity_get_info();
+    foreach($info as $entity_type => &$entity_info) {
+      if($entity_info['base table'] == $table) {
+        $entity_info['entity type'] = $entity_type;
+        return $entity_info;
+      }
+    }
+    return array();
   }
 
   /**
