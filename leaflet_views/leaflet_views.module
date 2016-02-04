@@ -9,5 +9,15 @@
  * Implements hook_views_api().
  */
 function leaflet_views_views_api() {
-  return array('api' => 3);
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'leaflet_views'),
+  );
+}
+
+function leaflet_views_autoload_info() {
+  return array(
+    // Views handlers.
+    'leaflet_views_plugin_style' => 'leaflet_views_plugin_style.inc',
+  );
 }

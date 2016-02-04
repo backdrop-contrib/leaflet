@@ -18,32 +18,12 @@ class leaflet_views_plugin_style extends views_plugin_style {
     // Fallback for views that do not have entity_type set, for example
     // because the view was created before this option got introduced.
     if (empty($this->entity_type)) {
-      $info = $this->getEntityInfoByTable($view->base_table);
+      $info = entity_get_info($view->base_table);
       if (!empty($info)) {
-        $this->entity_type = $info['entity type'];
+        $this->entity_type = $view->base_table;
         $this->entity_info = $info;
       }
     }
-  }
-
-  /**
-   * Gets entity information based on the entity table passed in.
-   *
-   * @param string $table
-   *   Table name.
-   *
-   * @return array
-   *   Returns the entity_info array.
-   */
-  function getEntityInfoByTable($table) {
-    $info = entity_get_info();
-    foreach($info as $entity_type => &$entity_info) {
-      if($entity_info['base table'] == $table) {
-        $entity_info['entity type'] = $entity_type;
-        return $entity_info;
-      }
-    }
-    return array();
   }
 
   /**
@@ -301,9 +281,10 @@ class leaflet_views_plugin_style extends views_plugin_style {
             elseif ($result->entity) {
               $entity_id = $result->entity;
             }
-            $entity = entity_load_single($this->entity_type, $entity_id);
+            $entities = entity_load($this->entity_type, array($entity_id));
+            $entity = $entities[$entity_id];
             if ($this->options['description_field'] === '#rendered_entity') {
-              $build = entity_view($this->entity_type, array($entity), $this->options['view_mode']);
+              $build = node_view($entity, $this->options['view_mode']);
               $description = drupal_render($build);
             }
             // Normal rendering via fields:
@@ -348,6 +329,10 @@ class leaflet_views_plugin_style extends views_plugin_style {
         }
       }
       $entity_type = isset($this->entity_type) ? $this->entity_type : '';
+
+      $entity_wrapper = array('entity_type' => $entity_type, 'entity' => $entity);
+      backdrop_alter('leaflet_apply_map_settings', $map, $data, $this->options, $entity_wrapper);
+
       leaflet_apply_map_settings($map, $data, $this->options, $entity_type);
       if (empty($data) && !empty($this->options['hide_empty'])) {
         return;

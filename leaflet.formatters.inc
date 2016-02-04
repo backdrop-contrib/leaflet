@@ -97,7 +97,7 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#type' => 'textfield',
       '#default_value' => $settings['height'],
       '#field_suffix' => t('px'),
-      '#element_validate' => array('element_validate_integer_positive'),
+      '#element_validate' => array('form_validate_number'),
     );
 
     foreach ($form['#fields'] as $fieldname) {
@@ -146,7 +146,6 @@ function leaflet_field_formatter_settings_summary($field, $instance, $view_mode)
 function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
   $settings = $display['settings'];
-
   if (count($items) == 0) {
     return '';
   }
@@ -158,6 +157,11 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
         foreach ($features as &$feat) {
           $feat['entity'] = $entity;
         }
+
+        // Let other modules add/customize settings.
+        $entity_wrapper = array('entity_type' => $entity_type, 'entity' => $entity);
+        backdrop_alter('leaflet_map_settings', $map, $features, $settings, $entity_wrapper);
+
         leaflet_apply_map_settings($map, $features, $settings, $entity_type);
         $element[0] = leaflet_build_map($map, $features, $settings['height'] . 'px');
         break;
@@ -673,7 +677,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#maxlength' => 3,
         '#size' => 3,
         '#default_value' => isset($settings[$group]['iconSize']['x']) ? $settings[$group]['iconSize']['x'] : '',
-        '#element_validate' => array('element_validate_integer_positive'),
+        '#element_validate' => array('form_validate_number'),
       );
       $form_element['iconSize']['y'] = array(
         '#title' => t('Height'),
@@ -681,7 +685,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#maxlength' => 3,
         '#size' => 3,
         '#default_value' => isset($settings[$group]['iconSize']['y']) ? $settings[$group]['iconSize']['y'] : '',
-        '#element_validate' => array('element_validate_integer_positive'),
+        '#element_validate' => array('form_validate_number'),
       );
       $form_element['iconAnchor'] = array(
         '#title' => t('Icon Anchor'),
@@ -695,7 +699,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#maxlength' => 3,
         '#size' => 3,
         '#default_value' => isset($settings[$group]['iconAnchor']['x']) ? $settings[$group]['iconAnchor']['x'] : '',
-        '#element_validate' => array('element_validate_number'),
+        '#element_validate' => array('form_validate_number'),
       );
       $form_element['iconAnchor']['y'] = array(
         '#title' => t('Y'),
@@ -703,7 +707,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#maxlength' => 3,
         '#size' => 3,
         '#default_value' => isset($settings[$group]['iconAnchor']['y']) ? $settings[$group]['iconAnchor']['y'] : '',
-        '#element_validate' => array('element_validate_number'),
+        '#element_validate' => array('form_validate_number'),
       );
       $form_element['shadowAnchor'] = array(
         '#title' => t('Shadow Anchor'),
@@ -722,7 +726,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#maxlength' => 3,
         '#size' => 3,
         '#default_value' => isset($settings[$group]['shadowAnchor']['x']) ? $settings[$group]['shadowAnchor']['x'] : '',
-        '#element_validate' => array('element_validate_number'),
+        '#element_validate' => array('form_validate_number'),
       );
       $form_element['shadowAnchor']['y'] = array(
         '#title' => t('Y'),
@@ -730,7 +734,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#maxlength' => 3,
         '#size' => 3,
         '#default_value' => isset($settings[$group]['shadowAnchor']['y']) ? $settings[$group]['shadowAnchor']['y'] : '',
-        '#element_validate' => array('element_validate_number'),
+        '#element_validate' => array('form_validate_number'),
       );
       $form_element['popupAnchor'] = array(
         '#title' => t('Popup Anchor'),
@@ -749,7 +753,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#maxlength' => 3,
         '#size' => 3,
         '#default_value' => isset($settings[$group]['popupAnchor']['x']) ? $settings[$group]['popupAnchor']['x'] : '',
-        '#element_validate' => array('element_validate_number'),
+        '#element_validate' => array('form_validate_number'),
       );
       $form_element['popupAnchor']['y'] = array(
         '#title' => t('Y'),
@@ -757,7 +761,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#maxlength' => 3,
         '#size' => 3,
         '#default_value' => isset($settings[$group]['popupAnchor']['y']) ? $settings[$group]['popupAnchor']['y'] : '',
-        '#element_validate' => array('element_validate_number'),
+        '#element_validate' => array('form_validate_number'),
       );
 
       break;

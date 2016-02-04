@@ -11,10 +11,13 @@
         }
 
         // load a settings object with all of our map settings
-        var settings = {};
+        var settings = {
+          'fullscreenControl': true,
+        };
         for (var setting in this.map.settings) {
           settings[setting] = this.map.settings[setting];
         }
+        settings.zoomControl = false; // replaced by L.Control.Zoomslider
 
         // instantiate our new map
         var lMap = new L.Map(this.mapId, settings);
@@ -40,7 +43,7 @@
           // if we have map controls enabled
           switch (layer.layer_type) {
             case 'overlay':
-              lMap.addLayer(map_layer);
+              // don't activate overlays initially ??? // lMap.addLayer(map_layer);
               overlays[key] = map_layer;
               break;
             default:
@@ -115,6 +118,20 @@
           lMap.addControl(new L.Control.Layers(layers, overlays));
         }
 
+        // add scale control //+
+          lMap.addControl(new L.control.scale({imperial: false}));
+
+        // add Zoomslider control //+
+          lMap.addControl(new L.Control.Zoomslider());
+
+        var c = new L.Control.Coordinates();
+        c.addTo(lMap);
+        lMap.on('click', function(e) {
+          c.setCoordinates(e);
+        });
+
+        // init ViewCenter plugin
+
         // center the map
         var zoom = this.map.settings.zoom ? this.map.settings.zoom : this.map.settings.zoomDefault;
         if (this.map.center && (this.map.center.force || this.features.length === 0)) {
@@ -126,6 +143,21 @@
             lMap.setZoom(zoom);
           }
         }
+
+        // associate the center and zoom level proprerties to the built lMap.
+        // useful for post-interaction with it
+        lMap.center = lMap.getCenter();
+        lMap.zoom = lMap.getZoom();
+
+        // init ViewCenter plugin
+        var viewCenter = new L.Control.ViewCenter({
+          position: 'topleft',
+          title: 'Retour au point de départ',
+          forceSeparateButton: true,
+          vcLatLng: [lMap.center.lat, lMap.center.lng],
+          vcZoom: zoom
+      	});
+        lMap.addControl(viewCenter);
 
         // add attribution
         if (this.map.settings.attributionControl && this.map.attribution) {

@@ -45,6 +45,22 @@ function leaflet_libraries_info() {
           'type' => 'file',
           'group' => JS_LIBRARY,
         ),
+        'leaflet.fullscreen.js' => array(
+          'type' => 'file',
+          'group' => JS_LIBRARY,
+        ),
+        'L.Control.Zoomslider.js' => array(
+          'type' => 'file',
+          'group' => JS_LIBRARY,
+        ),
+        'Control.Coordinates.js' => array(
+          'type' => 'file',
+          'group' => JS_LIBRARY,
+        ),
+        'leaflet.viewcenter.js' => array(
+          'type' => 'file',
+          'group' => JS_LIBRARY,
+        ),
         // For AdvAgg module. See [#2294639] This runs after leaflet.js.
         'leaflet_imagepath' => array(
           'type' => 'inline',
@@ -53,6 +69,22 @@ function leaflet_libraries_info() {
       ),
       'css' => array(
         'leaflet.css' => array(
+          'type' => 'file',
+          'media' => 'all',
+        ),
+        'leaflet.fullscreen.css' => array(
+          'type' => 'file',
+          'media' => 'all',
+        ),
+        'L.Control.Zoomslider.css' => array(
+          'type' => 'file',
+          'media' => 'all',
+        ),
+        'Control.Coordinates.css' => array(
+          'type' => 'file',
+          'media' => 'all',
+        ),
+        'leaflet.viewcenter.css' => array(
           'type' => 'file',
           'media' => 'all',
         ),
@@ -90,7 +122,7 @@ function leaflet_libraries_info() {
 function leaflet_build_map($map, $features = array(), $height = '400px') {
   $map_id = drupal_html_id('leaflet_map');
   $build = array(
-    '#theme' => 'html_tag',
+    '#theme' => 'head_tag',
     '#tag' => 'div',
     '#value' => '',
     '#attributes' => array(

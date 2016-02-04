@@ -1,6 +1,8 @@
 name = Leaflet
 description = Integration with the Leaflet map scripting library.
 core = 7.x
+backdrop = 1.x
+type = module
 
 dependencies[] = image
 dependencies[] = libraries
