@@ -1,30 +1,35 @@
+Leaflet
+=======
 
 Download the leaflet library from: http://leafletjs.com/download.html
 
 Alternatively, you can build the library from source. If so, follow the
 instructions at: http://leafletjs.com/download.html#leaflet-source-code
 
-Maps can be rendered via the included field formatter for Geofield, by using the
-API directly, or by taking advantage of an additional module, like
+Maps can be rendered via the included field formatter for Geofield, by using 
+the API directly, or by taking advantage of an additional module, like
 http://drupal.org/project/ip_geoloc
 
 
 Installation
 ------------
 
-1. Install the Drupal Leaflet module as per normal.
+- Install this module using the official Backdrop CMS instructions at
+  https://backdropcms.org/guide/modules
 
-2. Download the Leaflet library from http://leafletjs.com. Leaflet 0.7.5 or later
-   is recommended. Extract it to your drupal root /sites/all/libraries/leaflet.
-   The file 'leaflet.js' must reside at /sites/all/libraries/leaflet/leaflet.js.
-   All other files and folder(s) that come with the library are also needed.
+- Download the Leaflet library from http://leafletjs.com. Leaflet 0.7.5 or 
+  later is recommended. Extract it to your drupal root 
+  /sites/all/libraries/leaflet. The file 'leaflet.js' must reside at 
+  /sites/all/libraries/leaflet/leaflet.js. All other files and folder(s) that 
+  come with the library are also needed.
 
-3. Enable leaflet_views for using Views and Leaflet (see below), or use the
-   display formatters for fields display.
+- Enable leaflet_views for using Views and Leaflet (see below), or use the
+  display formatters for fields display.
 
 
 API Usage
 ---------
+
 Building a map is as simple as calling a single method, leaflet_build_map(),
 which takes 3 parameters.
 
@@ -81,14 +86,14 @@ Views integration
 
 To render a map using Views, enable the module leaflet_views.
 
-You need to add at least one geofield to the Fields list, and select the Leaflet Map style
-in Format.
+You need to add at least one geofield to the Fields list, and select the 
+Leaflet Map style in Format.
 
-In the settings of the style, select the geofield as the Data Source and select a field for Title
-and Description (which will be rendered in the popup).
+In the settings of the style, select the geofield as the Data Source and 
+select a field for Title and Description (which will be rendered in the popup).
 
-As a more powerful alternative, you can use node view modes to be rendered in the popup.
-In the Description field, select "<entire node>" and then select a View mode.
+As a more powerful alternative, you can use node view modes to be rendered in 
+the popup. In the Description field, select "<entire node>" and then select a View mode.
 
 For a tutorial, please read http://marzeelabs.org/blog/2012/09/24/building-maps-in-drupal-using-leaflet-views/
 
@@ -98,9 +103,15 @@ Roadmap
 * UI for managing maps
 * Better documentation
 
+Current Maintainers
+-------------------
 
-Authors/Credits
----------------
+- Wes Jones (https://github.com/earthday47)
+- gifad (https://github.com/gifad)
 
-* [levelos](http://drupal.org/user/54135)
-* [pvhee](http://drupal.org/user/108811)
+Credits
+-------
+
+- Ported to Backdrop CMS by gifad (https://github.com/gifad)
+- Originally written for Drupal by [levelos](http://drupal.org/user/54135) and 
+  [pvhee](http://drupal.org/user/108811)
