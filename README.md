@@ -1,11 +1,6 @@
 Leaflet
 =======
 
-Download the leaflet library from: http://leafletjs.com/download.html
-
-Alternatively, you can build the library from source. If so, follow the
-instructions at: http://leafletjs.com/download.html#leaflet-source-code
-
 Maps can be rendered via the included field formatter for Geofield, by using 
 the API directly, or by taking advantage of an additional module, like
 http://drupal.org/project/ip_geoloc
@@ -19,6 +14,8 @@ Installation
 
 - The module comes packaged with Leaflet library version 0.7.5, and a set
   of leaflet plugins.
+  Alternatively, you can build the library from source. If so, follow the
+  instructions at: http://leafletjs.com/download.html#leaflet-source-code
 
 - Enable leaflet_views for using Views and Leaflet (see below), or use the
   display formatters for fields display.
