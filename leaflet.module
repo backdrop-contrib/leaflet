@@ -21,86 +21,97 @@ function leaflet_theme($existing, $type, $theme, $path) {
 
 /**
  * Implements hook_libraries_info().
+ * Implements hook_library_info().
  */
-function leaflet_libraries_info() {
+function leaflet_library_info() {
+  $module_path = backdrop_get_path('module', 'leaflet');
+  $library_path = $module_path . '/libraries/leaflet/';
+
   $libraries['leaflet'] = array(
-    // Only used in administrative UI of Libraries API.
     'name' => 'Leaflet JavaScript Library',
+    'title' => t('Leaflet JavaScript Library'),
+    'version' => '0.7.5',
     'vendor url' => 'http://leafletjs.com/',
     'download url' => 'http://cdn.leafletjs.com/downloads/leaflet-0.7.5.zip',
-    'version arguments' => array(
-      'file' => 'leaflet.js',
-      // Handle things like  version:"1.0.0-beta.2"
-      'pattern' => '/version[=: ]*[\'"]([\d+\.]+[\-a-z\.\d]*)[\'"]/',
-    ),
-    'files' => array(
+  //'version arguments' => array(
+  //  'file' => 'leaflet.js',
+  //  // Handle things like  version:"1.0.0-beta.2"
+  //  'pattern' => '/version[=: ]*[\'"]([\d+\.]+[\-a-z\.\d]*)[\'"]/',
+  //),
+    //'files' => array(
       'js' => array(
         // This setting is needed in order to properly render market images.
         'leaflet_root_url' => array(
           'type' => 'inline',
-          'data' => 'L_ROOT_URL = "' . base_path() . libraries_get_path('leaflet') . '/";',
+        //'data' => 'L_ROOT_URL = "' . base_path() . libraries_get_path('leaflet') . '/";',
+          'data' => 'L_ROOT_URL = "' . base_path() . $library_path . '";',
           'group' => JS_LIBRARY,
         ),
-        'leaflet.js' => array(
+        $library_path . 'leaflet.js' => array(
           'type' => 'file',
           'group' => JS_LIBRARY,
         ),
-        'leaflet.fullscreen.js' => array(
+        $library_path . 'leaflet.fullscreen.js' => array(
           'type' => 'file',
           'group' => JS_LIBRARY,
         ),
-        'L.Control.Zoomslider.js' => array(
+        $library_path . 'L.Control.Zoomslider.js' => array(
           'type' => 'file',
           'group' => JS_LIBRARY,
         ),
-        'Control.Coordinates.js' => array(
+        $library_path . 'Control.Coordinates.js' => array(
           'type' => 'file',
           'group' => JS_LIBRARY,
         ),
-        'leaflet.viewcenter.js' => array(
+        $library_path . 'leaflet.viewcenter.js' => array(
           'type' => 'file',
           'group' => JS_LIBRARY,
         ),
         // For AdvAgg module. See [#2294639] This runs after leaflet.js.
         'leaflet_imagepath' => array(
           'type' => 'inline',
-          'data' => 'L.Icon.Default.imagePath = "' . base_path() . libraries_get_path('leaflet') . '/images";',
+          'data' => 'L.Icon.Default.imagePath = "' . base_path() . $library_path . 'images";',
+        ),
+        // load integration file AFTER libraries
+        $module_path . '/leaflet.drupal.js' => array(
+          'type' => 'file',
+          'group' => JS_LIBRARY,
         ),
       ),
       'css' => array(
-        'leaflet.css' => array(
+        $library_path . 'leaflet.css' => array(
           'type' => 'file',
           'media' => 'all',
         ),
-        'leaflet.fullscreen.css' => array(
+        $library_path . 'leaflet.fullscreen.css' => array(
           'type' => 'file',
           'media' => 'all',
         ),
-        'L.Control.Zoomslider.css' => array(
+        $library_path . 'L.Control.Zoomslider.css' => array(
           'type' => 'file',
           'media' => 'all',
         ),
-        'Control.Coordinates.css' => array(
+        $library_path . 'Control.Coordinates.css' => array(
           'type' => 'file',
           'media' => 'all',
         ),
-        'leaflet.viewcenter.css' => array(
+        $library_path . 'leaflet.viewcenter.css' => array(
           'type' => 'file',
           'media' => 'all',
         ),
-        'leaflet.ie.css' => array(
+        $library_path . 'leaflet.ie.css' => array(
           'browsers' => array(
             'IE' => 'lte IE 8',
             '!IE' => FALSE,
           ),
         ),
       ),
-    ),
-    'integration files' => array(
-      'leaflet' => array(
-        'js' => array('leaflet.drupal.js'),
-      ),
-    ),
+    //),
+  //'integration files' => array(
+  //  'leaflet' => array(
+  //    'js' => array('leaflet.drupal.js'),
+  //  ),
+  //),
   );
 
   return $libraries;
@@ -158,7 +169,8 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
   // Load the leaflet library, which includes integration files.
   // libraries_load('leaflet');
   // See [2460643]
-  $build['#attached']['libraries_load'][] = array('leaflet');
+//$build['#attached']['libraries_load'][] = array('leaflet');
+  $build['#attached']['library'][] = array('leaflet', 'leaflet');
 
   // Let other modules properly attach libraries as well [#2567387]
   drupal_alter('leaflet_build_map', $build);

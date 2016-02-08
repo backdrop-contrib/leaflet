@@ -17,11 +17,8 @@ Installation
 - Install this module using the official Backdrop CMS instructions at
   https://backdropcms.org/guide/modules
 
-- Download the Leaflet library from http://leafletjs.com. Leaflet 0.7.5 or 
-  later is recommended. Extract it to your drupal root 
-  /sites/all/libraries/leaflet. The file 'leaflet.js' must reside at 
-  /sites/all/libraries/leaflet/leaflet.js. All other files and folder(s) that 
-  come with the library are also needed.
+- The module comes packaged with Leaflet library version 0.7.5, and a set
+  of leaflet plugins.
 
 - Enable leaflet_views for using Views and Leaflet (see below), or use the
   display formatters for fields display.

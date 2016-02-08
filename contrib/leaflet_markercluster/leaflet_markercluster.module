@@ -102,6 +102,7 @@ function leaflet_markercluster_requirements($phase) {
 }
 
 function leaflet_markercluster_get_library_path() {
-  $path = libraries_get_path('leaflet_markercluster');
-  return $path ? "$path/dist" : FALSE;
+//$path = libraries_get_path('leaflet_markercluster');
+  $path = backdrop_get_path('module', 'leaflet');
+  return $path ? "$path/libraries/leaflet_markercluster/dist" : FALSE;
 }
