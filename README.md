@@ -24,14 +24,14 @@ Installation
 API Usage
 ---------
 
-Building a map is as simple as calling a single method, leaflet_build_map(),
+Building a map is as simple as calling a single method, `leaflet_build_map()`,
 which takes 3 parameters.
 
-$map (array)
-An associative array defining a map. See hook_leaflet_map_info(). The module
+`$map` (array)
+An associative array defining a map. See `hook_leaflet_map_info()`. The module
 defines a default map with a OpenStreet Maps base layer.
 
-$features (array)
+`$features` (array)
 This is the tricky part. This is an associative array of all the features you
 want to plot on the map. A feature can be a point, linestring, polygon,
 multilinestring, multipolygon, or json object. Additionally, features can be
@@ -39,6 +39,7 @@ grouped into layer groups so they can be controlled together,
 http://leaflet.cloudmade.com/reference.html#layergroup. A feature will look
 something like:
 
+```php
 $features = array(
   array(
     'type' => 'point',
@@ -71,8 +72,9 @@ $features = array(
     )
   )
 );
+```
 
-$height (string)
+`$height` (string)
 Height of the map expressed in pixels. Append 'px'. Default: '400px'.
 
 Views integration
