@@ -104,6 +104,7 @@ Current Maintainers
 
 - Wes Jones (https://github.com/earthday47)
 - gifad (https://github.com/gifad)
+- Indigoxela (https://github.com/indigoxela)
 
 Credits
 -------
