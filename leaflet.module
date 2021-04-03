@@ -5,7 +5,8 @@
  * Provide Leaflet API integration and field formatters.
  */
 
-module_load_include('inc', 'leaflet', 'leaflet.formatters');
+// This file ships with the field formatter code.
+require_once __DIR__ . '/leaflet.formatters.inc';
 
 /**
  * Implements hook_theme().
@@ -163,7 +164,7 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
     'type' => 'setting',
   );
   $build['#attached']['css'][] = array(
-    'data' => backdrop_get_path('module', 'leaflet') . '/leaflet_extras.css',
+    'data' => backdrop_get_path('module', 'leaflet') . '/css/leaflet_extras.css',
   );
 
   // Load the leaflet library, which includes integration files.
