@@ -384,7 +384,7 @@ function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_ty
     if ($icon == 'html' && isset($map_settings['icon']['htmlClass'])) {
       // Clean the user-entered classes.
       $classes = explode(' ', $map_settings['icon']['htmlClass']);
-      array_walk($classes, 'drupal_html_class');
+      array_walk($classes, 'backdrop_html_class');
       $map_settings['icon']['htmlClass'] = implode(' ', $classes);
     }
     elseif (!$map_settings['icon']['iconUrl']) {

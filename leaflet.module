@@ -131,7 +131,7 @@ function leaflet_library_info() {
  *   A renderable array.
  */
 function leaflet_build_map($map, $features = array(), $height = '400px') {
-  $map_id = drupal_html_id('leaflet_map');
+  $map_id = backdrop_html_id('leaflet_map');
   $build = array(
     '#theme' => 'head_tag',
     '#tag' => 'div',
@@ -156,14 +156,14 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
     'map' => $map,
     'features' => $features,
   );
-  drupal_alter('leaflet_map_prebuild', $settings);
+  backdrop_alter('leaflet_map_prebuild', $settings);
 
   $build['#attached']['js'][] = array(
     'data' => array('leaflet' => array($settings)),
     'type' => 'setting',
   );
   $build['#attached']['css'][] = array(
-    'data' => drupal_get_path('module', 'leaflet') . '/leaflet_extras.css',
+    'data' => backdrop_get_path('module', 'leaflet') . '/leaflet_extras.css',
   );
 
   // Load the leaflet library, which includes integration files.
@@ -173,7 +173,7 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
   $build['#attached']['library'][] = array('leaflet', 'leaflet');
 
   // Let other modules properly attach libraries as well [#2567387]
-  drupal_alter('leaflet_build_map', $build);
+  backdrop_alter('leaflet_build_map', $build);
 
   return $build;
 }
@@ -205,11 +205,11 @@ function leaflet_render_map($map, $features = array(), $height = '400px') {
  *   The name of the map defined in hook_leaflet_map_get_info().
  */
 function leaflet_map_get_info($map = NULL) {
-  static $drupal_static_fast;
-  if (!isset($drupal_static_fast)) {
-    $drupal_static_fast['leaflet_map_info'] = &drupal_static(__FUNCTION__);
+  static $backdrop_static_fast;
+  if (!isset($backdrop_static_fast)) {
+    $backdrop_static_fast['leaflet_map_info'] = &backdrop_static(__FUNCTION__);
   }
-  $map_info = &$drupal_static_fast['leaflet_map_info'];
+  $map_info = &$backdrop_static_fast['leaflet_map_info'];
 
   if (empty($map_info)) {
     if ($cache = cache_get("leaflet_map_info")) {
@@ -219,7 +219,7 @@ function leaflet_map_get_info($map = NULL) {
       $map_info = module_invoke_all('leaflet_map_info');
 
       // Let other modules alter the map info.
-      drupal_alter('leaflet_map_info', $map_info);
+      backdrop_alter('leaflet_map_info', $map_info);
 
       cache_set("leaflet_map_info", $map_info);
     }
