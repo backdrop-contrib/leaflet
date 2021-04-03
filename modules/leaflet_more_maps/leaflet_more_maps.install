@@ -6,8 +6,14 @@
  */
 
 /**
- * Implements hook_uninstall().
+ * Migrate variables to CMI.
  */
-function leaflet_more_maps_uninstall() {
-  variable_del('leaflet_more_maps_custom_maps');
+function leaflet_more_maps_update_1000() {
+  $config = config('leaflet_more_maps.settings');
+  $config->set('google_satellite_version', update_variable_get('google_satellite_version', '183'));
+  $config->set('leaflet_more_maps_custom_maps', update_variable_get('leaflet_more_maps_custom_maps'), array());
+  $config->save();
+
+  update_variable_del('google_satellite_version');
+  update_variable_del('leaflet_more_maps_custom_maps');
 }
