@@ -184,7 +184,9 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
 function leaflet_process_geofield($items = array()) {
   $data = array();
 
-  geophp_load();
+  if (module_exists('geophp')) {
+    geophp_load();
+  }
 
   foreach ($items as $delta => $item) {
     // Translate linestring to polyline:

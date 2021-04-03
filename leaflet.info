@@ -5,6 +5,5 @@ backdrop = 1.x
 type = module
 
 dependencies[] = image
-dependencies[] = libraries
 
 files[] = leaflet.formatters.inc

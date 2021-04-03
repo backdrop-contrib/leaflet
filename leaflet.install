@@ -1,31 +1,5 @@
 <?php
-
 /**
  * @file
  * Install, update, and uninstall functions for the leaflet module.
  */
-
-/**
- * Implements hook_requirements().
- */
-function leaflet_requirements($phase) {
-  $requirements = array();
-  $t = get_t();
-
-  // Verify the Leaflet library is installed correctly.
-  if (in_array($phase, array('runtime', 'update'))) {
-    $library = leaflet_library_info();
-    $requirements['leaflet'] = array(
-      'title' => $t('Leaflet'),
-    );
-
-    $requirements['leaflet'] += array(
-      'value' => t('The Leaflet Javascript library version @version is installed. @maps available.', array(
-        '@version' => $library['leaflet']['version'],
-        '@maps' => format_plural(count(leaflet_map_get_info()),'One map', '@count maps'))),
-      'severity' => REQUIREMENT_OK,
-    );
-  }
-
-  return $requirements;
-}
