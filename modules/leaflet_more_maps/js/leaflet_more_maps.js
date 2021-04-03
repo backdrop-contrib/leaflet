@@ -1,8 +1,8 @@
 (function ($) {
 
-  Drupal.leaflet._create_layer_orig = Drupal.leaflet.create_layer;
+  Backdrop.leaflet._create_layer_orig = Backdrop.leaflet.create_layer;
 
-  Drupal.leaflet.create_layer = function(layer, key) {
+  Backdrop.leaflet.create_layer = function(layer, key) {
     if (layer.type === 'quad') {
       var mapLayer = L.tileLayerQuad(layer.urlTemplate, layer.options);
       mapLayer._leaflet_id = key;
@@ -18,7 +18,7 @@
       return mapLayer;
     }
     // Default to the original code;
-    return Drupal.leaflet._create_layer_orig(layer, key);
+    return Backdrop.leaflet._create_layer_orig(layer, key);
   };
 
 })(jQuery);

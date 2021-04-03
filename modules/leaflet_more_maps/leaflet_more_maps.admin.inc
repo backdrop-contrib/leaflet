@@ -109,7 +109,7 @@ function leaflet_more_maps_admin_configure_form_submit($form, &$form_state) {
   }
   variable_set('leaflet_more_maps_custom_maps', $custom_maps);
 
-  drupal_set_message(t('The map configurations have been saved.'));
+  backdrop_set_message(t('The map configurations have been saved.'));
 
   // Refresh the cache table or hook_leaflet_more_maps() won't be called.
   cache_clear_all('*', 'cache', TRUE);

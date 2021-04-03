@@ -58,10 +58,10 @@ function leaflet_more_maps_leaflet_map_info() {
  * Preprocess function for leaflet_more_maps.
  */
 function leaflet_more_maps_leaflet_map_prebuild_alter(&$variables = NULL) {
-  $path = drupal_get_path('module', 'leaflet_more_maps');
+  $path = backdrop_get_path('module', 'leaflet_more_maps');
   // Increase weight so we're included after 'leaflet.drupal.js'
   $options = array('type' => 'file', 'weight' => 1);
-  drupal_add_js("$path/leaflet_more_maps.js", $options);
+  backdrop_add_js("$path/js/leaflet_more_maps.js", $options);
 }
 
 /**
@@ -182,7 +182,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
         $label = "Esri $esri_name (zoom 0..19)";
         $settings['maxZoom'] = 19;
     }
-    $map_info['esri-' . drupal_strtolower($code)] = array(
+    $map_info['esri-' . backdrop_strtolower($code)] = array(
       'label' => $label,
       'description' => $label,
       'settings' => $settings,
@@ -288,7 +288,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
   );
   $attr_mapbox = 'Tiles by <a target="attr" href="http://mapbox.com">MapBox</a>. Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> and contributors';
   foreach ($mapbox_names as $mapbox_name) {
-    $code = drupal_strtolower($mapbox_name);
+    $code = backdrop_strtolower($mapbox_name);
     $label = "MapBox $mapbox_name (zoom 0..19)";
     $url_template = $prot . "{s}.tiles.mapbox.com/v3/mapbox.mapbox-$code/$zxy";
     $map_info["mapbox-$code"] = array(
@@ -458,7 +458,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
   $attr_stamen = 'Tiles by <a target="attr" href="http://stamen.com">Stamen Design</a> under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ' . $attr_osm;
   $stamen_names = array('Toner', 'Watercolor'/* , 'Terrain'*/);
   foreach ($stamen_names as $stamen_name) {
-    $code = drupal_strtolower($stamen_name);
+    $code = backdrop_strtolower($stamen_name);
     $label = "Stamen $stamen_name (zoom 0..19)";
     $t = t('@label , USA only', array('@label' => $label));
     if ($is_https) {
@@ -554,7 +554,7 @@ function leaflet_more_maps_menu() {
   $items['admin/config/system/leaflet_more_maps'] = array(
     'title' => 'Leaflet More Maps',
     'description' => 'Assemble custom maps from available layers.',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('leaflet_more_maps_admin_configure'),
     'access arguments' => array('administer site configuration'),
     'file' => 'leaflet_more_maps.admin.inc',
