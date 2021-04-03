@@ -103,12 +103,11 @@ Current Maintainers
 -------------------
 
 - Wes Jones (https://github.com/earthday47)
-- gifad (https://github.com/gifad)
 - Indigoxela (https://github.com/indigoxela)
 
 Credits
 -------
 
-- Ported to Backdrop CMS by gifad (https://github.com/gifad)
+- Ported to Backdrop CMS by gifad (https://www.drupal.org/u/gifad)
 - Originally written for Drupal by [levelos](http://drupal.org/user/54135) and 
   [pvhee](http://drupal.org/user/108811)
