@@ -100,8 +100,12 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#element_validate' => array('form_validate_number'),
     );
 
-    foreach ($form['#fields'] as $fieldname) {
-      $field_options[$fieldname] = $fieldname;
+    $field_options = array();
+    // @todo This is not set in views forms. Is it necessary?
+    if (!empty($form['#fields'])) {
+      foreach ($form['#fields'] as $fieldname) {
+        $field_options[$fieldname] = $fieldname;
+      }
     }
     $fieldpath = 'fields[' . $field['field_name'] . '][settings_edit_form][settings]';
     $element['popup'] = leaflet_form_elements('popup', $settings, array('path' => $fieldpath));
