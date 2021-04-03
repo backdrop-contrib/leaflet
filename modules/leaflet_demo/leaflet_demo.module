@@ -19,7 +19,7 @@ define('LEAFLET_DEMO_DEFAULT_ZOOM', 11);
 function leaflet_demo_block_info() {
   $blocks['leaflet_maps'] = array(
     'info' => t('Leaflet-powered maps showcase'),
-    'cache' => DRUPAL_NO_CACHE,
+    'cache' => BACKDROP_NO_CACHE,
   );
   return $blocks;
 }
@@ -49,7 +49,7 @@ function leaflet_demo_block_view($delta = '') {
   switch ($delta) {
     case 'leaflet_maps':
       $block['subject'] = t('Examples of available maps');
-      $block['content'] = drupal_get_form('leaflet_demo_map_parameters_form');
+      $block['content'] = backdrop_get_form('leaflet_demo_map_parameters_form');
       break;
   }
   return $block;
@@ -118,7 +118,7 @@ function leaflet_demo_map_parameters_form($form, $form_state) {
   );
 
   $form['map_parameters']['#attached'] = array(
-    'css' => array(drupal_get_path('module', 'leaflet_demo') . '/leaflet_demo.css'),
+    'css' => array(backdrop_get_path('module', 'leaflet_demo') . '/leaflet_demo.css'),
   );
   return $form;
 }
