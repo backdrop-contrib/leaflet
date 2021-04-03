@@ -1,6 +1,6 @@
 (function ($) {
 
-  Drupal.behaviors.leaflet = {
+  Backdrop.behaviors.leaflet = {
     attach:function (context, settings) {
 
       $(settings.leaflet).each(function () {
@@ -28,7 +28,7 @@
         var i = 0;
         for (var key in this.map.layers) {
           var layer = this.map.layers[key];
-          var map_layer = Drupal.leaflet.create_layer(layer, key);
+          var map_layer = Backdrop.leaflet.create_layer(layer, key);
 
           layers[key] = map_layer;
 
@@ -138,7 +138,7 @@
           lMap.setView(new L.LatLng(this.map.center.lat, this.map.center.lon), zoom);
         }
         else if (this.features.length > 0) {
-          Drupal.leaflet.fitbounds(lMap);
+          Backdrop.leaflet.fitbounds(lMap);
           if (this.map.settings.zoom) { // or: if (zoom) ?
             lMap.setZoom(zoom);
           }
@@ -180,34 +180,34 @@
         var lFeature;
         switch (feature.type) {
           case 'point':
-            lFeature = Drupal.leaflet.create_point(feature, lMap);
+            lFeature = Backdrop.leaflet.create_point(feature, lMap);
             break;
           case 'linestring':
-            lFeature = Drupal.leaflet.create_linestring(feature, lMap);
+            lFeature = Backdrop.leaflet.create_linestring(feature, lMap);
             break;
           case 'polygon':
-            lFeature = Drupal.leaflet.create_polygon(feature, lMap);
+            lFeature = Backdrop.leaflet.create_polygon(feature, lMap);
             break;
           case 'multipolyline':
             feature.multipolyline = true;
             // no break;
           case 'multipolygon':
-            lFeature = Drupal.leaflet.create_multipoly(feature, lMap);
+            lFeature = Backdrop.leaflet.create_multipoly(feature, lMap);
             break;
           case 'json':
-            lFeature = Drupal.leaflet.create_json(feature.json, lMap);
+            lFeature = Backdrop.leaflet.create_json(feature.json, lMap);
             break;
           case 'popup':
-            lFeature = Drupal.leaflet.create_popup(feature, lMap);
+            lFeature = Backdrop.leaflet.create_popup(feature, lMap);
             break;
           case 'circle':
-            lFeature = Drupal.leaflet.create_circle(feature, lMap);
+            lFeature = Backdrop.leaflet.create_circle(feature, lMap);
             break;
           case 'circlemarker':
-            lFeature = Drupal.leaflet.create_circlemarker(feature, lMap);
+            lFeature = Backdrop.leaflet.create_circlemarker(feature, lMap);
             break;
           case 'rectangle':
-            lFeature = Drupal.leaflet.create_rectangle(feature, lMap);
+            lFeature = Backdrop.leaflet.create_rectangle(feature, lMap);
             break;
         }
 
@@ -230,7 +230,7 @@
     }
   };
 
-  Drupal.leaflet = {
+  Backdrop.leaflet = {
 
     isOldVersion: function () {
       return !(parseInt(L.version) >= 1); // version may start with '0' or '.'

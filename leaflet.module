@@ -73,7 +73,7 @@ function leaflet_library_info() {
           'data' => 'L.Icon.Default.imagePath = "' . base_path() . $library_path . 'images";',
         ),
         // load integration file AFTER libraries
-        $module_path . '/leaflet.drupal.js' => array(
+        $module_path . '/js/leaflet.backdrop.js' => array(
           'type' => 'file',
           'group' => JS_LIBRARY,
         ),
