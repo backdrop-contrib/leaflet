@@ -9,6 +9,7 @@
  * Configure leaflet more maps.
  */
 function leaflet_more_maps_admin_configure() {
+  $config = config_get('leaflet_more_maps.settings');
 
   // First a global setting to enter the Google sat map version number
   $form['global_settings'] = array(
@@ -20,7 +21,7 @@ function leaflet_more_maps_admin_configure() {
   $form['global_settings']['google_satellite_version'] = array(
     '#type' => 'textfield',
     '#title' => t('Google satellite map version'),
-    '#default_value' => variable_get('google_satellite_version', '183'),
+    '#default_value' => isset($config['google_satellite_version']) ? $config['google_satellite_version'] : '183',
     '#description' => t('If you find that tiles have gone missing, it is time to increase this number.'),
   );
 
@@ -35,7 +36,7 @@ function leaflet_more_maps_admin_configure() {
       $all_layer_keys["$map_key $layer_key"] = "$map_key $layer_key";
     }
   }
-  $custom_map_layers = variable_get('leaflet_more_maps_custom_maps', array());
+  $custom_map_layers = !empty($config['leaflet_more_maps_custom_maps']) ? $config['leaflet_more_maps_custom_maps'] : array();
 
   if (empty($custom_map_layers)) {
     for ($i = 1; $i <= LEAFLET_MORE_MAPS_NO_CUSTOM_MAPS; $i++) {
@@ -96,10 +97,11 @@ function leaflet_more_maps_admin_configure() {
  * Execute leaflet_admin_configure_form.
  */
 function leaflet_more_maps_admin_configure_form_submit($form, &$form_state) {
+  $config = config('leaflet_more_maps.settings');
 
   // form_state_values_clean($form_state);
 
-  variable_set('google_satellite_version', $form_state['values']['google_satellite_version']);
+  $config->set('google_satellite_version', $form_state['values']['google_satellite_version']);
 
   $custom_maps = $form_state['values']['map'];
 
@@ -107,10 +109,12 @@ function leaflet_more_maps_admin_configure_form_submit($form, &$form_state) {
   foreach ($custom_maps as &$custom_map) {
     $custom_map['layer-keys'] = array_filter($custom_map['layer-keys']);
   }
-  variable_set('leaflet_more_maps_custom_maps', $custom_maps);
+  $config->set('leaflet_more_maps_custom_maps', $custom_maps);
+  $config->save();
 
   backdrop_set_message(t('The map configurations have been saved.'));
 
   // Refresh the cache table or hook_leaflet_more_maps() won't be called.
+  // @todo This is deprecated.
   cache_clear_all('*', 'cache', TRUE);
 }

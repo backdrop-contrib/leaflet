@@ -1,0 +1,21 @@
+{
+    "_config_name": "leaflet_more_maps.settings",
+    "google_satellite_version": "183",
+    "leaflet_more_maps_custom_maps": {
+        "1": {
+            "map-key": "",
+            "layer-keys": [],
+            "reverse-order": 0
+        },
+        "2": {
+            "map-key": "",
+            "layer-keys": [],
+            "reverse-order": 0
+        },
+        "3": {
+            "map-key": "",
+            "layer-keys": [],
+            "reverse-order": 0
+        }
+    }
+}

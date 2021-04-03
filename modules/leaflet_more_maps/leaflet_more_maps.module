@@ -41,7 +41,10 @@ function leaflet_more_maps_leaflet_map_info() {
 
   _leaflet_more_maps_assemble_default_map_info($map_info, $default_settings);
 
-  $custom_maps = variable_get('leaflet_more_maps_custom_maps', array());
+  $custom_maps = config_get('leaflet_more_maps.settings', 'leaflet_more_maps_custom_maps');
+  if ($custom_maps == NULL) {
+    $custom_maps = array();
+  }
 
   foreach ($custom_maps as $custom_map) {
     _leaflet_more_maps_assemble_custom_map_info(
@@ -560,4 +563,15 @@ function leaflet_more_maps_menu() {
     'file' => 'leaflet_more_maps.admin.inc',
   );
   return $items;
+}
+
+/**
+ * Implements hook_config_info().
+ */
+function leaflet_more_maps_config_info() {
+  $prefixes['leaflet_more_maps.settings'] = array(
+    'label' => t('Leaflet More Maps Settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
 }
