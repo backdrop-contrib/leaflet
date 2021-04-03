@@ -1,18 +1,16 @@
-Leaflet
-=======
+# Leaflet
 
 Maps can be rendered via the included field formatter for [Geofield](https://backdropcms.org/project/geofield),
 by using the API directly, or by taking advantage of an additional module, like
 http://drupal.org/project/ip_geoloc
 
 
-Installation
-------------
+## Installation
 
 - Install this module using the official Backdrop CMS instructions at
   https://backdropcms.org/guide/modules
 
-- The module comes packaged with Leaflet library version 0.7.5, and a set
+- The module comes packaged with Leaflet library version 0.7.7, and a set
   of leaflet plugins.
   Alternatively, you can build the library from source. If so, follow the
   instructions at: http://leafletjs.com/download.html#leaflet-source-code
@@ -20,9 +18,7 @@ Installation
 - Enable leaflet_views for using Views and Leaflet (see below), or use the
   display formatters for fields display.
 
-
-API Usage
----------
+## API Usage
 
 Building a map is as simple as calling a single method, `leaflet_build_map()`,
 which takes 3 parameters.
@@ -77,8 +73,7 @@ $features = array(
 `$height` (string)
 Height of the map expressed in pixels. Append 'px'. Default: '400px'.
 
-Views integration
------------------
+## Views integration
 
 To render a map using Views, enable the module leaflet_views.
 
@@ -93,21 +88,20 @@ the popup. In the Description field, select "<entire node>" and then select a Vi
 
 For a tutorial, please read http://marzeelabs.org/blog/2012/09/24/building-maps-in-drupal-using-leaflet-views/
 
-Roadmap
--------
-
-* UI for managing maps
-* Better documentation
-
-Current Maintainers
--------------------
+## Current Maintainers
 
 - Wes Jones (https://github.com/earthday47)
 - Indigoxela (https://github.com/indigoxela)
 
-Credits
--------
+## Credits
 
 - Ported to Backdrop CMS by gifad (https://www.drupal.org/u/gifad)
 - Originally written for Drupal by [levelos](http://drupal.org/user/54135) and 
   [pvhee](http://drupal.org/user/108811)
+
+The bundeled [Leaflet](https://leafletjs.com/) Javascript library and its
+plugins use the MIT License. More details coming soon.
+
+## License
+
+This project is GPL v2 software. See the LICENSE.txt file in this directory for complete text.

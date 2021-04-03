@@ -31,9 +31,9 @@ function leaflet_library_info() {
   $libraries['leaflet'] = array(
     'name' => 'Leaflet JavaScript Library',
     'title' => t('Leaflet JavaScript Library'),
-    'version' => '0.7.5',
+    'version' => '0.7.7',
     'vendor url' => 'http://leafletjs.com/',
-    'download url' => 'http://cdn.leafletjs.com/downloads/leaflet-0.7.5.zip',
+    'download url' => 'http://cdn.leafletjs.com/downloads/leaflet-0.7.7.zip',
   //'version arguments' => array(
   //  'file' => 'leaflet.js',
   //  // Handle things like  version:"1.0.0-beta.2"
