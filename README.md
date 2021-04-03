@@ -2,7 +2,7 @@
 
 Maps can be rendered via the included field formatter for [Geofield](https://backdropcms.org/project/geofield),
 by using the API directly, or by taking advantage of an additional module, like
-http://drupal.org/project/ip_geoloc
+https://github.com/backdrop-contrib/ip_geoloc
 
 
 ## Installation
