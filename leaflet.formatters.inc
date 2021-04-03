@@ -185,6 +185,7 @@ function leaflet_process_geofield($items = array()) {
   $data = array();
 
   if (module_exists('geophp')) {
+    // @todo Verify that this is still needed anyway with geofields.
     geophp_load();
   }
 
