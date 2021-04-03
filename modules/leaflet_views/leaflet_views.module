@@ -11,7 +11,7 @@
 function leaflet_views_views_api() {
   return array(
     'api' => 3,
-    'path' => drupal_get_path('module', 'leaflet_views'),
+    'path' => backdrop_get_path('module', 'leaflet_views'),
   );
 }
 

@@ -1,8 +1,8 @@
 name = Leaflet views
 description = Views integration for the Leaflet module.
-core = 7.x
 backdrop = 1.x
 type = module
+
 dependencies[] = leaflet
 dependencies[] = geofield
 dependencies[] = views

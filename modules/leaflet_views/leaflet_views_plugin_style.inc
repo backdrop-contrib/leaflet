@@ -285,7 +285,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
             $entity = $entities[$entity_id];
             if ($this->options['description_field'] === '#rendered_entity') {
               $build = node_view($entity, $this->options['view_mode']);
-              $description = drupal_render($build);
+              $description = backdrop_render($build);
             }
             // Normal rendering via fields:
             else {
@@ -323,7 +323,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
             }
           }
           // Let modules modify the points data.
-          drupal_alter('leaflet_views_alter_points_data', $result, $points);
+          backdrop_alter('leaflet_views_alter_points_data', $result, $points);
           // Merge these points into the $data array for map rendering:
           $data = array_merge($data, $points);
         }
