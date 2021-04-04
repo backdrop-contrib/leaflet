@@ -15,6 +15,9 @@ function leaflet_views_views_api() {
   );
 }
 
+/**
+ * Implements hook_autoload_info().
+ */
 function leaflet_views_autoload_info() {
   return array(
     // Views handlers.

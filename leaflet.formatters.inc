@@ -25,7 +25,7 @@ function leaflet_field_formatter_info() {
         'zoom' => array(
           'initialZoom' => '',
           'minZoom' => 1,
-          'maxZoom' => 19
+          'maxZoom' => 19,
         ),
         'icon' => array(
           'iconUrl' => '',
@@ -332,8 +332,8 @@ function leaflet_process_geofield($items = array()) {
                 $datum['type'] = 'polygon';
                 foreach ($components as $component) {
                   $datum['points'][] = array(
-                      'lat' => $component->getY(),
-                      'lon' => $component->getX(),
+                    'lat' => $component->getY(),
+                    'lon' => $component->getX(),
                   );
                 }
                 $data[] = $datum;
@@ -351,15 +351,14 @@ function leaflet_process_geofield($items = array()) {
 /**
  * Universal method for applying map settings from leaflet_form_elements items.
  *
- * @array $map
+ * @param array $map
  *   Leaflet map definition.
- * @array $features
+ * @param array $features
  *   Associative array of map features.
- * @array $map_settings
+ * @param array $map_settings
  *   Map settings returned by a settings form.
- * @string $entity_type
+ * @param string $entity_type
  *   Entity type this map is being displayed for.
- *
  */
 function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_type) {
   // These are the settings key that will be tokenized by entity:
@@ -634,7 +633,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#title' => t('Marker field'),
         '#description' => t('Field to use as output for a map marker.'),
         // See [#1796656]
-        '#options' => (array)array_merge(array('' => ''), $options['fields']),
+        '#options' => (array) array_merge(array('' => ''), $options['fields']),
         '#default_value' => isset($settings[$group]['html']) ? $settings[$group]['html'] : '',
         '#empty_option' => t('-- Select --'),
         '#states' => array(

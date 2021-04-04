@@ -6,12 +6,12 @@
  */
 
 /**
- * Add extra options for Leaflet Markercluster, using hooks provided by Leaflet
+ * Add extra options for Leaflet Markercluster using hooks provided by Leaflet.
  *
  * For the default attributes to define in this hook, see leaflet.api.php
  */
 function hook_leaflet_map_info_alter(&$maps) {
-  // See https://github.com/Leaflet/Leaflet.markercluster for all options
+  // See https://github.com/Leaflet/Leaflet.markercluster for all options.
   $maps['OSM Mapnik']['settings'] += array(
     // When you click a cluster we zoom to its bounds.
     'zoomToBoundsOnClick' => TRUE,
@@ -37,7 +37,7 @@ function hook_leaflet_map_info_alter(&$maps) {
     'addRegionToolTips' => TRUE,
   );
 
-  // Adding a custom cluster icon. This overwrites the standard cluster icons 
+  // Adding a custom cluster icon. This overwrites the standard cluster icons
   // and does not yet support icon clusters depending on the cluster size.
   $maps['OSM Mapnik']['markercluster_icon'] = array(
     'iconUrl'       => '/sites/default/files/icon.png',

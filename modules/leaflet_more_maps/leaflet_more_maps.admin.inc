@@ -11,7 +11,7 @@
 function leaflet_more_maps_admin_configure() {
   $config = config_get('leaflet_more_maps.settings');
 
-  // First a global setting to enter the Google sat map version number
+  // First a global setting to enter the Google sat map version number.
   $form['global_settings'] = array(
     '#type' => 'fieldset',
     '#collapsible' => TRUE,

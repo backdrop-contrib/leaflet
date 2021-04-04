@@ -1,7 +1,11 @@
 <?php
+/**
+ * @file
+ * Leaflet Markercluster main module code.
+ */
 
 /**
- * Implements hook_library().
+ * Implements hook_library_info().
  */
 function leaflet_markercluster_library_info() {
 
@@ -16,7 +20,6 @@ function leaflet_markercluster_library_info() {
         'type' => 'file',
         'data' => "$path/leaflet.markercluster.js",
         'group' => JS_LIBRARY,
-//-     'preprocess' => FALSE,
         'weight' => 1,
       ),
     ),
@@ -33,7 +36,10 @@ function leaflet_markercluster_library_info() {
         'type' => 'file',
         'media' => 'screen',
         'every_page' => TRUE,
-        'browsers' => array('IE' => 'lte IE 8', '!IE' => FALSE, /* 'preprocess' => FALSE*/),
+        'browsers' => array(
+          'IE' => 'lte IE 8',
+          '!IE' => FALSE,
+        ),
       ),
     ),
   );
@@ -43,7 +49,6 @@ function leaflet_markercluster_library_info() {
 
 /**
  * Implements hook_leaflet_map_prebuild_alter().
- *
  */
 function leaflet_markercluster_leaflet_map_prebuild_alter(&$vars = NULL) {
   if (!isset($vars['map']['settings']['maxClusterRadius']) || $vars['map']['settings']['maxClusterRadius'] > 0) {
@@ -60,7 +65,7 @@ function leaflet_markercluster_leaflet_build_map_alter(&$build) {
 
   $settings = array();
   if (!empty($build['#attached']['js'])) {
-    foreach($build['#attached']['js'] as $data) {
+    foreach ($build['#attached']['js'] as $data) {
       if (isset($data['type']) && $data['type'] == 'setting' && isset($data['data']['leaflet'])) {
         $settings = $data['data']['leaflet'][0];
         break;

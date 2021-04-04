@@ -11,7 +11,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
   /**
    * If this view is displaying an entity, save the entity type and info.
    */
-  function init(&$view, &$display, $options = NULL) {
+  public function init(&$view, &$display, $options = NULL) {
     parent::init($view, $display, $options);
     $this->entity_type = $this->options['entity_type'];
     $this->entity_info = entity_get_info($this->entity_type);
@@ -29,7 +29,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
   /**
    * Set default options.
    */
-  function option_definition() {
+  public function option_definition() {
     $options = parent::option_definition();
     $options['entity_type'] = array('default' => '');
     $options['data_source'] = array('default' => '');
@@ -95,7 +95,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
   /**
    * Options form.
    */
-  function options_form(&$form, &$form_state) {
+  public function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
 
     // Get list of fields in this view & flag available geodata fields:
@@ -249,7 +249,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
   /**
    * Validate the options form.
    */
-  function options_validate(&$form, &$form_state) {
+  public function options_validate(&$form, &$form_state) {
     if (!is_numeric($form_state['values']['style_options']['height']) || $form_state['values']['style_options']['height'] < 0) {
       form_error($form['height'], t('Map height needs to be a positive number'));
     }
@@ -258,7 +258,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
   /**
    * Renders view.
    */
-  function render() {
+  public function render() {
     if (!empty($this->view->live_preview)) {
       return t('No preview available.');
     }

@@ -8,6 +8,9 @@
 
 define('LEAFLET_MORE_MAPS_NO_CUSTOM_MAPS', 3);
 
+/**
+ * Helper function.
+ */
 function leaflet_more_maps_default_settings() {
   $default_settings = array(
     'attributionControl' => TRUE,
@@ -210,8 +213,8 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
         'urlTemplate' => $prot . 'khms{s}.googleapis.com/kh?x={x}&y={y}&z={z}' . (empty($v) ? '' : "&v=$v"),
         'options' => array(
           'attribution' => $attr_google,
-          // 'detectRetina' => TRUE, // has bad effect
-          'subdomains' => array(0, 1, 2, 3)
+          // Has bad effect: 'detectRetina' => TRUE,
+          'subdomains' => array(0, 1, 2, 3),
         ),
       ),
       'road overlay' => array(
@@ -375,7 +378,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
   $map_info['osm-piste'] = array(
     'label' => 'OSM OpenPisteMap (zoom 0..19)',
     'description' => t('OpenStreetMap for skiers with 3 layers'),
-    'settings' =>  array('layerControl' => TRUE) + $default_settings,
+    'settings' => array('layerControl' => TRUE) + $default_settings,
     'layers' => array(
       'base' => array(
         'urlTemplate' => $prot . "{s}.tile.openstreetmap.org/$zxy",
@@ -440,7 +443,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     ),
   );
 
-  // geocommons http://geocommons.com
+  // @see http://geocommons.com
   $attr_geocommons = 'Tiles by Geocommons &copy; <a target="attr" href="http://geocommons.com/overlays/acetate">Esri & Stamen</a>. ' . $attr_osm;
   $map_info['geocommons'] = array(
     'label' => 'Geocommons Acetate (zoom 2..19)',
@@ -483,7 +486,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     );
   }
 
-  // Yandex
+  // Yandex.
   $attr_yandex = 'Map data &copy; <a target="attr" href="http://maps.yandex.ru">Yandex.Maps</a>';
   $map_info['yandex'] = array(
     'label' => 'Yandex Maps (zoom 0..7 in many areas)',
@@ -535,7 +538,6 @@ function _leaflet_more_maps_assemble_custom_map_info($custom_map_key, $selected_
       // Unique.
       $custom_layer_key = "$map_key $layer_key";
       if (in_array($custom_layer_key, $selected_layer_keys)) {
-        //$layer_switcher_key = t('layer') . " #$i";
         $map_info["~$custom_map_key"]['layers'][$custom_layer_key] = $layer;
         $i = $reverse_order ? $i - 1 : $i + 1;
       }

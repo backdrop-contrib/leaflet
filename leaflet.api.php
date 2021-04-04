@@ -64,6 +64,7 @@ function hook_leaflet_map_info() {
         ),
       ),
       // Uncomment the lines below to use a custom icon
+      // @code
       // 'icon' => array(
       //   'iconUrl'       => '/sites/default/files/icon.png',
       //   'iconSize'      => array('x' => '20', 'y' => '40'),
@@ -73,6 +74,7 @@ function hook_leaflet_map_info() {
       //   'shadowSize'    => array('x' => '25', 'y' => '27'),
       //   'shadowAnchor'  => array('x' => '0', 'y' => '27'),
       // ),
+      // @endcode
     ),
   );
 }
@@ -83,8 +85,8 @@ function hook_leaflet_map_info() {
  * This hook is called when the leaflet map is being rendered and attaching the
  * client side javascript settings.
  *
- * @param $settings
- *  A javascript settings array used for building the leaflet map.
+ * @param array $settings
+ *   A javascript settings array used for building the leaflet map.
  *
  * @see leaflet_map_get_info()
  * @see hook_leaflet_map_info()

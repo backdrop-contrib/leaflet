@@ -15,19 +15,15 @@
  *
  * This is in fact a Leaflet hook, not a Leaflet More Maps hook.
  *
- * For details see:
- * http://www.icc.cat/cat/Home-ICC/Geoinformacio-digital/Serveis-en-linia-Geoserveis/WMS-WMTS-rapids-de-cartografia-raster
- *
- * @return array
- *   an array of map options, indexed by map machine name
+ * For details:
+ * @see http://www.icc.cat/cat/Home-ICC/Geoinformacio-digital/Serveis-en-linia-Geoserveis/WMS-WMTS-rapids-de-cartografia-raster
  */
 function leaflet_catalunya_leaflet_map_info() {
 
   $settings = array(
     'minZoom' => 8,
     'layerControl' => TRUE,
-  )
-  + leaflet_more_maps_default_settings();
+  ) + leaflet_more_maps_default_settings();
 
   $base_url = 'http://mapcache.icc.cat/map/bases_noutm/wmts';
   $zxy = '{z}/{x}/{y}.jpeg';
