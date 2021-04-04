@@ -1,5 +1,6 @@
 name = Leaflet Demo
 description = Creates a block showcasing all Leaflet-powered maps available on your system. Optionally use with "IP Geolocation Views and Maps" to center the maps on your current location.
 backdrop = 1.x
+package = Leaflet
 
 dependencies[] = leaflet
