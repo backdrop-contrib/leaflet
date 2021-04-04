@@ -44,7 +44,7 @@ function leaflet_library_info() {
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
-      $plugins_path . 'leaflet.fullscreen.js' => array(
+      $plugins_path . 'Leaflet.fullscreen.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
