@@ -12,7 +12,7 @@ function leaflet_markercluster_library_info() {
   $path = backdrop_get_path('module', 'leaflet') . '/libraries/leaflet_markercluster/dist/';
   $libraries['leaflet_markercluster'] = array(
     'title' => 'Leaflet Markercluster',
-    'version' => 0.4,
+    'version' => '1.4.1',
     'js' => array(
       array(
         'type' => 'file',
@@ -29,15 +29,6 @@ function leaflet_markercluster_library_info() {
       "$path/MarkerCluster.Default.css" => array(
         'type' => 'file',
         'media' => 'screen',
-      ),
-      "$path/MarkerCluster.Default.ie.css" => array(
-        'type' => 'file',
-        'media' => 'screen',
-        'every_page' => TRUE,
-        'browsers' => array(
-          'IE' => 'lte IE 8',
-          '!IE' => FALSE,
-        ),
       ),
     ),
   );

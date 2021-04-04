@@ -25,13 +25,14 @@ function leaflet_theme($existing, $type, $theme, $path) {
 function leaflet_library_info() {
   $module_path = backdrop_get_path('module', 'leaflet');
   $library_path = $module_path . '/libraries/leaflet/';
+  $plugins_path = $module_path . '/libraries/leaflet_plugins/';
 
   $libraries['leaflet'] = array(
     'name' => 'Leaflet JavaScript Library',
     'title' => t('Leaflet JavaScript Library'),
-    'version' => '0.7.7',
+    'version' => '1.7.1',
     'vendor url' => 'http://leafletjs.com/',
-    'download url' => 'http://cdn.leafletjs.com/downloads/leaflet-0.7.7.zip',
+    'download url' => 'http://cdn.leafletjs.com/downloads/leaflet-1.7.1.zip',
     'js' => array(
       // This setting is needed in order to properly render market images.
       'leaflet_root_url' => array(
@@ -43,26 +44,26 @@ function leaflet_library_info() {
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
-      $library_path . 'leaflet.fullscreen.js' => array(
+      $plugins_path . 'leaflet.fullscreen.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
-      $library_path . 'L.Control.Zoomslider.js' => array(
+      $plugins_path . 'L.Control.Zoomslider.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
-      $library_path . 'Control.Coordinates.js' => array(
+      $plugins_path . 'Control.Coordinates.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
-      $library_path . 'leaflet.viewcenter.js' => array(
+      $plugins_path . 'leaflet.viewcenter.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
       // For AdvAgg module. See [#2294639] This runs after leaflet.js.
       'leaflet_imagepath' => array(
         'type' => 'inline',
-        'data' => 'L.Icon.Default.imagePath = "' . base_path() . $library_path . 'images";',
+        'data' => 'L.Icon.Default.imagePath = "' . base_path() . $library_path . 'images/";',
       ),
       // Load integration file AFTER libraries.
       $module_path . '/js/leaflet.backdrop.js' => array(
@@ -75,27 +76,21 @@ function leaflet_library_info() {
         'type' => 'file',
         'media' => 'all',
       ),
-      $library_path . 'leaflet.fullscreen.css' => array(
+      $plugins_path . 'leaflet.fullscreen.css' => array(
         'type' => 'file',
         'media' => 'all',
       ),
-      $library_path . 'L.Control.Zoomslider.css' => array(
+      $plugins_path . 'L.Control.Zoomslider.css' => array(
         'type' => 'file',
         'media' => 'all',
       ),
-      $library_path . 'Control.Coordinates.css' => array(
+      $plugins_path . 'Control.Coordinates.css' => array(
         'type' => 'file',
         'media' => 'all',
       ),
-      $library_path . 'leaflet.viewcenter.css' => array(
+      $plugins_path . 'leaflet.viewcenter.css' => array(
         'type' => 'file',
         'media' => 'all',
-      ),
-      $library_path . 'leaflet.ie.css' => array(
-        'browsers' => array(
-          'IE' => 'lte IE 8',
-          '!IE' => FALSE,
-        ),
       ),
     ),
   );
