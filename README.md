@@ -99,8 +99,15 @@ For a tutorial, please read http://marzeelabs.org/blog/2012/09/24/building-maps-
 - Originally written for Drupal by [levelos](http://drupal.org/user/54135) and 
   [pvhee](http://drupal.org/user/108811)
 
-The bundeled [Leaflet](https://leafletjs.com/) Javascript library and its
-plugins use the MIT License. More details coming soon.
+This module wouldn't be possible without the fabulous [Leaflet](https://leafletjs.com/)
+Javascript library, see their [LICENSE file](https://github.com/Leaflet/Leaflet/blob/master/LICENSE)
+for details.
+
+The also bundled Leaflet.markercluster library by the same team uses
+[MIT License](https://github.com/Leaflet/Leaflet.markercluster/blob/master/MIT-LICENCE.txt)
+
+This module also ships with several Leaflet plugins, see the README.md file in
+the libraries/leaflet_plugins directory for details.
 
 ## License
 
