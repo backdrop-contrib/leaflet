@@ -156,8 +156,13 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
   else {
     switch ($display['type']) {
       case 'geofield_leaflet':
-        $map = leaflet_map_get_info($settings['leaflet_map']);
         $features = leaflet_process_geofield($items);
+        // Geofield does some weird stuff on first entity save, resulting in
+        // stub data on empty input.
+        if (empty($features)) {
+          return $element;
+        }
+        $map = leaflet_map_get_info($settings['leaflet_map']);
         foreach ($features as &$feat) {
           $feat['entity'] = $entity;
         }
