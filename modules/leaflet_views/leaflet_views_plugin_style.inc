@@ -329,8 +329,12 @@ class leaflet_views_plugin_style extends views_plugin_style {
         }
       }
       $entity_type = isset($this->entity_type) ? $this->entity_type : '';
+      $entity = !empty($this->entity) ? $this->entity : array();
 
-      $entity_wrapper = array('entity_type' => $entity_type, 'entity' => $entity);
+      $entity_wrapper = array(
+        'entity_type' => $entity_type,
+        'entity' => $entity,
+      );
       backdrop_alter('leaflet_apply_map_settings', $map, $data, $this->options, $entity_wrapper);
 
       leaflet_apply_map_settings($map, $data, $this->options, $entity_type);
@@ -341,4 +345,12 @@ class leaflet_views_plugin_style extends views_plugin_style {
     }
     return;
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function even_empty() {
+    return !$this->options['hide_empty'];
+  }
+
 }

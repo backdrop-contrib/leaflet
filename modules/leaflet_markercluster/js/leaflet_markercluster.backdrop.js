@@ -119,66 +119,67 @@
         }
 
         // add features
-        for (i = 0; i < this.features.length; i++) {
-          var feature = this.features[i];
-         
-          var cluster = (feature.type === 'point' || feature.type === 'json') &&
-            (!feature.flags || !(feature.flags & LEAFLET_MARKERCLUSTER_EXCLUDE_FROM_CLUSTER));
-          if (cluster) {
-            var clusterGroup = feature.clusterGroup ? feature.clusterGroup : 'global';
-            if (!clusterLayers[clusterGroup]) {
-              // Note: only applicable settings will be used, remainder are ignored
-              clusterLayers[clusterGroup] = new L.MarkerClusterGroup(settings);
-              lMap.addLayer(clusterLayers[clusterGroup]);
-            }
-          }
-          var lFeature;
-
-          // dealing with a layer group
-          if (feature.group) {
-            var lGroup = new L.LayerGroup();
-            for (var groupKey in feature.features) {
-              var groupFeature = feature.features[groupKey];
-              lFeature = leaflet_create_feature(groupFeature, lMap);
-              lFeature.options.regions = feature.regions;
-              if (groupFeature.popup) {
-                lFeature.bindPopup(groupFeature.popup);
+        if (this.features.length > 0) {
+          for (i = 0; i < this.features.length; i++) {
+            var feature = this.features[i];
+            var cluster = (feature.type === 'point' || feature.type === 'json') &&
+              (!feature.flags || !(feature.flags & LEAFLET_MARKERCLUSTER_EXCLUDE_FROM_CLUSTER));
+            if (cluster) {
+              var clusterGroup = feature.clusterGroup ? feature.clusterGroup : 'global';
+              if (!clusterLayers[clusterGroup]) {
+                // Note: only applicable settings will be used, remainder are ignored
+                clusterLayers[clusterGroup] = new L.MarkerClusterGroup(settings);
+                lMap.addLayer(clusterLayers[clusterGroup]);
               }
-              lGroup.addLayer(lFeature);
+            }
+            var lFeature;
 
-              // Allow others to do something with the feature within a group. //?
+            // dealing with a layer group
+            if (feature.group) {
+              var lGroup = new L.LayerGroup();
+              for (var groupKey in feature.features) {
+                var groupFeature = feature.features[groupKey];
+                lFeature = leaflet_create_feature(groupFeature, lMap);
+                lFeature.options.regions = feature.regions;
+                if (groupFeature.popup) {
+                  lFeature.bindPopup(groupFeature.popup);
+                }
+                lGroup.addLayer(lFeature);
+
+                // Allow others to do something with the feature within a group. //?
+                $(document).trigger('leaflet.feature', [lFeature, feature]);
+              }
+
+              // add the group to the layer switcher
+              overlays[feature.label] = lGroup;
+
+              if (cluster && clusterLayers[clusterGroup])  {
+                clusterLayers[clusterGroup].addLayer(lGroup);
+              } else {
+                lMap.addLayer(lGroup);
+              }
+            }
+            else {
+              lFeature = leaflet_create_feature(feature, lMap);
+              // @RdB add to cluster layer if one is defined, else to map
+              if (cluster && clusterLayers[clusterGroup]) {
+                lFeature.options.regions = feature.regions;
+                clusterLayers[clusterGroup].addLayer(lFeature);
+              }
+              else {
+                lMap.addLayer(lFeature);
+              }
+              if (feature.popup) {
+                lFeature.bindPopup(feature.popup/*, {autoPanPadding: L.point(25,25)}*/);
+              }
+
+              // Allow others to do something with the feature. //?
               $(document).trigger('leaflet.feature', [lFeature, feature]);
             }
 
-            // add the group to the layer switcher
-            overlays[feature.label] = lGroup;
-
-            if (cluster && clusterLayers[clusterGroup])  {
-              clusterLayers[clusterGroup].addLayer(lGroup);
-            } else {
-              lMap.addLayer(lGroup);
-            }
+            // Allow others to do something with the feature that was just added to the map
+            //? see above          $(document).trigger('leaflet.feature', [lFeature, feature]);
           }
-          else {
-            lFeature = leaflet_create_feature(feature, lMap);
-            // @RdB add to cluster layer if one is defined, else to map
-            if (cluster && clusterLayers[clusterGroup]) {
-              lFeature.options.regions = feature.regions;
-              clusterLayers[clusterGroup].addLayer(lFeature);
-            }
-            else {
-              lMap.addLayer(lFeature);
-            }
-            if (feature.popup) {
-              lFeature.bindPopup(feature.popup/*, {autoPanPadding: L.point(25,25)}*/);
-            }
-
-            // Allow others to do something with the feature. //?
-            $(document).trigger('leaflet.feature', [lFeature, feature]);
-          }
-
-          // Allow others to do something with the feature that was just added to the map
-//? see above          $(document).trigger('leaflet.feature', [lFeature, feature]);
         }
 
         // add layer switcher
@@ -210,6 +211,11 @@
           if (this.map.settings.zoom) { // or: if (zoom) ?
             lMap.setZoom(zoom);
           }
+        }
+        else if (this.map.center === undefined) {
+          // No points, for instance an empty views result and no default
+          // center set. This prevents js errors in the library.
+          lMap.setView(new L.LatLng(0, 0), this.map.settings.minZoom);
         }
 
         // associate the center and zoom level proprerties to the built lMap.

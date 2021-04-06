@@ -143,6 +143,11 @@
             lMap.setZoom(zoom);
           }
         }
+        else if (this.map.center === undefined) {
+          // No points, for instance an empty views result and no default
+          // center set. This prevents js errors in the library.
+          lMap.setView(new L.LatLng(0, 0), this.map.settings.minZoom);
+        }
 
         // associate the center and zoom level proprerties to the built lMap.
         // useful for post-interaction with it

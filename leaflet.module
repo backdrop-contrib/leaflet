@@ -239,6 +239,7 @@ function leaflet_leaflet_map_info() {
       //   'force' => FALSE,
       // ),
       // @endcode
+      // @todo Create a "Default center" setting?
       'settings' => array(
         // Setting "zoom" forces a zoom level on every map load.
         // 'zoom' => 17,
