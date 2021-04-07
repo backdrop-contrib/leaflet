@@ -29,6 +29,11 @@ Backdrop.
 
 - The module comes packaged with Leaflet library, and a set of leaflet plugins.
 
+## Issues
+
+Bugs and feature requests should be reported in the
+[Issue Queue](https://github.com/backdrop-contrib/leaflet/issues).
+
 
 ## API Usage
 
@@ -120,6 +125,10 @@ The also bundled Leaflet.markercluster library by the same team uses
 
 This module also ships with several Leaflet plugins, see the README.md file in
 the libraries/leaflet_plugins directory for details.
+
+The default map style provided by the main module is "OSM Mapnik", which
+relies on [OpenStreetMap](https://www.openstreetmap.org/copyright) data.
+
 
 ## License
 
