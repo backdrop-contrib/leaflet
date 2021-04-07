@@ -1,30 +1,22 @@
+# Leaflet Markercluster
 
-INSTALLATION
-============
-Naturally you need to have Leaflet (the module and the javascript library)
-installed before you can use Leaflet MarkerCluster.
+There are no permissions or settings to configure. If this module is enabled,
+it works out-of-the-box for all maps created by the Geofield formatter or
+Leaflet Views module.
 
-Then download the MarkerCluster library from:
-https://github.com/danzel/Leaflet.markercluster
-Rename the downloaded directory to leaflet_markercluster (lowercase), so that
-the path to the essential javascript file becomes
-sites/all/libraries/leaflet_markercluster/dist/leaflet.markercluster.js
-
-Visit the Status Report page, admin/reports/status, to check all's ok.
-
-There are no permissions to configure.
 This module does not itself have a UI to set MarkerCluster configuration
-parameters. However parameters may be set through Drupal code as part of the
+parameters. However parameters may be set through Backdrop code as part of the
 creation of the map and will thus be passed to the underlying javascript
 library. See the section below.
 
 
-FOR PROGRAMMERS
-===============
+## FOR PROGRAMMERS
+
 You can set Leaflet MarkerCluster parameters in the same way that you set
 Leaflet map parameters.
-Example:
 
+Example:
+```
   $map_id = 'OSM Mapnik'; // default map that comes with Leaflet
   $map = leaflet_map_get_info($map_id);
 
@@ -35,9 +27,10 @@ Example:
   $features = ... // see the README.txt of the Leaflet module
 
   $output = '<div>' . leaflet_render_map($map, $features, '300px') . '</div>';
+```
 
 The following MarkerCluster parameters may be configured this way:
-
+```
   animateAddingMarkers (default: FALSE)
   disableClusteringAtZoom (NULL)
   maxClusterRadius (80)
@@ -47,10 +40,11 @@ The following MarkerCluster parameters may be configured this way:
   spiderfyOnMaxZoom (TRUE)
   zoomToBoundsOnClick (TRUE)
   addRegionToolTips (FALSE)
+```
 
-See the bottom reference for an explanation of these parameters.
+### See the bottom reference for an explanation of these parameters.
 
 References:
 
-o http://leaflet.cloudmade.com/2012/08/20/guest-post-markerclusterer-0-1-released.html
-o https://github.com/Leaflet/Leaflet.markercluster/blob/master/README.md
+- https://leafletjs.com/reference-1.7.1.html
+- https://github.com/Leaflet/Leaflet.markercluster
