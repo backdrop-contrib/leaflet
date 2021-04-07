@@ -202,10 +202,10 @@
         lMap.on('click', function(e) {
           c.setCoordinates(e);
           // Hide the coordinates box again after 4 seconds.
-          if (typeof hideTimer !== 'undefined') {
-            clearTimeout(hideTimer);
+          if (typeof this.hideTimer !== 'undefined') {
+            clearTimeout(this.hideTimer);
           }
-          hideTimer = window.setTimeout(function() {
+          this.hideTimer = window.setTimeout(function() {
             c._container.classList.add('hidden');
           }, 4000);
         });
