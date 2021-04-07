@@ -9,4 +9,5 @@
 }
 .leaflet-touch .leaflet-bar {
   border-width: 3px;
+  border-color: #00000034;
 }
