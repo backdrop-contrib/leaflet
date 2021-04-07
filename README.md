@@ -14,6 +14,13 @@ a modern, lightweight Open-Source library for interactive maps.
 - A demo block for all those map styles (in its own sub module)
 - Lightweight and easy to use API for defining maps and displaying data on a map
 
+**Coming from Drupal 7?**
+
+The formerly extra contrib projects *Leaflet Markercluster* and *Leaflet More
+Maps* now both ship with this module. And so do the required Javascript
+libraries. This makes the Leaflet module your "one-stop shop" for mapping in
+Backdrop.
+
 
 ## Installation
 
