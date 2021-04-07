@@ -1,22 +1,27 @@
 # Leaflet
 
-Maps can be rendered via the included field formatter for [Geofield](https://backdropcms.org/project/geofield),
-by using the API directly, or by taking advantage of an additional module, like
-https://github.com/backdrop-contrib/ip_geoloc
+Integration with the [Leaflet](https://leafletjs.com/) JS mapping library,
+a modern, lightweight Open-Source library for interactive maps.
+
+*The Leaflet module features:*
+
+- Field formatter for the [Geofield](https://backdropcms.org/project/geofield)
+  to render geospatial data as maps (main module)
+- Views integration that plots data on a map (using the sub module Leaflet Views)
+- Animated marker clustering functionality using the Leaflet MarkerCluster library
+  (in a sub module)
+- A lot more attractive map styles from a variety of providers (in another sub module)
+- A demo block for all those map styles (in its own sub module)
+- Lightweight and easy to use API for defining maps and displaying data on a map
 
 
 ## Installation
 
-- Install this module using the official Backdrop CMS instructions at
-  https://backdropcms.org/guide/modules
+- Install this module using the
+  [official Backdrop CMS instructions](https://backdropcms.org/guide/modules)
 
-- The module comes packaged with Leaflet library version 0.7.7, and a set
-  of leaflet plugins.
-  Alternatively, you can build the library from source. If so, follow the
-  instructions at: http://leafletjs.com/download.html#leaflet-source-code
+- The module comes packaged with Leaflet library, and a set of leaflet plugins.
 
-- Enable leaflet_views for using Views and Leaflet (see below), or use the
-  display formatters for fields display.
 
 ## API Usage
 
