@@ -124,13 +124,21 @@
         // add Zoomslider control //+
           lMap.addControl(new L.Control.Zoomslider());
 
+        // Small box with lat/lon coordinates of mouse click event on map.
         var c = new L.Control.Coordinates({
-            promptText: Backdrop.t('Press Ctrl+C to copy coordinates'),
-            precision: 5
+          promptText: Backdrop.t('Press Ctrl+C to copy coordinates'),
+          precision: 5
         });
         c.addTo(lMap);
         lMap.on('click', function(e) {
           c.setCoordinates(e);
+          // Hide the coordinates box again after 4 seconds.
+          if (typeof hideTimer !== 'undefined') {
+            clearTimeout(hideTimer);
+          }
+          hideTimer = window.setTimeout(function() {
+            c._container.classList.add('hidden');
+          }, 4000);
         });
 
         // init ViewCenter plugin
