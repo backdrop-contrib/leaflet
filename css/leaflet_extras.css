@@ -1,4 +1,3 @@
-
 /**
  * @file
  * Leaflet CSS
@@ -7,4 +6,7 @@
 #leaflet-map .leaflet-top,
 #leafelt-map .leaflet-bottom {
     z-index: 500;
+}
+.leaflet-touch .leaflet-bar {
+  border-width: 3px;
 }
