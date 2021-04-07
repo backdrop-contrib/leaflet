@@ -449,7 +449,7 @@
   // Zoomswitch method cribbed liberally from:
   // http://www.makina-corpus.org/blog/leaflet-zoom-switcher
   L.TileLayerZoomSwitch = L.TileLayer.extend({
-    includes: L.Mixin.Events,
+    includes: L.Evented.prototype,
 
     options: {
       // switchZoomUnder: when zoom < switchZoomUnder, then switch to switchLayer
