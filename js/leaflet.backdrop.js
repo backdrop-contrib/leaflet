@@ -124,7 +124,10 @@
         // add Zoomslider control //+
           lMap.addControl(new L.Control.Zoomslider());
 
-        var c = new L.Control.Coordinates();
+        var c = new L.Control.Coordinates({
+            promptText: Backdrop.t('Press Ctrl+C to copy coordinates'),
+            precision: 5
+        });
         c.addTo(lMap);
         lMap.on('click', function(e) {
           c.setCoordinates(e);
