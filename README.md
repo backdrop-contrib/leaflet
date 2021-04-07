@@ -29,10 +29,28 @@ Backdrop.
 
 - The module comes packaged with Leaflet library, and a set of leaflet plugins.
 
+
 ## Issues
 
 Bugs and feature requests should be reported in the
 [Issue Queue](https://github.com/backdrop-contrib/leaflet/issues).
+
+
+## Views integration
+
+To render a map using Views, enable the module leaflet_views.
+
+You need to add at least one geofield to the Fields list, and select the
+Leaflet Map style in Format.
+
+In the settings of the style, select the geofield as the Data Source and
+select a field for Title and Description (which will be rendered in the popup).
+
+As a more powerful alternative, you can use node view modes to be rendered in
+the popup. In the Description field, select "<entire node>" and then select a View mode.
+
+For a tutorial, please read this (relatively old) blog post
+https://marzeelabs.org/blog/2012-09-24-building-maps-in-drupal-using-leaflet-views
 
 
 ## API Usage
@@ -89,21 +107,6 @@ $features = array(
 
 `$height` (string)
 Height of the map expressed in pixels. Append 'px'. Default: '400px'.
-
-## Views integration
-
-To render a map using Views, enable the module leaflet_views.
-
-You need to add at least one geofield to the Fields list, and select the 
-Leaflet Map style in Format.
-
-In the settings of the style, select the geofield as the Data Source and 
-select a field for Title and Description (which will be rendered in the popup).
-
-As a more powerful alternative, you can use node view modes to be rendered in 
-the popup. In the Description field, select "<entire node>" and then select a View mode.
-
-For a tutorial, please read http://marzeelabs.org/blog/2012/09/24/building-maps-in-drupal-using-leaflet-views/
 
 ## Current Maintainers
 
