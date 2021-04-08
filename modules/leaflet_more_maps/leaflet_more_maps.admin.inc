@@ -21,7 +21,7 @@ function leaflet_more_maps_admin_configure() {
   $form['global_settings']['google_satellite_version'] = array(
     '#type' => 'textfield',
     '#title' => t('Google satellite map version'),
-    '#default_value' => isset($config['google_satellite_version']) ? $config['google_satellite_version'] : '183',
+    '#default_value' => isset($config['google_satellite_version']) ? $config['google_satellite_version'] : '899',
     '#description' => t('If you find that tiles have gone missing, it is time to increase this number.'),
   );
   $form['global_settings']['thunderforest_api_key'] = array(
