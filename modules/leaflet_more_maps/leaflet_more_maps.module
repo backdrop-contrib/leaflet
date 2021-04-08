@@ -213,7 +213,8 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
         'urlTemplate' => $prot . 'khms{s}.googleapis.com/kh?x={x}&y={y}&z={z}' . (empty($v) ? '' : "&v=$v"),
         'options' => array(
           'attribution' => $attr_google,
-          // Has bad effect: 'detectRetina' => TRUE,
+          'detectRetina' => TRUE,
+          'maxZoom' => 21,
           'subdomains' => array(0, 1, 2, 3),
         ),
       ),
@@ -224,6 +225,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
         'options' => array(
           'attribution' => $attr_google,
           'detectRetina' => TRUE,
+          'maxZoom' => 21,
           'subdomains' => array(0, 1, 2, 3),
         ),
         'layer_type' => 'overlay',

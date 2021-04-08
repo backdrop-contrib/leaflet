@@ -9,14 +9,6 @@
       mapLayer._type = 'quad';
       return mapLayer;
     }
-    if (layer.type === 'google' && layer.options.detectRetina && L.Browser.retina) {
-      layer.urlTemplate += '&style=high_dpi&w=512';
-      layer.options.tileSize = 512;
-      var mapLayer = L.tileLayer(layer.urlTemplate, layer.options);
-      mapLayer._leaflet_id = key;
-      mapLayer._type = 'google';
-      return mapLayer;
-    }
     // Default to the original code;
     return Backdrop.leaflet._create_layer_orig(layer, key);
   };
