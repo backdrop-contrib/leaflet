@@ -106,6 +106,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
         'type' => 'quad',
         'urlTemplate' => $prot . 'ecn.t{s}.tiles.virtualearth.net/tiles/r{q}?g=1236',
         'options' => array(
+          'maxZoom' => 19,
           'attribution' => $attr_bing,
           'subdomains' => array(0, 1, 2, 3, 4, 5, 6, 7),
         ),
@@ -114,6 +115,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
         'type' => 'quad',
         'urlTemplate' => $prot . 'ak.t{s}.tiles.virtualearth.net/tiles/a{q}?g=1236',
         'options' => array(
+          'maxZoom' => 19,
           'attribution' => $attr_bing,
           'subdomains' => array(0, 1, 2, 3),
         ),
@@ -122,6 +124,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
         'type' => 'quad',
         'urlTemplate' => $prot . 'ak.dynamic.t{s}.tiles.virtualearth.net/comp/ch/{q}?it=A,G,L&shading=hill',
         'options' => array(
+          'maxZoom' => 19,
           'attribution' => $attr_bing,
           'subdomains' => array(0, 1, 2, 3),
         ),
