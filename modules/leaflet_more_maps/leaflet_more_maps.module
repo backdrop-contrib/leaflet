@@ -243,6 +243,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
         'options' => array(
           'attribution' => $attr_google,
           'detectRetina' => FALSE,
+          'maxZoom' => 21,
           'subdomains' => array(0, 1, 2, 3),
         ),
       ),
@@ -262,6 +263,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
         'options' => array(
           'attribution' => $attr_google,
           'detectRetina' => TRUE,
+          'maxZoom' => 21,
           'subdomains' => array(0, 1, 2, 3),
         ),
         'layer_type' => 'base',
@@ -272,6 +274,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
         'options' => array(
           'attribution' => $attr_google,
           'detectRetina' => TRUE,
+          'maxZoom' => 21,
           'subdomains' => array(0, 1, 2, 3),
         ),
         'layer_type' => 'base',
