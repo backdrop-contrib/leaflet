@@ -338,14 +338,14 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     ),
   );
 
-  $attr_thunderforest = 'Thunderforest <a target="attr" href="http://thunderforest.com">OpenCycleMap</a>. ' . $attr_osm;
+  $attr_thunderforest = '<a target="attr" href="https://www.thunderforest.com/">ThunderForest</a>. ' . $attr_osm;
   $map_info['osm-cycle'] = array(
     'label' => 'OSM Thunderforest Cycle (zoom 0..19)',
     'description' => t('OpenStreetMap for cyclists'),
     'settings' => $default_settings,
     'layers' => array(
       'layer' => array(
-        'urlTemplate' => $prot . "{s}.tile.opencyclemap.org/cycle/$zxy",
+        'urlTemplate' => $prot . "{s}.tile.thunderforest.com/cycle/$zxy",
         'options' => array('attribution' => $attr_thunderforest),
       ),
     ),
@@ -357,7 +357,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     'settings' => $default_settings,
     'layers' => array(
       'layer' => array(
-        'urlTemplate' => $prot . "{s}.tile2.opencyclemap.org/transport/$zxy",
+        'urlTemplate' => $prot . "{s}.tile.thunderforest.com/transport/$zxy",
         'options' => array('attribution' => $attr_thunderforest),
       ),
     ),
@@ -369,11 +369,12 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     'settings' => $default_settings,
     'layers' => array(
       'layer' => array(
-        'urlTemplate' => $prot . "{s}.tile3.opencyclemap.org/landscape/$zxy",
+        'urlTemplate' => $prot . "{s}.tile.thunderforest.com/landscape/$zxy",
         'options' => array('attribution' => $attr_thunderforest),
       ),
     ),
   );
+
   $attr_piste = '<a target="attr" href="http://openpistemap.org">OpenPisteMap</a> ' . $attr_osm;
   $map_info['osm-piste'] = array(
     'label' => 'OSM OpenPisteMap (zoom 0..19)',
