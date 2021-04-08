@@ -191,7 +191,8 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
         $label = "Esri $esri_name (zoom 0..19)";
         $settings['maxZoom'] = 19;
     }
-    $map_info['esri-' . backdrop_strtolower($code)] = array(
+    $map_name = 'esri-' . backdrop_strtolower($code);
+    $map_info[$map_name] = array(
       'label' => $label,
       'description' => $label,
       'settings' => $settings,
@@ -202,6 +203,11 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
         ),
       ),
     );
+    // If the layer's maxZoom is smaller than the map's maxZoom, higher zoom
+    // levels break (no tiles get loaded).
+    if ($settings['maxZoom'] > 18) {
+      $map_info[$map_name]['layers']['layer']['options']['maxZoom'] = $settings['maxZoom'];
+    }
   }
 
   $attr_google = 'Map data &copy; <a target="attr" href="http://googlemaps.com">Google</a>';
