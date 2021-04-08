@@ -26,6 +26,10 @@
         }
         settings.zoomControl = false; // replaced by L.Control.Zoomslider
 
+        // Workaround for Safari bug.
+        // @see https://github.com/backdrop-contrib/leaflet/issues/17
+        settings.tap = false;
+
         // instantiate our new map
         var lMap = new L.Map(this.mapId, settings);
         lMap.bounds = [];
