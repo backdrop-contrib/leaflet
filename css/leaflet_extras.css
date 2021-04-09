@@ -11,3 +11,18 @@
   border-width: 3px;
   border-color: #00000034;
 }
+
+/**
+ * Workaround for the one-pixel-gap in Chrome.
+ *
+ * Fragile, hackish and temporary solution, also requires the map type as layer
+ * css class to limit impact on affected map type only.
+ *
+ * @todo Remove as soon as issue #19 gets resolved.
+ */
+@supports (-webkit-appearance:none) and (not (-moz-appearance:none)) {
+  .leaflet-layer.type-google img {
+    width: 256.7px !important;
+    height: 256.7px !important;
+  }
+}

@@ -224,6 +224,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
           'attribution' => $attr_google,
           'detectRetina' => TRUE,
           'maxZoom' => 21,
+          'className' => 'type-google',
           'subdomains' => array(0, 1, 2, 3),
         ),
       ),
