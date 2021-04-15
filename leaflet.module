@@ -28,11 +28,9 @@ function leaflet_library_info() {
   $plugins_path = $module_path . '/libraries/leaflet_plugins/';
 
   $libraries['leaflet'] = array(
-    'name' => 'Leaflet JavaScript Library',
     'title' => t('Leaflet JavaScript Library'),
     'version' => '1.7.1',
-    'vendor url' => 'http://leafletjs.com/',
-    'download url' => 'http://cdn.leafletjs.com/downloads/leaflet-1.7.1.zip',
+    'website' => 'http://leafletjs.com/',
     'js' => array(
       // This setting is needed in order to properly render market images.
       'leaflet_root_url' => array(
