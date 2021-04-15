@@ -193,10 +193,9 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
 function leaflet_process_geofield($items = array()) {
   $data = array();
 
-  if (module_exists('geophp')) {
-    // @todo Verify that this is still needed anyway with geofields.
-    geophp_load();
-  }
+  // This is a geofield formatter, so we load the class from there. Needed for
+  // more complex geo_types.
+  module_load_include('inc', 'geofield', 'libraries/geophp/geoPHP');
 
   foreach ($items as $delta => $item) {
     // Translate linestring to polyline:
