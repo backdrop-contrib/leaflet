@@ -292,38 +292,41 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     ),
   );
 
-  // MapBox/OSM http://mapbox.com
+  // https://docs.mapbox.com/api/maps/styles/
+  $mapbox_access_token = config_get('leaflet_more_maps.settings', 'mapbox_access_token');
+  if (empty($mapbox_access_token)) {
+    // MapBox as used on leafletjs.com
+    $mapbox_access_token = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
+  }
+  $attr_mapbox = 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
+  $url_template_mapbox = 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}';
   $mapbox_names = array(
-    // 'Streets', // as used by foursquare
-    // 'Chester',
-    // 'Graphite',
-    // 'Lacquer',
-    // 'Light',
-    // 'Nightvision',
-    // 'Osgoode',
-    // 'Simple',
-    // 'St-Clair',
-    // 'Union',
-    // 'Zenburn',
-    'Warden',
+    'Dark' => 'mapbox/dark-v10',
+    'Light' => 'mapbox/light-v10',
+    'Satellite' => 'mapbox/satellite-v9',
+    'Streets' => 'mapbox/streets-v11',
   );
-  $attr_mapbox = 'Tiles by <a target="attr" href="http://mapbox.com">MapBox</a>. Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> and contributors';
-  foreach ($mapbox_names as $mapbox_name) {
+  foreach ($mapbox_names as $mapbox_name => $id) {
     $code = backdrop_strtolower($mapbox_name);
-    $label = "MapBox $mapbox_name (zoom 0..19)";
-    $url_template = $prot . "{s}.tiles.mapbox.com/v3/mapbox.mapbox-$code/$zxy";
+    $label = t("Mapbox @name (zoom 0..17), requires access token", array('@name' => $mapbox_name));
     $map_info["mapbox-$code"] = array(
-      'label' => $code == 'streets' ? t('Mapbox streets, classic (zoom 0..19)') : $label,
+      'label' => $label,
       'description' => $label,
       'settings' => $default_settings,
       'layers' => array(
         'layer' => array(
-          'urlTemplate' => $url_template,
-          'options' => array('attribution' => $attr_mapbox),
+          'urlTemplate' => $url_template_mapbox,
+          'options' => array(
+            'id' => $id,
+            'accessToken' => $mapbox_access_token,
+            'attribution' => $attr_mapbox,
+            'maxZoom' => 20,
+          ),
         ),
       ),
     );
   }
+
   // OpenStreetMap OSM Mapnik classic map is available via leaflet.module
   $attr_osm = 'Map data &copy; <a target="attr" href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 

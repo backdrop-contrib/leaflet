@@ -30,6 +30,12 @@ function leaflet_more_maps_admin_configure() {
     '#default_value' => isset($config['thunderforest_api_key']) ? $config['thunderforest_api_key'] : '',
     '#description' => t('API keys are required for all Thunderforest maps.'),
   );
+  $form['global_settings']['mapbox_access_token'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Mapbox access token'),
+    '#default_value' => isset($config['mapbox_access_token']) ? $config['mapbox_access_token'] : '',
+    '#description' => t('All Mapbox maps require an access token.'),
+  );
 
   $map_info = array();
   // @todo call hook_leaflet_map_info() ?
@@ -109,6 +115,7 @@ function leaflet_more_maps_admin_configure_form_submit($form, &$form_state) {
 
   $config->set('google_satellite_version', $form_state['values']['google_satellite_version']);
   $config->set('thunderforest_api_key', $form_state['values']['thunderforest_api_key']);
+  $config->set('mapbox_access_token', $form_state['values']['mapbox_access_token']);
   $custom_maps = $form_state['values']['map'];
 
   // Clear out the unticked boxes.
