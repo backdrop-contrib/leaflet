@@ -362,6 +362,11 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
   if (!empty($apikey)) {
     $key = '?apikey=' . $apikey;
   }
+  $tf_layeroptions = array(
+    'attribution' => $attr_thunderforest,
+    'maxZoom' => 20,
+  );
+
   $map_info['osm-cycle'] = array(
     'label' => 'OSM Thunderforest Cycle (zoom 0..19)',
     'description' => t('OpenStreetMap for cyclists'),
@@ -369,7 +374,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     'layers' => array(
       'layer' => array(
         'urlTemplate' => $prot . "{s}.tile.thunderforest.com/cycle/$zxy$key",
-        'options' => array('attribution' => $attr_thunderforest),
+        'options' => $tf_layeroptions,
       ),
     ),
   );
@@ -381,7 +386,19 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     'layers' => array(
       'layer' => array(
         'urlTemplate' => $prot . "{s}.tile.thunderforest.com/transport/$zxy$key",
-        'options' => array('attribution' => $attr_thunderforest),
+        'options' => $tf_layeroptions,
+      ),
+    ),
+  );
+  $map_info['osm-transport-dark'] = array(
+    // See http://thunderforest.com.
+    'label' => 'OSM Thunderforest Transport Dark (zoom 0..19)',
+    'description' => t('OpenCycleMap with train & tram lines, dark variant.'),
+    'settings' => $default_settings,
+    'layers' => array(
+      'layer' => array(
+        'urlTemplate' => $prot . "{s}.tile.thunderforest.com/transport-dark/$zxy$key",
+        'options' => $tf_layeroptions,
       ),
     ),
   );
@@ -393,7 +410,19 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     'layers' => array(
       'layer' => array(
         'urlTemplate' => $prot . "{s}.tile.thunderforest.com/landscape/$zxy$key",
-        'options' => array('attribution' => $attr_thunderforest),
+        'options' => $tf_layeroptions,
+      ),
+    ),
+  );
+  $map_info['osm-mobile-atlas'] = array(
+    // See http://thunderforest.com.
+    'label' => 'OSM Thunderforest Mobile Atlas (zoom 0..19)',
+    'description' => t('OpenStreetMap with high contrast atlas'),
+    'settings' => $default_settings,
+    'layers' => array(
+      'layer' => array(
+        'urlTemplate' => $prot . "{s}.tile.thunderforest.com/mobile-atlas/$zxy$key",
+        'options' => $tf_layeroptions,
       ),
     ),
   );
