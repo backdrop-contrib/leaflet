@@ -538,31 +538,27 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
   }
 
   // Yandex.
+  global $language;
   $attr_yandex = 'Map data &copy; <a target="attr" href="http://maps.yandex.ru">Yandex.Maps</a>';
   $map_info['yandex'] = array(
-    'label' => 'Yandex Maps (zoom 0..7 in many areas)',
+    'label' => 'Yandex Maps (zoom 0..19)',
     'description' => t('Yandex roadmap'),
     'settings' => array('layerControl' => TRUE) + $default_settings,
     'layers' => array(
-      'people layer' => array(
-        'urlTemplate' => $prot . '0{s}.pvec.maps.yandex.net/tiles?l=pmap&x={x}&y={y}&z={z}',
+      'road layer' => array(
+        'urlTemplate' => $prot . 'vec0{s}.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}&lang=' . $language->langcode,
         'options' => array(
           'attribution' => $attr_yandex,
-          'subdomains' => array(0, 1, 2, 3),
+          'subdomains' => array(1, 2, 3, 4),
+          'maxZoom' => 20,
         ),
       ),
       'satellite layer' => array(
         'urlTemplate' => $prot . 'sat0{s}.maps.yandex.net/tiles?l=sat&x={x}&y={y}&z={z}',
         'options' => array(
           'attribution' => $attr_yandex,
-          'subdomains' => array(0, 1, 2, 3),
-        ),
-      ),
-      'road layer' => array(
-        'urlTemplate' => $prot . 'vec0{s}.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}',
-        'options' => array(
-          'attribution' => $attr_yandex,
-          'subdomains' => array(0, 1, 2, 3),
+          'subdomains' => array(1, 2, 3, 4),
+          'maxZoom' => 20,
         ),
       ),
     ),
