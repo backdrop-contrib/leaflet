@@ -128,6 +128,7 @@ function leaflet_more_maps_admin_configure_form_submit($form, &$form_state) {
   backdrop_set_message(t('The map configurations have been saved.'));
 
   // Refresh the cache table or hook_leaflet_more_maps() won't be called.
+  // @todo No such hook!
   // @todo This is deprecated.
   cache_clear_all('*', 'cache', TRUE);
 }
