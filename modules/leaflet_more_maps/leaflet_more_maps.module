@@ -513,23 +513,21 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     ),
   );
 
-  // Stamen http://stamen.com
+  // Stamen http://maps.stamen.com/
   $attr_stamen = 'Tiles by <a target="attr" href="http://stamen.com">Stamen Design</a> under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ' . $attr_osm;
-  $stamen_names = array('Toner', 'Watercolor'/* , 'Terrain'*/);
+  $stamen_names = array('Toner', 'Toner-Lite', 'Watercolor', 'Terrain');
+
   foreach ($stamen_names as $stamen_name) {
     $code = backdrop_strtolower($stamen_name);
-    $label = "Stamen $stamen_name (zoom 0..19)";
-    $t = t('@label , USA only', array('@label' => $label));
-    if ($is_https) {
-      $url_template = $prot . "stamen-tiles-{s}.a.ssl.fastly.net/$code/$zxy";
-    }
-    else {
-      $url_template = $prot . "{s}.tile.stamen.com/$code/$zxy";
-    }
+    $max_zoom = ($code == 'terrain' || $code == 'watercolor') ? 17 : 18;
+    $label = t('Stamen @name (zoom 0..@zoom)', array(
+      '@name' => $stamen_name,
+      '@zoom' => $max_zoom,
+    ));
+    $url_template = $prot . "stamen-tiles-{s}.a.ssl.fastly.net/$code/$zxy";
     $map_info["stamen-$code"] = array(
-      'label' => $code == 'terrain' ? $t : $label,
-      'description' => t('@label layer.', array('@label' => $label)),
-      'settings' => $default_settings,
+      'label' => $label,
+      'settings' => array('maxZoom' => $max_zoom) + $default_settings,
       'layers' => array(
         'layer' => array(
           'urlTemplate' => $url_template,
