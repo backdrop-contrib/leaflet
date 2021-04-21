@@ -630,3 +630,30 @@ function leaflet_more_maps_config_info() {
   );
   return $prefixes;
 }
+
+/**
+ * Implements hook_leaflet_widget_base_layers().
+ */
+function leaflet_more_maps_leaflet_widget_base_layers() {
+  $layertypes = array(
+    'google_satellite' => array(
+      'label' => t('Google Satellite'),
+      'url_template' => 'https://khms{s}.googleapis.com/kh?x={x}&y={y}&z={z}&v=' . config_get('leaflet_more_maps.settings', 'google_satellite_version'),
+      'layer_options' => array(
+        'attribution' => 'Map data &copy; <a target="attr" href="http://googlemaps.com">Google</a>',
+        'subdomains' => array(0, 1, 2, 3),
+        'maxZoom' => 21,
+        'className' => 'type-google',
+      ),
+    ),
+    'stamen_terrain' => array(
+      'label' => t('Stamen Terrain'),
+      'url_template' => 'https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png',
+      'layer_options' => array(
+        'attribution' => 'Tiles by <a href="https://stamen.com">Stamen Design</a> under <a href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Map data &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> and contributors',
+      ),
+    ),
+  );
+
+  return $layertypes;
+}
