@@ -172,7 +172,7 @@
         // init ViewCenter plugin
         var viewCenter = new L.Control.ViewCenter({
           position: 'topleft',
-          title: 'Retour au point de départ',
+          title: Backdrop.t('Back to the starting point'),
           forceSeparateButton: true,
           vcLatLng: [lMap.center.lat, lMap.center.lng],
           vcZoom: zoom
