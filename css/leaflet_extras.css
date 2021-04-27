@@ -4,10 +4,6 @@
  */
 
 /* More robust zoomslider styles re different themes */
-.leaflet-control-container .leaflet-top,
-.leaflet-control-container .leaflet-bottom {
-    z-index: 500;
-}
 .leaflet-touch .leaflet-bar {
   border-width: 3px;
   border-color: #00000034;
