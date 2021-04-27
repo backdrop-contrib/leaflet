@@ -3,13 +3,47 @@
  * Leaflet CSS
  */
 
-#leaflet-map .leaflet-top,
-#leafelt-map .leaflet-bottom {
+/* More robust zoomslider styles re different themes */
+.leaflet-control-container .leaflet-top,
+.leaflet-control-container .leaflet-bottom {
     z-index: 500;
 }
 .leaflet-touch .leaflet-bar {
   border-width: 3px;
   border-color: #00000034;
+}
+.leaflet-control .leaflet-control-zoomslider-in::after {
+  content: "-";
+}
+.leaflet-control .leaflet-control-zoomslider-out::after {
+  content: "+";
+}
+.leaflet-control .leaflet-control-zoomslider-in,
+.leaflet-control .leaflet-control-zoomslider-out {
+  font-size: 1.5rem;
+  font-family: monospace;
+  position: relative;
+  transform: none;
+  transition: none;
+  position: static;
+}
+.leaflet-control .leaflet-control-zoomslider-in::after,
+.leaflet-control .leaflet-control-zoomslider-out::after {
+  display: block;
+  width: 100%;
+  border: none;
+  color: #555;
+  position: static;
+  transition: none;
+}
+.leaflet-control .leaflet-control-zoomslider-body {
+  box-sizing: content-box;
+  background-color: #555;
+}
+.leaflet-control .leaflet-control-zoomslider-knob {
+  margin: 0 !important;
+  left: -8px;
+  box-sizing: content-box;
 }
 
 /**
