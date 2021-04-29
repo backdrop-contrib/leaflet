@@ -1,6 +1,7 @@
 name = Leaflet Demo
-description = Creates a block showcasing all Leaflet-powered maps available on your system. Optionally use with "IP Geolocation Views and Maps" to center the maps on your current location.
+description = Creates a block showcasing all Leaflet-powered maps available on your system.
 backdrop = 1.x
 package = Leaflet
+type = module
 
 dependencies[] = leaflet
