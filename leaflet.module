@@ -141,6 +141,9 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
     'data' => array('leaflet' => array($settings)),
     'type' => 'setting',
   );
+  if (module_exists('geoip_tokens')) {
+    $build['#attached']['library'][] = array('geoip_tokens', 'geoip_tokens');
+  }
   $build['#attached']['css'][] = array(
     'data' => backdrop_get_path('module', 'leaflet') . '/css/leaflet_extras.css',
   );

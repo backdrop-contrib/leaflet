@@ -231,6 +231,17 @@
           // No points, for instance an empty views result and no default
           // center set. This prevents js errors in the library.
           lMap.setView(new L.LatLng(0, 0), this.map.settings.minZoom);
+
+          // Center to current position, if module geoip_tokens is available.
+          // We get the values via ajax, so there might be a slight delay.
+          if (typeof Backdrop.geoipTokens == 'object') {
+            if (typeof Backdrop.geoipTokens.getData == 'function') {
+              Backdrop.geoipTokens.getData('latlon').success(function (data) {
+                lMap.setView(new L.LatLng(data.latitude, data.longitude), zoom);
+                viewCenter.options.vcLatLng = [data.latitude, data.longitude];
+              });
+            }
+          }
         }
 
         // associate the center and zoom level proprerties to the built lMap.
