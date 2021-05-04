@@ -44,7 +44,6 @@ In this example snippet the default zoom of all maps is set to 2:
 - http://maps.stamen.com/
 - https://www.thunderforest.com/
 - https://www.esri.com/en-us/home
-- https://www.mapquest.com/
 - https://www.google.com/intl/en_au/help/terms_maps/
 - https://yandex.ru/legal/maps_termsofuse/?lang=en
 - https://www.microsoft.com/en-us/maps/product

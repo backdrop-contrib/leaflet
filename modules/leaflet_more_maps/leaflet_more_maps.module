@@ -330,32 +330,6 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
   // OpenStreetMap OSM Mapnik classic map is available via leaflet.module
   $attr_osm = 'Map data &copy; <a target="attr" href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
-  // MapQuest OSM. Two non-transparent layers.
-  $attr_mapquest = 'Tiles by <a target="attr" href="http://mapquest.com">MapQuest</a>. ' . $attr_osm;
-  $map_info['mapquest'] = array(
-    'label' => 'MapQuest OSM & Aerial (zoom 0..19)',
-    'description' => t('MapQuest rendering of OpenStreetMap, as well as Aerial layer'),
-    'settings' => array('layerControl' => TRUE) + $default_settings,
-    'layers' => array(
-      'road layer' => array(
-        'urlTemplate' => $prot . "otile{s}.mqcdn.com/tiles/1.0.0/map/$zxy",
-        'options' => array(
-          'attribution' => $attr_mapquest,
-          'subdomains' => array(1, 2, 3, 4),
-        ),
-        'layer_type' => 'base',
-      ),
-      'aerial layer' => array(
-        'urlTemplate' => $prot . "otile{s}.mqcdn.com/tiles/1.0.0/sat/$zxy",
-        'options' => array(
-          'attribution' => $attr_mapquest,
-          'subdomains' => array(1, 2, 3, 4),
-        ),
-        'layer_type' => 'base',
-      ),
-    ),
-  );
-
   $attr_thunderforest = '<a target="attr" href="https://www.thunderforest.com/">ThunderForest</a>. ' . $attr_osm;
   $key = '';
   $apikey = config_get('leaflet_more_maps.settings', 'thunderforest_api_key');
