@@ -5,13 +5,13 @@
  * Drupal site.
  *
  * Try it in combination with
- * o "Leaflet More Maps" (drupal.org/project/leaflet_more_maps)
- * o "IP Geolocation Views and Maps" (drupal.org/project/ip_geoloc).
+ * o "Leaflet More Maps" (submodule of leaflet)
+ * o "GeoIP Tokens" (backdropcms.org/project/geoip_tokens).
  */
 
 define('LEAFLET_DEMO_DEFAULT_LAT', 51.4777);
 define('LEAFLET_DEMO_DEFAULT_LNG', -0.0015);
-define('LEAFLET_DEMO_DEFAULT_ZOOM', 11);
+define('LEAFLET_DEMO_DEFAULT_ZOOM', 10);
 
 /**
  * Implements hook_block_info().
@@ -65,13 +65,9 @@ function leaflet_demo_map_parameters_form($form, $form_state) {
     $latitude  = $form_state['storage']['latitude'];
     $longitude = $form_state['storage']['longitude'];
   }
-  elseif (isset($_SESSION['ip_geoloc']['location']['latitude'])) {
-    // Get HTML5-retrieved location, if it's there (requires module
-    // "IP Geolocation Views & Maps")
-    $location = $_SESSION['ip_geoloc']['location'];
-    $latitude  = $location['latitude'];
-    $longitude = $location['longitude'];
-    // $show_coords = FALSE;
+  elseif (module_exists('geoip_tokens')) {
+    $latitude = isset($coords['latitude']) ? $coords['latitude'] : LEAFLET_DEMO_DEFAULT_LAT;
+    $longitude = isset($coords['longitude']) ? $coords['longitude'] : LEAFLET_DEMO_DEFAULT_LNG;
   }
   else {
     // Fall back to default.
