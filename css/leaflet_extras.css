@@ -9,10 +9,10 @@
   border-color: #00000034;
 }
 .leaflet-control .leaflet-control-zoomslider-in::after {
-  content: "-";
+  content: "+";
 }
 .leaflet-control .leaflet-control-zoomslider-out::after {
-  content: "+";
+  content: "-";
 }
 .leaflet-control .leaflet-control-zoomslider-in,
 .leaflet-control .leaflet-control-zoomslider-out {
