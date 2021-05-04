@@ -34,6 +34,7 @@ function hook_leaflet_map_info_alter(&$maps) {
     // Add tooltips to each cluster showing the region the cluster is in and its
     // subregions. Requires you to pass in a region hierarchy on each marker.
     // See module drupal.org/project/ip_geoloc for details.
+    // @todo Figure out what this is an remove if broken.
     'addRegionToolTips' => TRUE,
   );
 
