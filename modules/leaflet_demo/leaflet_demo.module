@@ -66,6 +66,7 @@ function leaflet_demo_map_parameters_form($form, $form_state) {
     $longitude = $form_state['storage']['longitude'];
   }
   elseif (module_exists('geoip_tokens')) {
+    $coords = geoip_tokens_get_geoip_info('latlon');
     $latitude = isset($coords['latitude']) ? $coords['latitude'] : LEAFLET_DEMO_DEFAULT_LAT;
     $longitude = isset($coords['longitude']) ? $coords['longitude'] : LEAFLET_DEMO_DEFAULT_LNG;
   }
