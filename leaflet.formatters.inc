@@ -21,6 +21,7 @@ function leaflet_field_formatter_info() {
         'popup' => array(
           'show' => '',
           'text' => '',
+          'min_width' => 50,
         ),
         'zoom' => array(
           'initialZoom' => '',
@@ -479,6 +480,10 @@ function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_ty
     // Unset the entity here so it does not get returned to the client in JS.
     unset($feat['entity']);
   }
+  if (isset($map_settings['popup']['min_width'])) {
+    $map['popupMinWidth'] = $map_settings['popup']['min_width'];
+  }
+
 }
 
 /**
@@ -529,6 +534,20 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#description' => t('Enter the text for the popup. Tokens are supported.'),
         '#type' => 'textfield',
         '#default_value' => $settings[$group]['text'],
+        '#states' => array(
+          'visible' => array(
+            ':input[name="' . $options['path'] . '[popup][show]"]' => array('checked' => TRUE),
+          ),
+        ),
+      );
+      $form_element['min_width'] = array(
+        '#title' => t('Minimum width'),
+        '#description' => t('Popups will be at least that wide.'),
+        '#type' => 'number',
+        '#min' => 50,
+        '#max' => 300,
+        '#field_suffix' => ' px',
+        '#default_value' => isset($settings[$group]['min_width']) ? $settings[$group]['min_width'] : 50,
         '#states' => array(
           'visible' => array(
             ':input[name="' . $options['path'] . '[popup][show]"]' => array('checked' => TRUE),

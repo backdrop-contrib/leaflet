@@ -43,6 +43,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
       'show' => array('default' => ''),
       'text' => array('default' => ''),
     );
+    $options['popup_min_width'] = array('default' => 50);
     $options['zoom']['contains'] = array(
       'initialZoom' => array('default' => ''),
       'minZoom' => array('default' => 0),
@@ -216,6 +217,21 @@ class leaflet_views_plugin_style extends views_plugin_style {
       $map_options[$key] = t('@label', array('@label' => $map['label']));
     }
 
+    $form['popup_min_width'] = array(
+      '#title' => t('Popup minimum width'),
+      '#description' => t('Popups will be at least that wide.'),
+      '#type' => 'number',
+      '#min' => 50,
+      '#max' => 300,
+      '#field_suffix' => ' px',
+      '#default_value' => isset($this->options['popup_min_width']) ? $this->options['popup_min_width'] : 50,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="style_options[description_field]"]' => array('!value' => ''),
+        ),
+      ),
+    );
+
     $form['map'] = array(
       '#title' => t('Map'),
       '#type' => 'select',
@@ -264,6 +280,13 @@ class leaflet_views_plugin_style extends views_plugin_style {
     }
     $data = array();
     $map = leaflet_map_get_info($this->options['map']);
+    // Popup minimum width.
+    if (!empty($this->options['popup_min_width'])) {
+      $map['popupMinWidth'] = $this->options['popup_min_width'];
+    }
+    else {
+      $map['popupMinWidth'] = 50;
+    }
     // Is there a geofield selected?
     if ($this->options['data_source']) {
       $name_field = empty($this->options['name_field']) ? NULL : $this->options['name_field'];

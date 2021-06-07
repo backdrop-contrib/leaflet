@@ -10,6 +10,12 @@
           return;
         }
 
+        // New setting - defensive handling.
+        var popupMinWidth = 50;
+        if (this.map.popupMinWidth !== 'undefined') {
+          popupMinWidth = this.map.popupMinWidth;
+        }
+
         // load a settings object with all of our map settings
         var settings = {
           'fullscreenControl': true,
@@ -108,7 +114,7 @@
             lMap.addLayer(lFeature);
 
             if (feature.popup) {
-              lFeature.bindPopup(feature.popup);
+              lFeature.bindPopup(feature.popup, {minWidth: popupMinWidth});
             }
 
             // Allow others to do something with the feature.
