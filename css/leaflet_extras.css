@@ -41,7 +41,19 @@
   left: -8px;
   box-sizing: content-box;
 }
-
+.field-type-geofield.field-label-inline {
+  display: flex;
+}
+.field-type-geofield.field-label-inline .field-label,
+.field-type-geofield.field-label-inline .field-items {
+  float: none;
+}
+.field-type-geofield.field-label-inline .field-items {
+  flex-grow: 1;
+}
+.field-type-geofield.field-label-inline .leaflet-container {
+  min-width: 280px;
+}
 /**
  * Workaround for the one-pixel-gap in Chrome.
  *
