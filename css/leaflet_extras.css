@@ -68,3 +68,13 @@
     height: 256.7px !important;
   }
 }
+/**
+ * Make sure that the admin and smart-menu dropdowns won't slip beneath the map
+ * controls.
+ */
+.sm {
+  z-index: 1001 !important;
+}
+#admin-bar {
+  z-index: 1002;
+}
