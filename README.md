@@ -1,7 +1,8 @@
 # Leaflet
 
-Integration with the [Leaflet](https://leafletjs.com/) JS mapping library,
-a modern, lightweight Open-Source library for interactive maps.
+Integration with a recent version of the [Leaflet](https://leafletjs.com/) JS
+ mapping library, a modern, lightweight Open-Source library for interactive
+ maps.
 
 *The Leaflet module features:*
 
@@ -25,10 +26,21 @@ Backdrop.
 ## Installation
 
 - Install this module using the
-  [official Backdrop CMS instructions](https://backdropcms.org/guide/modules)
+  [official Backdrop CMS instructions](https://docs.backdropcms.org/documentation/extend-with-modules)
 
 - The module comes packaged with Leaflet library, and a set of leaflet plugins.
 
+## Related modules
+
+The [Leaflet Widget](https://github.com/backdrop-contrib/leaflet_widget)
+ utilizes this module's library to input Geospacial data by interactively
+ setting markers on a map. Recommended if you don't want to deal with
+ [geocoding](https://backdropcms.org/project/geocoder).
+
+If you need a legacy version of the leaflet library:
+ [Leaflet library](https://backdropcms.org/project/leaflet_lib) ships with
+ version 1.2.0. Note that the library module is no dependency of this
+ module, as this one ships with the most recent version of Leaflet.
 
 ## Issues
 
