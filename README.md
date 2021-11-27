@@ -32,12 +32,12 @@ Backdrop.
 
 ## Related modules
 
-The [Leaflet Widget](https://github.com/backdrop-contrib/leaflet_widget)
+The [Leaflet Widget](https://backdropcms.org/project/leaflet_widget)
  utilizes this module's library to input Geospacial data by interactively
  setting markers on a map. Recommended if you don't want to deal with
  [geocoding](https://backdropcms.org/project/geocoder).
 
-If you need a legacy version of the leaflet library:
+If you need a *legacy version* of the leaflet library:
  [Leaflet library](https://backdropcms.org/project/leaflet_lib) ships with
  version 1.2.0. Note that the library module is no dependency of this
  module, as this one ships with the most recent version of Leaflet.
