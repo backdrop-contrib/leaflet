@@ -22,6 +22,7 @@ Maps* now both ship with this module. And so do the required Javascript
 libraries. This makes the Leaflet module your "one-stop shop" for mapping in
 Backdrop.
 
+![Example map](https://raw.githubusercontent.com/backdrop-contrib/leaflet/1.x-1.x/screenshots/map.webp)
 
 ## Installation
 
