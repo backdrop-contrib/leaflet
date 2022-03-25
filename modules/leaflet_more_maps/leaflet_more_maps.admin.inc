@@ -38,7 +38,15 @@ function leaflet_more_maps_admin_configure() {
   );
 
   $map_info = array();
-  // @todo call hook_leaflet_map_info() ?
+  foreach (module_implements('leaflet_map_info') as $module) {
+    if ($module !== 'leaflet_more_maps') {
+      $function = $module . '_leaflet_map_info';
+      if (function_exists($function)) {
+        $result = call_user_func_array($function, array());
+        $map_info = array_merge_recursive($map_info, $result);
+      }
+    }
+  }
   _leaflet_more_maps_assemble_default_map_info($map_info);
 
   $all_layer_keys = array();
