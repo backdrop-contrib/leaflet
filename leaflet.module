@@ -29,7 +29,7 @@ function leaflet_library_info() {
 
   $libraries['leaflet'] = array(
     'title' => t('Leaflet JavaScript Library'),
-    'version' => '1.7.1',
+    'version' => '1.8.0-beta.0',
     'website' => 'http://leafletjs.com/',
     'js' => array(
       // This setting is needed in order to properly render market images.
