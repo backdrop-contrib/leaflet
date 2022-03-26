@@ -33,34 +33,6 @@ function leaflet_more_maps_default_settings() {
 }
 
 /**
- * Implements hook_leaflet_map_info().
- *
- * All maps show at lat=31, long=-89, zoom=4
- */
-function leaflet_more_maps_leaflet_map_info() {
-
-  $map_info = array();
-  $default_settings = leaflet_more_maps_default_settings();
-
-  _leaflet_more_maps_assemble_default_map_info($map_info, $default_settings);
-
-  $custom_maps = config_get('leaflet_more_maps.settings', 'leaflet_more_maps_custom_maps');
-  if ($custom_maps == NULL) {
-    $custom_maps = array();
-  }
-
-  foreach ($custom_maps as $custom_map) {
-    _leaflet_more_maps_assemble_custom_map_info(
-      $custom_map['map-key'],
-      $custom_map['layer-keys'],
-      $map_info, $default_settings,
-      $custom_map['reverse-order']
-    );
-  }
-  return $map_info;
-}
-
-/**
  * Preprocess function for leaflet_more_maps.
  */
 function leaflet_more_maps_leaflet_map_prebuild_alter(&$variables = NULL) {
@@ -74,6 +46,19 @@ function leaflet_more_maps_leaflet_map_prebuild_alter(&$variables = NULL) {
  * Implements hook_leaflet_map_info_alter().
  */
 function leaflet_more_maps_leaflet_map_info_alter(&$map_info) {
+  $default_settings = leaflet_more_maps_default_settings();
+
+  _leaflet_more_maps_assemble_default_map_info($map_info, $default_settings);
+
+  $custom_maps = config_get('leaflet_more_maps.settings', 'leaflet_more_maps_custom_maps');
+  foreach ($custom_maps as $custom_map) {
+    _leaflet_more_maps_assemble_custom_map_info(
+      $custom_map['map-key'],
+      $custom_map['layer-keys'],
+      $map_info, $default_settings,
+      $custom_map['reverse-order']
+    );
+  }
   @ksort($map_info, SORT_NATURAL | SORT_FLAG_CASE);
 }
 
