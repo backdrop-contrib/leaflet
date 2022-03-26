@@ -266,6 +266,10 @@ class leaflet_views_plugin_style extends views_plugin_style {
    * Validate the options form.
    */
   public function options_validate(&$form, &$form_state) {
+    if (empty($form_state['values']['style_options'])) {
+      form_set_error('form', t('Insufficient data.'));
+      return;
+    }
     if (!is_numeric($form_state['values']['style_options']['height']) || $form_state['values']['style_options']['height'] < 0) {
       form_error($form['height'], t('Map height needs to be a positive number'));
     }
