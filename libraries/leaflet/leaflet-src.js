@@ -1,5 +1,5 @@
 /* @preserve
- * Leaflet 1.8.0-beta.0+main.face00f, a JS library for interactive maps. https://leafletjs.com
+ * Leaflet 1.8.0-beta.1, a JS library for interactive maps. https://leafletjs.com
  * (c) 2010-2022 Vladimir Agafonkin, (c) 2010-2011 CloudMade
  */
 
@@ -9,7 +9,7 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.leaflet = {}));
 })(this, (function (exports) { 'use strict';
 
-  var version = "1.8.0-beta.0+main.face00fa";
+  var version = "1.8.0-beta.1";
 
   /*
    * @namespace Util
@@ -7749,7 +7749,7 @@
 
   		var iconOpts = this.options.icon.options;
   		var size = toPoint(iconOpts.iconSize);
-  		var anchor = toPoint(iconOpts.iconAnchor);
+  		var anchor = iconOpts.iconAnchor ? toPoint(iconOpts.iconAnchor) : toPoint(0, 0);
 
   		map.panInside(this._latlng, {
   			paddingTopLeft: anchor,
@@ -14113,12 +14113,12 @@
   exports.videoOverlay = videoOverlay;
 
   var oldL = window.L;
-  leaflet.noConflict = function() {
+  exports.noConflict = function() {
   	window.L = oldL;
   	return this;
   }
   // Always export us to window global (see #2364)
-  window.L = leaflet;
+  window.L = exports;
 
 }));
 //# sourceMappingURL=leaflet-src.js.map
