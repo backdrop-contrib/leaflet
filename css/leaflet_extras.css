@@ -63,8 +63,7 @@
  * @todo Remove as soon as issue #19 gets resolved.
  */
 @supports (-webkit-appearance:none) and (not (-moz-appearance:none)) {
-  .leaflet-layer.type-google img {
-    width: 256.7px !important;
-    height: 256.7px !important;
+  .leaflet-zoom-animated {
+    opacity: 0.9999;
   }
 }
