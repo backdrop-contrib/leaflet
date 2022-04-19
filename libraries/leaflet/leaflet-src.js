@@ -1,5 +1,5 @@
 /* @preserve
- * Leaflet 1.8.0-beta.3, a JS library for interactive maps. https://leafletjs.com
+ * Leaflet 1.8.0, a JS library for interactive maps. https://leafletjs.com
  * (c) 2010-2022 Vladimir Agafonkin, (c) 2010-2011 CloudMade
  */
 
@@ -9,7 +9,7 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.leaflet = {}));
 })(this, (function (exports) { 'use strict';
 
-  var version = "1.8.0-beta.3";
+  var version = "1.8.0";
 
   /*
    * @namespace Util
@@ -7413,10 +7413,12 @@
 
   		// @option title: String = ''
   		// Text for the browser tooltip that appear on marker hover (no tooltip by default).
+  		// [Useful for accessibility](https://leafletjs.com/examples/accessibility/#markers-must-be-labelled).
   		title: '',
 
   		// @option alt: String = 'Marker'
-  		// Text for the `alt` attribute of the icon image (useful for accessibility).
+  		// Text for the `alt` attribute of the icon image.
+  		// [Useful for accessibility](https://leafletjs.com/examples/accessibility/#markers-must-be-labelled).
   		alt: 'Marker',
 
   		// @option zIndexOffset: Number = 0
@@ -8901,6 +8903,7 @@
   // Reverse of [`coordsToLatLng`](#geojson-coordstolatlng)
   // Coordinates values are rounded with [`formatNum`](#util-formatnum) function.
   function latLngToCoords(latlng, precision) {
+  	latlng = toLatLng(latlng);
   	return latlng.alt !== undefined ?
   		[formatNum(latlng.lng, precision), formatNum(latlng.lat, precision), formatNum(latlng.alt, precision)] :
   		[formatNum(latlng.lng, precision), formatNum(latlng.lat, precision)];

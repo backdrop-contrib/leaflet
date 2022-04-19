@@ -29,7 +29,7 @@ function leaflet_library_info() {
 
   $libraries['leaflet'] = array(
     'title' => t('Leaflet JavaScript Library'),
-    'version' => '1.8.0-beta.3',
+    'version' => '1.8.0',
     'website' => 'http://leafletjs.com/',
     'js' => array(
       // This setting is needed in order to properly render market images.
@@ -38,7 +38,7 @@ function leaflet_library_info() {
         'data' => 'L_ROOT_URL = "' . base_path() . $library_path . '";',
         'group' => JS_LIBRARY,
       ),
-      $library_path . 'leaflet-src.js' => array(
+      $library_path . 'leaflet.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
