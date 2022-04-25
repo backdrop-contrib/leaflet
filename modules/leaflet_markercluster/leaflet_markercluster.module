@@ -16,7 +16,7 @@ function leaflet_markercluster_library_info() {
     'js' => array(
       array(
         'type' => 'file',
-        'data' => "$path/leaflet.markercluster-src.js",
+        'data' => "$path/leaflet.markercluster.js",
         'group' => JS_LIBRARY,
         'weight' => 1,
       ),
