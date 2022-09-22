@@ -256,7 +256,7 @@ function leaflet_leaflet_map_info() {
       ),
       'layers' => array(
         'earth' => array(
-          'urlTemplate' => '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          'urlTemplate' => '//tile.openstreetmap.org/{z}/{x}/{y}.png',
           'options' => array(
             'attribution' => '<a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap </a> contributors',
           ),

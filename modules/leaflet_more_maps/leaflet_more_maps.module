@@ -393,7 +393,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     'settings' => array('layerControl' => TRUE) + $default_settings,
     'layers' => array(
       'base' => array(
-        'urlTemplate' => $prot . "{s}.tile.openstreetmap.org/$zxy",
+        'urlTemplate' => $prot . "tile.openstreetmap.org/$zxy",
         'options' => array('attribution' => $attr_piste),
         'layer_type' => 'base',
       ),
@@ -418,7 +418,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     'settings' => array('layerControl' => TRUE) + $default_settings,
     'layers' => array(
       'base' => array(
-        'urlTemplate' => $prot . "{s}.tile.openstreetmap.org/$zxy",
+        'urlTemplate' => $prot . "tile.openstreetmap.org/$zxy",
         'options' => array('attribution' => $attr_ocm),
         'layer_type' => 'base',
       ),
@@ -438,7 +438,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     'settings' => array('layerControl' => TRUE) + $default_settings,
     'layers' => array(
       'base' => array(
-        'urlTemplate' => $prot . "{s}.tile.openstreetmap.org/$zxy",
+        'urlTemplate' => $prot . "tile.openstreetmap.org/$zxy",
         'options' => array('attribution' => $attr_owm),
         'layer_type' => 'base',
       ),
