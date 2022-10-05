@@ -29,7 +29,7 @@ function leaflet_library_info() {
 
   $libraries['leaflet'] = array(
     'title' => t('Leaflet JavaScript Library'),
-    'version' => '1.9.1',
+    'version' => '1.9.2',
     'website' => 'https://leafletjs.com/',
     'js' => array(
       // This setting is needed in order to properly render market images.
@@ -256,7 +256,7 @@ function leaflet_leaflet_map_info() {
       ),
       'layers' => array(
         'earth' => array(
-          'urlTemplate' => '//tile.openstreetmap.org/{z}/{x}/{y}.png',
+          'urlTemplate' => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           'options' => array(
             'attribution' => '<a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap </a> contributors',
           ),
