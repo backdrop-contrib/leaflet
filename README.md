@@ -80,7 +80,7 @@ This is the tricky part. This is an associative array of all the features you
 want to plot on the map. A feature can be a point, linestring, polygon,
 multilinestring, multipolygon, or json object. Additionally, features can be
 grouped into layer groups so they can be controlled together,
-http://leaflet.cloudmade.com/reference.html#layergroup. A feature will look
+https://leafletjs.com/reference.html#layergroup. A feature will look
 something like:
 
 ```php
