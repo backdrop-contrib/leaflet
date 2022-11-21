@@ -36,6 +36,12 @@ function leaflet_more_maps_admin_configure() {
     '#default_value' => isset($config['mapbox_access_token']) ? $config['mapbox_access_token'] : '',
     '#description' => t('All Mapbox maps require an access token.'),
   );
+  $form['global_settings']['openweather_apikey'] = array(
+    '#type' => 'textfield',
+    '#title' => t('OpenWeather API Key'),
+    '#default_value' => isset($config['openweather_apikey']) ? $config['openweather_apikey'] : '',
+    '#description' => t('All OpenWeather layers require an API key.'),
+  );
 
   $map_info = array();
   foreach (module_implements('leaflet_map_info') as $module) {
@@ -124,6 +130,7 @@ function leaflet_more_maps_admin_configure_form_submit($form, &$form_state) {
   $config->set('google_satellite_version', $form_state['values']['google_satellite_version']);
   $config->set('thunderforest_api_key', $form_state['values']['thunderforest_api_key']);
   $config->set('mapbox_access_token', $form_state['values']['mapbox_access_token']);
+  $config->set('openweather_apikey', $form_state['values']['openweather_apikey']);
   $custom_maps = $form_state['values']['map'];
 
   // Clear out the unticked boxes.

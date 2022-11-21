@@ -431,24 +431,29 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
   );
 
   // OpenWeatherMap http://openweathermap.org
-  $attr_owm = 'OpenWeatherMap. ' . $attr_osm;
+  $attr_owm = '<a href="https://openweathermap.org/">OpenWeather</a>, ' . $attr_osm;
+  $owm_key = config_get('leaflet_more_maps.settings', 'openweather_api_key');
+  if (empty($owm_key)) {
+    // A demo key not appropriate for production use (often blocked).
+    $owm_key = '2f8796eefe67558dc205b09dd336d022';
+  }
   $map_info['osm-weather'] = array(
-    'label' => 'OSM OpenWeatherMap (zoom 0..19)',
+    'label' => 'OSM OpenWeatherMap (zoom 0..19), requires access token',
     'description' => t('Precipitation with pressure contours'),
     'settings' => array('layerControl' => TRUE) + $default_settings,
     'layers' => array(
       'base' => array(
-        'urlTemplate' => $prot . "tile.openstreetmap.org/$zxy",
+        'urlTemplate' => "https://tile.openstreetmap.org/$zxy",
         'options' => array('attribution' => $attr_owm),
         'layer_type' => 'base',
       ),
       'precipitation' => array(
-        'urlTemplate' => $prot . "{s}.tile.openweathermap.org/map/precipitation/$zxy",
+        'urlTemplate' => "https://tile.openweathermap.org/map/precipitation/$zxy?appid=$owm_key",
         'options' => array('attribution' => $attr_owm),
         'layer_type' => 'overlay',
       ),
       'pressure' => array(
-        'urlTemplate' => $prot . "{s}.tile.openweathermap.org/map/pressure_cntr/$zxy",
+        'urlTemplate' => "https://tile.openweathermap.org/map/pressure_cntr/$zxy?appid=$owm_key",
         'options' => array('attribution' => $attr_owm),
         'layer_type' => 'overlay',
       ),

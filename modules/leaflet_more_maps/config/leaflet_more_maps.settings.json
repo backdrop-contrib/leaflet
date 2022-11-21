@@ -3,6 +3,7 @@
     "google_satellite_version": "899",
     "thunderforest_api_key": "",
     "mapbox_access_token": "",
+    "openweather_apikey": "",
     "leaflet_more_maps_custom_maps": {
         "1": {
             "map-key": "",
