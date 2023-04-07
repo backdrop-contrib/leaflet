@@ -62,7 +62,10 @@ function leaflet_markercluster_leaflet_build_map_alter(&$build) {
     }
   }
   if (!isset($settings['map']['settings']['maxClusterRadius']) || $settings['map']['settings']['maxClusterRadius'] > 0) {
-    $build['#attached']['library'][] = array('leaflet_markercluster', 'leaflet_markercluster');
+    $build['#attached']['library'][] = array(
+      'leaflet_markercluster',
+      'leaflet_markercluster',
+    );
     $build['#attached']['js'][] = array(
       'data' => backdrop_get_path('module', 'leaflet_markercluster') . '/js/leaflet_markercluster.backdrop.js',
       'weight' => 1,

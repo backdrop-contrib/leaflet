@@ -25,6 +25,7 @@ function leaflet_more_maps_default_settings() {
     'touchZoom'          => TRUE,
     'trackResize'        => TRUE,
     // Don't specify, if you want to use Auto-box.
+    // @codingStandardsIgnoreLine
     // 'zoom'               =>  2,
     'zoomAnimation'      => TRUE,
     'zoomControl'        => TRUE,
@@ -37,7 +38,7 @@ function leaflet_more_maps_default_settings() {
  */
 function leaflet_more_maps_leaflet_map_prebuild_alter(&$variables = NULL) {
   $path = backdrop_get_path('module', 'leaflet_more_maps');
-  // Increase weight so we're included after 'leaflet.drupal.js'
+  // Increase weight so we're included after 'leaflet.drupal.js'.
   $options = array('type' => 'file', 'weight' => 1);
   backdrop_add_js("$path/js/leaflet_more_maps.js", $options);
 }
@@ -66,7 +67,7 @@ function leaflet_more_maps_leaflet_map_info_alter(&$map_info) {
  * Assemble default map info.
  */
 function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_settings = array()) {
-  // For most maps, use headless protocol rather than logic based on $is_https;
+  // For most maps, use headless protocol rather than logic based on $is_https.
   $prot = '//';
   global $is_https;
 
@@ -253,7 +254,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
       'roadmap' => array(
         'type' => 'google',
         // For retina displays we append '&style=high_dpi&w=512',
-        // see leaflet_more_maps.js
+        // see leaflet_more_maps.js.
         'urlTemplate' => $prot . 'mt{s}.googleapis.com/vt?x={x}&y={y}&z={z}',
         'options' => array(
           'attribution' => $attr_google,
@@ -280,7 +281,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
   // https://docs.mapbox.com/api/maps/styles/
   $mapbox_access_token = config_get('leaflet_more_maps.settings', 'mapbox_access_token');
   if (empty($mapbox_access_token)) {
-    // MapBox as used on leafletjs.com
+    // MapBox as used on leafletjs.com.
     $mapbox_access_token = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
   }
   $attr_mapbox = 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
@@ -312,7 +313,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     );
   }
 
-  // OpenStreetMap OSM Mapnik classic map is available via leaflet.module
+  // OpenStreetMap OSM Mapnik classic map is available via leaflet.module.
   $attr_osm = 'Map data &copy; <a target="attr" href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
   $attr_thunderforest = '<a target="attr" href="https://www.thunderforest.com/">ThunderForest</a>. ' . $attr_osm;

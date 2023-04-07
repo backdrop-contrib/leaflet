@@ -143,12 +143,12 @@ function leaflet_demo_map_parameters_form_submit($form, &$form_state) {
  * Outputs the HTML for all available Leaflet maps, centered on supplied coords.
  *
  * @param string $latitude
- *   the latitude
+ *   The latitude.
  * @param string $longitude
- *   the longitude
+ *   The longitude.
  *
  * @return string
- *   the map string as rendered html
+ *   The map string as rendered html.
  */
 function leaflet_demo_output_maps($latitude = LEAFLET_DEMO_DEFAULT_LAT, $longitude = LEAFLET_DEMO_DEFAULT_LNG, $zoom = LEAFLET_DEMO_DEFAULT_ZOOM) {
 
@@ -172,8 +172,7 @@ function leaflet_demo_output_maps($latitude = LEAFLET_DEMO_DEFAULT_LAT, $longitu
     $features[0]['leaflet_id'] = "demo-$map_id";
     $title = $map_info[$map_id]['label'];
     $built_map = leaflet_build_map($map, $features, '300px');
-    $output .=
-        '<div class="leaflet-gallery-map">'
+    $output .= '<div class="leaflet-gallery-map">'
       .   "<div>$title</div>"
       .   render($built_map)
       . '</div>';

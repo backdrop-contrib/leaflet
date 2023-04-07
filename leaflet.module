@@ -100,7 +100,7 @@ function leaflet_library_info() {
  * Attach Leaflet-required client files and return renderable array for a map.
  *
  * @param array $map
- *   Map definition as returned my leaflet_map_get_info();
+ *   Map definition as returned my leaflet_map_get_info().
  * @param array $features
  *   Associative array of map features.
  * @param string $height
@@ -109,7 +109,7 @@ function leaflet_library_info() {
  * @return array
  *   A renderable array.
  */
-function leaflet_build_map($map, $features = array(), $height = '400px') {
+function leaflet_build_map(array $map, array $features = array(), $height = '400px') {
   $map_id = backdrop_html_id('leaflet_map');
   $build = array(
     '#theme' => 'head_tag',
@@ -151,7 +151,7 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
   // Load the leaflet library, which includes integration files.
   $build['#attached']['library'][] = array('leaflet', 'leaflet');
 
-  // Let other modules properly attach libraries as well [#2567387]
+  // Let other modules properly attach libraries as well [#2567387].
   backdrop_alter('leaflet_build_map', $build);
 
   return $build;
@@ -163,7 +163,7 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
  * Load all Leaflet required client files and return markup for a map.
  *
  * @param array $map
- *   Map definition as returned my leaflet_map_get_info();
+ *   Map definition as returned my leaflet_map_get_info().
  * @param array $features
  *   Associative array of map features.
  * @param string $height
@@ -172,7 +172,7 @@ function leaflet_build_map($map, $features = array(), $height = '400px') {
  * @return string
  *   map markup
  */
-function leaflet_render_map($map, $features = array(), $height = '400px') {
+function leaflet_render_map(array $map, array $features = array(), $height = '400px') {
   $build = leaflet_build_map($map, $features, $height);
   return render($build);
 }

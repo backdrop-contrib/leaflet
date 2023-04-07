@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Leaflet field formatter functions.
@@ -109,12 +108,22 @@ function leaflet_field_formatter_settings_form($field, $instance, $view_mode, $f
       }
     }
     $fieldpath = 'fields[' . $field['field_name'] . '][settings_edit_form][settings]';
-    $element['popup'] = leaflet_form_elements('popup', $settings, array('path' => $fieldpath));
+    $element['popup'] = leaflet_form_elements('popup', $settings, array(
+      'path' => $fieldpath,
+    ));
     $element['zoom'] = leaflet_form_elements('zoom', $settings);
-    $element['icon'] = leaflet_form_elements('icon', $settings, array('path' => $fieldpath, 'fields' => $field_options));
-    $element['vector_display'] = leaflet_form_elements('vector_display', $settings, array('path' => $fieldpath));
+    $element['icon'] = leaflet_form_elements('icon', $settings, array(
+      'path' => $fieldpath,
+      'fields' => $field_options,
+    ));
+    $element['vector_display'] = leaflet_form_elements('vector_display', $settings, array(
+      'path' => $fieldpath,
+    ));
     // Show the list of available tokens.
-    $element['tokens'] = leaflet_form_elements('tokens', $settings, array('weight' => 999, 'entity_type' => $entity_type));
+    $element['tokens'] = leaflet_form_elements('tokens', $settings, array(
+      'weight' => 999,
+      'entity_type' => $entity_type,
+    ));
   }
 
   return $element;
@@ -169,7 +178,10 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
         }
 
         // Let other modules add/customize settings.
-        $entity_wrapper = array('entity_type' => $entity_type, 'entity' => $entity);
+        $entity_wrapper = array(
+          'entity_type' => $entity_type,
+          'entity' => $entity,
+        );
         backdrop_alter('leaflet_map_settings', $map, $features, $settings, $entity_wrapper);
 
         leaflet_apply_map_settings($map, $features, $settings, $entity_type);
@@ -189,9 +201,9 @@ function leaflet_field_formatter_view($entity_type, $entity, $field, $instance, 
  *
  * @return array
  *   Points built for consumption by the leaflet module as expected by
- * leaflet_render_map().
+ *   leaflet_render_map().
  */
-function leaflet_process_geofield($items = array()) {
+function leaflet_process_geofield(array $items = array()) {
   $data = array();
 
   // This is a geofield formatter, so we load the class from there. Needed for
@@ -365,7 +377,7 @@ function leaflet_process_geofield($items = array()) {
  * @param string $entity_type
  *   Entity type this map is being displayed for.
  */
-function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_type) {
+function leaflet_apply_map_settings(array &$map, array &$features, array $map_settings, $entity_type) {
   // These are the settings key that will be tokenized by entity:
   $token_by_entity = array(
     'popup',
@@ -410,7 +422,9 @@ function leaflet_apply_map_settings(&$map, &$features, $map_settings, $entity_ty
     // Apply tokens where relevant:
     $settings = $map_settings;
     $entity = !empty($feat['entity']) ? $feat['entity'] : NULL;
-    $token_args = array('data' => array($entity_type => $entity), 'options' => array('clear' => TRUE));
+    $token_args = array('data' => array($entity_type => $entity), 'options' => array(
+      'clear' => TRUE,
+    ));
     foreach ($token_by_entity as $key) {
       if (isset($settings[$key]) && is_array($settings[$key])) {
         array_walk_recursive($settings[$key], 'leaflet_token_replace', $token_args);
@@ -500,19 +514,18 @@ function leaflet_token_replace(&$subject, $key, $data = array()) {
 
 /**
  * Helper function to standardize forms between views and field formatters.
- * 
- * $group - String
- *  The name of the group element to generate.
- * 
- * $settings - Array
- *  Current form settings (for defaults, etc)
- * 
- * $options - Array
- *  Special options needed for this form element, if necessary.
- * 
- * Return - A fully loaded form element.
+ *
+ * @param string $group
+ *   The name of the group element to generate.
+ * @param array $settings
+ *   Current form settings (for defaults, etc)
+ * @param array|null $options
+ *   Special options needed for this form element, if necessary.
+ *
+ * @return array
+ *   A fully loaded form element.
  */
-function leaflet_form_elements($group, $settings, $options = NULL) {
+function leaflet_form_elements($group, array $settings, $options = NULL) {
   $form_element = NULL;
   switch ($group) {
     case 'popup':
@@ -655,7 +668,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
         '#type' => 'select',
         '#title' => t('Marker field'),
         '#description' => t('Field to use as output for a map marker.'),
-        // See [#1796656]
+        // See [#1796656].
         '#options' => (array) array_merge(array('' => ''), $options['fields']),
         '#default_value' => isset($settings[$group]['html']) ? $settings[$group]['html'] : '',
         '#empty_option' => t('-- Select --'),
@@ -929,7 +942,7 @@ function leaflet_form_elements($group, $settings, $options = NULL) {
       break;
 
     case "tokens":
-      // See [#2176681]
+      // See [#2176681].
       $form_element = array(
         '#type' => 'container',
         '#theme' => 'token_tree_link',
