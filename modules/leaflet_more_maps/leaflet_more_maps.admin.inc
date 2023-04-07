@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Menu callback for Leaflet More Maps admin configuration.
@@ -120,7 +119,6 @@ function leaflet_more_maps_admin_configure_form_submit($form, &$form_state) {
   $config = config('leaflet_more_maps.settings');
 
   // form_state_values_clean($form_state);
-
   $config->set('google_satellite_version', $form_state['values']['google_satellite_version']);
   $config->set('thunderforest_api_key', $form_state['values']['thunderforest_api_key']);
   $config->set('mapbox_access_token', $form_state['values']['mapbox_access_token']);

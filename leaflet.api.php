@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * API documentation for Administration menu.
@@ -63,7 +62,7 @@ function hook_leaflet_map_info() {
           ),
         ),
       ),
-      // Uncomment the lines below to use a custom icon
+      // Uncomment the lines below to use a custom icon.
       // @code
       // 'icon' => array(
       //   'iconUrl'       => '/sites/default/files/icon.png',
@@ -91,7 +90,7 @@ function hook_leaflet_map_info() {
  * @see leaflet_map_get_info()
  * @see hook_leaflet_map_info()
  */
-function hook_leaflet_map_prebuild_alter(&$settings) {
+function hook_leaflet_map_prebuild_alter(array &$settings) {
   $settings['mapId'] = 'my-map-id';
   $settings['features']['icon'] = 'my-icon-url';
 }

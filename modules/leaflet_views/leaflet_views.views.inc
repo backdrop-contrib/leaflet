@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Leaflet maps views integration.

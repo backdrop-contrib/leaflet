@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Install and uninstall hooks for Leaflet More Maps module.
