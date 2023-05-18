@@ -57,13 +57,13 @@
 /**
  * Workaround for the one-pixel-gap in Chrome.
  *
- * Fragile, hackish and temporary solution, also requires the map type as layer
- * css class to limit impact on affected map type only.
- *
- * @todo Remove as soon as issue #19 gets resolved.
+ * @see https://github.com/backdrop-contrib/leaflet/issues/19
  */
+.leaflet-container .leaflet-pane img.leaflet-tile {
+  mix-blend-mode: normal;
+}
 @supports (-webkit-appearance:none) and (not (-moz-appearance:none)) {
-  .leaflet-zoom-animated {
-    opacity: 0.9999;
+  .leaflet-container .leaflet-pane img.leaflet-tile {
+    mix-blend-mode: plus-lighter;
   }
 }
