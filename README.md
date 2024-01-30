@@ -66,7 +66,7 @@ For a tutorial, please read this (relatively old) blog post
 https://marzeelabs.org/blog/2012-09-24-building-maps-in-drupal-using-leaflet-views
 
 
-## API Usage
+## API Usage (for developers)
 
 Building a map is as simple as calling a single method, `leaflet_build_map()`,
 which takes 3 parameters.

@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * API documentation for Administration menu.
+ * API documentation for the Leaflet module.
  */
 
 /**
@@ -12,7 +12,7 @@
  * collection of features.
  *
  * The settings array maps to the settings available to leaflet map object,
- * http://leaflet.cloudmade.com/reference.html#map-properties
+ * https://leafletjs.com/reference.html
  *
  * Layers are the available base layers for the map and, if you enable the
  * layer control, can be toggled on the map.
