@@ -5,11 +5,8 @@
  */
 
 /**
- * Add the Entity API module as a dependency.
+ * Implements hook_update_last_removed().
  */
-function leaflet_views_update_7000() {
-  // Enable entity.
-  if (!module_enable(array('entity'))) {
-    throw new DrupalUpdateException('This version of Leaflet Views requires Entity API (entity), but it could not be enabled.');
-  }
+function leaflet_views_update_last_removed() {
+  return 7000;
 }
