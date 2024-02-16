@@ -1,9 +1,54 @@
+/**
+ * @file
+ * Leaflet map behavior and class extensions.
+ */
 (function ($) {
+  'use strict';
+
+  /**
+   * SwitchLayerManager is a custom class for managing base layer automatic
+   * switching according to the current zoom level
+   */
+  const SwitchLayerManager = L.Class.extend({
+    _map: null,
+    options: {
+      baseLayers: null
+    },
+    initialize: function (map, options) {
+      this._map = map;
+      L.Util.setOptions(this, options);
+
+      this._map.on({
+        'zoomend': this._update
+      }, this);
+    },
+    _update: function (e) {
+      var zoom = this._map.getZoom();
+      for (let i in this.options.baseLayers) {
+        var curBL = this.options.baseLayers[i];
+        var zoomUnder = curBL.getSwitchZoomUnder();
+        var zoomAbove = curBL.getSwitchZoomAbove();
+        var switchLayer = curBL.getSwitchLayer();
+
+        // If layer got a switchlayer, and if layer actually displayed
+        if (switchLayer && curBL._map !== null) {
+          if(zoomUnder !== -1 && zoom < zoomUnder) {
+            this._map.removeLayer(curBL);
+            this._map.addLayer(switchLayer, false);
+          }
+          if(zoomAbove !== -1 && zoom >= zoomAbove) {
+            this._map.removeLayer(curBL);
+            this._map.addLayer(switchLayer, false);
+          }
+        }
+      }
+    }
+  });
 
   Backdrop.behaviors.leaflet = {
-    attach:function (context, settings) {
+    attach:function (context, backdropSettings) {
 
-      $(settings.leaflet).each(function () {
+      $(backdropSettings.leaflet).each(function () {
         // skip to the next iteration if the map already exists
         var container = L.DomUtil.get(this.mapId);
         if (!container || container._leaflet) {
@@ -17,6 +62,7 @@
         }
 
         // load a settings object with all of our map settings
+        // @todo what? settings exist!
         var settings = {
           'fullscreenControl': true,
         };
@@ -68,14 +114,14 @@
         }
         // We loop through the layers once they have all been created to connect them to their switchlayer if necessary.
         var switchEnable = false;
-        for (var key in layers) {
+        for (let key in layers) {
           if (layers[key].options.switchLayer) {
             layers[key].setSwitchLayer(layers[layers[key].options.switchLayer]);
             switchEnable = true;
           }
         }
         if (switchEnable) {
-          switchManager = new SwitchLayerManager(lMap, {baseLayers: layers});
+          new SwitchLayerManager(lMap, {baseLayers: layers});
         }
 
         // keep an instance of leaflet layers
@@ -84,44 +130,8 @@
         // keep an instance of map_id
         this.map.map_id = this.mapId;
 
-        // add features
-        for (i = 0; i < this.features.length; i++) {
-          var feature = this.features[i];
-          var lFeature;
-
-          // dealing with a layer group
-          if (feature.group) {
-            var lGroup = new L.LayerGroup();
-            for (var groupKey in feature.features) {
-              var groupFeature = feature.features[groupKey];
-              lFeature = leaflet_create_feature(groupFeature, lMap);
-              if (groupFeature.popup) {
-                lFeature.bindPopup(groupFeature.popup);
-              }
-              lGroup.addLayer(lFeature);
-
-              // Allow others to do something with the feature within a group.
-              $(document).trigger('leaflet.feature', [lFeature, feature]);
-            }
-
-            // add the group to the layer switcher
-            overlays[feature.label] = lGroup;
-
-            lMap.addLayer(lGroup);
-          }
-          else {
-            lFeature = leaflet_create_feature(feature, lMap);
-            lMap.addLayer(lFeature);
-
-            if (feature.popup) {
-              lFeature.bindPopup(feature.popup, {minWidth: popupMinWidth});
-            }
-
-            // Allow others to do something with the feature.
-            $(document).trigger('leaflet.feature', [lFeature, feature]);
-          }
-
-        }
+        // Add features, update overlays.
+        overlays = Backdrop.leaflet.addFeatures(lMap, this.features, overlays, popupMinWidth, settings);
 
         // add layer switcher
         if (this.map.settings.layerControl) {
@@ -151,10 +161,18 @@
           }, 4000);
         });
 
-        // init ViewCenter plugin
+        let zoom = this.map.settings.zoom ? this.map.settings.zoom : this.map.settings.zoomDefault;
+        // Init ViewCenter plugin with some defaults.
+        let viewCenter = new L.Control.ViewCenter({
+          position: 'topleft',
+          title: Backdrop.t('Back to the starting point'),
+          forceSeparateButton: true,
+          vcLatLng: [0, 0],
+          vcZoom: zoom
+        });
+        lMap.addControl(viewCenter);
 
         // center the map
-        var zoom = this.map.settings.zoom ? this.map.settings.zoom : this.map.settings.zoomDefault;
         if (this.map.center && (this.map.center.force || this.features.length === 0)) {
           lMap.setView(new L.LatLng(this.map.center.lat, this.map.center.lon), zoom);
         }
@@ -171,9 +189,9 @@
 
           // Center to current position, if module geoip_tokens is available.
           // We get the values via ajax, so there might be a slight delay.
-          if (typeof Backdrop.geoipTokens == 'object') {
-            if (typeof Backdrop.geoipTokens.getData == 'function') {
-              Backdrop.geoipTokens.getData('latlon').success(function (data) {
+          if (typeof Backdrop.geoipTokens === 'object') {
+            if (typeof Backdrop.geoipTokens.getData === 'function') {
+              Backdrop.geoipTokens.getData('latlon').done(function (data) {
                 lMap.setView(new L.LatLng(data.latitude, data.longitude), zoom);
                 viewCenter.options.vcLatLng = [data.latitude, data.longitude];
               });
@@ -181,20 +199,14 @@
           }
         }
 
-        // associate the center and zoom level proprerties to the built lMap.
+        // Associate the center and zoom level proprerties to the built lMap.
         // useful for post-interaction with it
         lMap.center = lMap.getCenter();
         lMap.zoom = lMap.getZoom();
 
-        // init ViewCenter plugin
-        var viewCenter = new L.Control.ViewCenter({
-          position: 'topleft',
-          title: Backdrop.t('Back to the starting point'),
-          forceSeparateButton: true,
-          vcLatLng: [lMap.center.lat, lMap.center.lng],
-          vcZoom: zoom
-      	});
-        lMap.addControl(viewCenter);
+        // Update viewCenter options.
+        viewCenter.options.vcLatLng = [lMap.center.lat, lMap.center.lng];
+        viewCenter.options.vcZoom = lMap.zoom;
 
         // add attribution
         if (this.map.settings.attributionControl && this.map.attribution) {
@@ -212,65 +224,108 @@
         // Required when the View has "Use AJAX" set to Yes.
         this.features = null;
       });
-
-      function leaflet_create_feature(feature, lMap) {
-        var lFeature;
-        switch (feature.type) {
-          case 'point':
-            lFeature = Backdrop.leaflet.create_point(feature, lMap);
-            break;
-          case 'linestring':
-            lFeature = Backdrop.leaflet.create_linestring(feature, lMap);
-            break;
-          case 'polygon':
-            lFeature = Backdrop.leaflet.create_polygon(feature, lMap);
-            break;
-          case 'multipolyline':
-            feature.multipolyline = true;
-            // no break;
-          case 'multipolygon':
-            lFeature = Backdrop.leaflet.create_multipoly(feature, lMap);
-            break;
-          case 'json':
-            lFeature = Backdrop.leaflet.create_json(feature.json, lMap);
-            break;
-          case 'popup':
-            lFeature = Backdrop.leaflet.create_popup(feature, lMap);
-            break;
-          case 'circle':
-            lFeature = Backdrop.leaflet.create_circle(feature, lMap);
-            break;
-          case 'circlemarker':
-            lFeature = Backdrop.leaflet.create_circlemarker(feature, lMap);
-            break;
-          case 'rectangle':
-            lFeature = Backdrop.leaflet.create_rectangle(feature, lMap);
-            break;
-        }
-
-        // assign our given unique ID, useful for associating nodes
-        if (feature.leaflet_id) {
-          lFeature._leaflet_id = feature.leaflet_id;
-        }
-
-        var options = {};
-        if (feature.options) {
-          for (var option in feature.options) {
-            options[option] = feature.options[option];
-          }
-          lFeature.setStyle(options);
-        }
-
-        return lFeature;
-      }
-
     }
   };
 
   Backdrop.leaflet = {
 
     isOldVersion: function () {
-      return !(parseInt(L.version) >= 1); // version may start with '0' or '.'
+      // Since the lib ships with this module, this check makes no sense.
+      // Keep for bc, just in case.
+      return false;
+    },
+    leaflet_create_feature: function (feature, lMap) {
+      var lFeature;
+      switch (feature.type) {
+        case 'point':
+          lFeature = Backdrop.leaflet.create_point(feature, lMap);
+          break;
+        case 'linestring':
+          lFeature = Backdrop.leaflet.create_linestring(feature, lMap);
+          break;
+        case 'polygon':
+          lFeature = Backdrop.leaflet.create_polygon(feature, lMap);
+          break;
+        case 'multipolyline':
+          feature.multipolyline = true;
+          // no break;
+        case 'multipolygon':
+          lFeature = Backdrop.leaflet.create_multipoly(feature, lMap);
+          break;
+        case 'json':
+          lFeature = Backdrop.leaflet.create_json(feature.json, lMap);
+          break;
+        case 'popup':
+          lFeature = Backdrop.leaflet.create_popup(feature, lMap);
+          break;
+        case 'circle':
+          lFeature = Backdrop.leaflet.create_circle(feature, lMap);
+          break;
+        case 'circlemarker':
+          lFeature = Backdrop.leaflet.create_circlemarker(feature, lMap);
+          break;
+        case 'rectangle':
+          lFeature = Backdrop.leaflet.create_rectangle(feature, lMap);
+          break;
+      }
+
+      // assign our given unique ID, useful for associating nodes
+      if (feature.leaflet_id) {
+        lFeature._leaflet_id = feature.leaflet_id;
+      }
+
+      var options = {};
+      if (feature.options) {
+        for (var option in feature.options) {
+          options[option] = feature.options[option];
+        }
+        lFeature.setStyle(options);
+      }
+
+      return lFeature;
+    },
+    // moved there, document params, todo too many params
+    addFeatures: function (lMap, features, overlays, popupMinWidth) {
+      let len = features.length;
+      for (let i = 0; i < len; i++) {
+        var feature = features[i];
+        var lFeature;
+
+        // dealing with a layer group
+        if (feature.group) {
+          var lGroup = new L.LayerGroup();
+          for (var groupKey in feature.features) {
+            var groupFeature = feature.features[groupKey];
+            lFeature = Backdrop.leaflet.leaflet_create_feature(groupFeature, lMap);
+            if (groupFeature.popup) {
+              lFeature.bindPopup(groupFeature.popup);
+            }
+            lGroup.addLayer(lFeature);
+
+            // Allow others to do something with the feature within a group.
+            $(document).trigger('leaflet.feature', [lFeature, feature]);
+          }
+
+          // add the group to the layer switcher
+          overlays[feature.label] = lGroup;
+
+          lMap.addLayer(lGroup);
+        }
+        else {
+          lFeature = Backdrop.leaflet.leaflet_create_feature(feature, lMap);
+          lMap.addLayer(lFeature);
+
+          if (feature.popup) {
+            lFeature.bindPopup(feature.popup, {minWidth: popupMinWidth});
+          }
+
+          // Allow others to do something with the feature.
+          $(document).trigger('leaflet.feature', [lFeature, feature]);
+        }
+
+      }
+      // Return updated overlays.
+      return overlays;
     },
 
     create_layer: function (layer, key) {
@@ -286,7 +341,7 @@
 
       // layers served from TileStream need this correction in the y coordinates
       // TODO: Need to explore this more and find a more elegant solution
-      if (layer.type == 'tilestream') {
+      if (layer.type === 'tilestream') {
         map_layer.getTileUrl = function (tilePoint) {
           this._adjustTilePoint(tilePoint);
           var zoom = this._getZoomForUrl();
@@ -335,11 +390,12 @@
       var lMarker;
 
       if (marker.html) {
+        let icon;
         if (marker.html_class) {
-          var icon = new L.DivIcon({html: marker.html, className: marker.html_class});
+          icon = new L.DivIcon({html: marker.html, className: marker.html_class});
         }
         else {
-          var icon = new L.DivIcon({html: marker.html});
+          icon = new L.DivIcon({html: marker.html});
         }
         // override applicable marker defaults
         if (marker.icon.iconSize) {
@@ -351,7 +407,7 @@
         lMarker = new L.Marker(latLng, {icon:icon});
       }
       else if (marker.icon) {
-        var icon = new L.Icon({iconUrl: marker.icon.iconUrl});
+        let icon = new L.Icon({iconUrl: marker.icon.iconUrl});
 
         // override applicable marker defaults
         if (marker.icon.iconSize) {
@@ -430,19 +486,16 @@
         }
         polygons.push(latlngs);
       }
-      if (this.isOldVersion()) {
-        return multipoly.multipolyline ? new L.MultiPolyline(polygons) : new L.MultiPolygon(polygons);
-      }
       return multipoly.multipolyline ? new L.Polyline(polygons): new L.Polygon(polygons);
     },
 
     create_json:function(json, lMap) {
-      lJSON = new L.GeoJSON(json, {
+      let lJSON = new L.GeoJSON(json, {
         onEachFeature:function (feature, layer) {
-          var has_properties = (typeof feature.properties != 'undefined');
+          var has_properties = (typeof feature.properties !== 'undefined');
 
           // bind popups
-          if (has_properties && typeof feature.properties.popup != 'undefined') {
+          if (has_properties && typeof feature.properties.popup !== 'undefined') {
             layer.bindPopup(feature.properties.popup);
           }
 
@@ -452,11 +505,11 @@
             }
           }
 
-          if (has_properties && typeof feature.properties.style != 'undefined') {
+          if (has_properties && typeof feature.properties.style !== 'undefined') {
             layer.setStyle(feature.properties.style);
           }
 
-          if (has_properties && typeof feature.properties.leaflet_id != 'undefined') {
+          if (has_properties && typeof feature.properties.leaflet_id !== 'undefined') {
             layer._leaflet_id = feature.properties.leaflet_id;
           }
         }
@@ -517,53 +570,5 @@
   L.tileLayerZoomSwitch = function (url, options) {
     return new L.TileLayerZoomSwitch(url, options);
   };
-
-  /*
-   * SwitchLayerManager is a custom class for managing base layer automatic switching according to the current zoom level
-   */
-
-  SwitchLayerManager = L.Class.extend({
-
-    _map: null,
-
-    options: {
-      baseLayers: null
-    },
-
-    initialize: function (map, options) {
-      this._map = map;
-      L.Util.setOptions(this, options);
-
-      this._map.on({
-        'zoomend': this._update
-      }, this)
-
-    },
-
-    _update: function (e) {
-      var zoom = this._map.getZoom();
-
-      for (var i in this.options.baseLayers) {
-        var curBL = this.options.baseLayers[i];
-        var zoomUnder = curBL.getSwitchZoomUnder();
-        var zoomAbove = curBL.getSwitchZoomAbove();
-        var switchLayer = curBL.getSwitchLayer();
-
-        // If layer got a switchlayer, and if layer actually displayed
-        if (switchLayer && curBL._map != null) {
-        //if (switchLayer) {
-          if(zoomUnder != -1 && zoom < zoomUnder) {
-            this._map.removeLayer(curBL);
-            this._map.addLayer(switchLayer, false);
-          }
-
-          if(zoomAbove != -1 && zoom >= zoomAbove) {
-            this._map.removeLayer(curBL);
-            this._map.addLayer(switchLayer, false);
-          }
-        }
-      }
-    }
-  });
 
 })(jQuery);
