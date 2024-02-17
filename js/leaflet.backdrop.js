@@ -282,6 +282,7 @@
         case 'multipolyline':
           feature.multipolyline = true;
           // no break;
+          /* falls through */
         case 'multipolygon':
           lFeature = Backdrop.leaflet.create_multipoly(feature, lMap);
           break;
