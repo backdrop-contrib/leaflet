@@ -1,9 +1,41 @@
 /**
  * @file
- * Leaflet map behavior and class extensions.
+ * Leaflet class extensions and backdrop behavior.
  */
 (function ($) {
   'use strict';
+
+  // Zoomswitch method cribbed liberally from:
+  // http://www.makina-corpus.org/blog/leaflet-zoom-switcher
+  L.TileLayerZoomSwitch = L.TileLayer.extend({
+    includes: L.Evented.prototype,
+    options: {
+      // switchZoomUnder: when zoom < switchZoomUnder, then switch to switchLayer
+      switchZoomUnder: -1,
+      // switchZoomAbove: when zoom >= switchZoomAbove, then switch to switchLayer
+      switchZoomAbove: -1,
+      switchLayer: null
+    },
+    setSwitchLayer: function (layer) {
+      this.options.switchLayer = layer;
+    },
+    getSwitchZoomUnder: function () {
+      return this.options.switchZoomUnder;
+    },
+    getSwitchZoomAbove: function () {
+      return this.options.switchZoomAbove;
+    },
+    getSwitchLayer: function () {
+      return this.options.switchLayer;
+    }
+  });
+
+  /**
+   * Obviously not in use here, but keep it for bc.
+   */
+  L.tileLayerZoomSwitch = function (url, options) {
+    return new L.TileLayerZoomSwitch(url, options);
+  };
 
   /**
    * SwitchLayerManager is a custom class for managing base layer automatic
@@ -62,11 +94,10 @@
         }
 
         // load a settings object with all of our map settings
-        // @todo what? settings exist!
         var settings = {
           'fullscreenControl': true,
         };
-        for (var setting in this.map.settings) {
+        for (let setting in this.map.settings) {
           settings[setting] = this.map.settings[setting];
         }
         settings.zoomControl = false; // replaced by L.Control.Zoomslider
@@ -82,7 +113,7 @@
         // add map layers
         var layers = {}, overlays = {};
         var i = 0;
-        for (var key in this.map.layers) {
+        for (let key in this.map.layers) {
           var layer = this.map.layers[key];
           var map_layer = Backdrop.leaflet.create_layer(layer, key);
 
@@ -227,11 +258,13 @@
     }
   };
 
+  /**
+   * Utility functions.
+   */
   Backdrop.leaflet = {
-
     isOldVersion: function () {
-      // Since the lib ships with this module, this check makes no sense.
-      // Keep for bc, just in case.
+      // Since the lib ships with this module, this check is obsolete.
+      // Keep for bc, just in case someone uses it.
       return false;
     },
     leaflet_create_feature: function (feature, lMap) {
@@ -327,7 +360,6 @@
       // Return updated overlays.
       return overlays;
     },
-
     create_layer: function (layer, key) {
       // Use a Zoomswitch Layer extension to enable zoom-switch option.
       var map_layer = new L.TileLayerZoomSwitch(layer.urlTemplate);
@@ -355,7 +387,6 @@
       }
       return map_layer;
     },
-
     create_circle: function(circle, lMap) {
       var latLng = new L.LatLng(circle.lat, circle.lon);
       latLng = latLng.wrap();
@@ -366,14 +397,12 @@
       }
       return new L.Circle(latLng, circle.options);
     },
-
     create_circlemarker: function(circle, lMap) {
       var latLng = new L.LatLng(circle.lat, circle.lon);
       latLng = latLng.wrap();
       lMap.bounds.push(latLng);
       return new L.CircleMarker(latLng, circle.options);
     },
-
     create_rectangle: function(box, lMap) {
       var bounds = box.bounds,
         southWest = new L.LatLng(bounds.s, bounds.w),
@@ -382,7 +411,6 @@
       lMap.bounds.push(latLng);
       return new L.Rectangle(latLng, box.settings);
     },
-
     create_point: function(marker, lMap) {
       var latLng = new L.LatLng(marker.lat, marker.lon);
       latLng = latLng.wrap();
@@ -450,7 +478,6 @@
 
       return lMarker;
     },
-
     create_linestring: function(polyline, lMap) {
       var latlngs = [];
       for (var i = 0; i < polyline.points.length; i++) {
@@ -461,7 +488,6 @@
       }
       return new L.Polyline(latlngs);
     },
-
     create_polygon: function(polygon, lMap) {
       var latlngs = [];
       for (var i = 0; i < polygon.points.length; i++) {
@@ -472,7 +498,6 @@
       }
       return new L.Polygon(latlngs);
     },
-
     create_multipoly: function(multipoly, lMap) {
       var polygons = [];
       for (var x = 0; x < multipoly.component.length; x++) {
@@ -488,7 +513,6 @@
       }
       return multipoly.multipolyline ? new L.Polyline(polygons): new L.Polygon(polygons);
     },
-
     create_json:function(json, lMap) {
       let lJSON = new L.GeoJSON(json, {
         onEachFeature:function (feature, layer) {
@@ -517,7 +541,6 @@
 
       return lJSON;
     },
-
     create_popup: function(popup) {
       var latLng = new L.LatLng(popup.lat, popup.lon);
       this.bounds.push(latLng);
@@ -528,47 +551,10 @@
       }
       return lPopup;
     },
-
-    fitbounds:function (lMap) {
+    fitbounds: function (lMap) {
       if (lMap.bounds.length > 0) {
         lMap.fitBounds(new L.LatLngBounds(lMap.bounds));
       }
     }
   };
-
-  // Zoomswitch method cribbed liberally from:
-  // http://www.makina-corpus.org/blog/leaflet-zoom-switcher
-  L.TileLayerZoomSwitch = L.TileLayer.extend({
-    includes: L.Evented.prototype,
-
-    options: {
-      // switchZoomUnder: when zoom < switchZoomUnder, then switch to switchLayer
-      switchZoomUnder: -1,
-      // switchZoomAbove: when zoom >= switchZoomAbove, then switch to switchLayer
-      switchZoomAbove: -1,
-      switchLayer: null
-    },
-
-    setSwitchLayer: function (layer) {
-      this.options.switchLayer = layer;
-    },
-
-    getSwitchZoomUnder: function () {
-      return this.options.switchZoomUnder;
-    },
-
-    getSwitchZoomAbove: function () {
-      return this.options.switchZoomAbove;
-    },
-
-    getSwitchLayer: function () {
-      return this.options.switchLayer;
-    }
-
-  });
-
-  L.tileLayerZoomSwitch = function (url, options) {
-    return new L.TileLayerZoomSwitch(url, options);
-  };
-
 })(jQuery);
