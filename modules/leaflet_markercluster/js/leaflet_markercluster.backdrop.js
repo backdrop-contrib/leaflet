@@ -20,7 +20,6 @@
     if (typeof L.MarkerClusterGroup !== 'undefined') {
 
       // If we specified a custom cluster icon, use that.
-      // @todo this.map.markercluster_icon?
       if (lMap.markercluster_icon) {
         let icon_settings = lMap.markercluster_icon;
         settings.iconCreateFunction = function(cluster) {
