@@ -6,11 +6,14 @@
   'use strict';
 
   const LEAFLET_MARKERCLUSTER_EXCLUDE_FROM_CLUSTER = 0x01;
-  Backdrop.leaflet.addFeatures = function (lMap, features, overlays, popupMinWidth, settings) {
+  Backdrop.leaflet.addFeatures = function (lMap, features, overlays, popupMinWidth) {
     let len = features.length;
     if (!len) {
       return;
     }
+    // Inherit options from map, as markercluster settings are supposed to get
+    // added the same way. Unrelated (leaflet) options are ignored.
+    let settings = lMap.options;
     // @RdB create marker cluster layers if leaflet.markercluster.js is included
     // There will be one cluster layer for each "clusterGroup".
     let clusterLayers = {};
@@ -20,7 +23,6 @@
       // @todo this.map.markercluster_icon?
       if (lMap.markercluster_icon) {
         let icon_settings = lMap.markercluster_icon;
-        // @todo settings!
         settings.iconCreateFunction = function(cluster) {
           let icon = new L.Icon({iconUrl: icon_settings.iconUrl});
 

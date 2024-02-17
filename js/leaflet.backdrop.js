@@ -162,7 +162,7 @@
         this.map.map_id = this.mapId;
 
         // Add features, update overlays.
-        overlays = Backdrop.leaflet.addFeatures(lMap, this.features, overlays, popupMinWidth, settings);
+        overlays = Backdrop.leaflet.addFeatures(lMap, this.features, overlays, popupMinWidth);
 
         // add layer switcher
         if (this.map.settings.layerControl) {
@@ -318,7 +318,18 @@
 
       return lFeature;
     },
-    // moved there, document params, todo too many params
+    /**
+     * @param object lMap
+     *   Leaflet map.
+     * @param array features
+     *   Array of feature objects.
+     * @param object overlays
+     *   Overlay objects, keyed by name.
+     * @param int popupMinWidth
+     *
+     * @return object
+     *   Updated overlays or original object.
+     */
     addFeatures: function (lMap, features, overlays, popupMinWidth) {
       let len = features.length;
       for (let i = 0; i < len; i++) {
