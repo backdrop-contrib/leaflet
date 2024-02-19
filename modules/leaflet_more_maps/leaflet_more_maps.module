@@ -69,7 +69,7 @@ function leaflet_more_maps_leaflet_map_info_alter(&$map_info) {
 function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_settings = array()) {
   // For most maps, use headless protocol rather than logic based on $is_https.
   $prot = '//';
-  global $is_https;
+  global $is_https, $language;
 
   // As used by most.
   $zxy = '{z}/{x}/{y}.png';
@@ -108,7 +108,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
       ),
       'hybrid layer' => array(
         'type' => 'quad',
-        'urlTemplate' => 'https://t{s}.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{q}?it=A,G,L',
+        'urlTemplate' => 'https://t{s}.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{q}?mkt=' . $language->langcode . '&it=A,G,L',
         'options' => array(
           'maxZoom' => 19,
           'attribution' => $attr_bing,
@@ -498,7 +498,6 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
   }
 
   // Yandex.
-  global $language;
   $attr_yandex = 'Map data &copy; <a target="attr" href="http://maps.yandex.ru">Yandex.Maps</a>';
   $map_info['yandex'] = array(
     'label' => 'Yandex Maps (zoom 0..19)',
