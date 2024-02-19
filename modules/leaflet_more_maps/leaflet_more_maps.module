@@ -91,7 +91,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     'layers' => array(
       'road layer' => array(
         'type' => 'quad',
-        'urlTemplate' => $bing_base . '?it=G,L&cstl=rd&mkt=' . $language->langcode,
+        'urlTemplate' => $bing_base . '?it=G,L&mkt=' . $language->langcode,
         'options' => array(
           'maxZoom' => 19,
           'attribution' => $attr_bing,
