@@ -99,7 +99,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
       ),
       'satellite layer' => array(
         'type' => 'quad',
-        'urlTemplate' => $prot . 'ak.t{s}.tiles.virtualearth.net/tiles/a{q}?g=1236',
+        'urlTemplate' => 'https://t{s}.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{q}?it=A',
         'options' => array(
           'maxZoom' => 19,
           'attribution' => $attr_bing,
@@ -108,7 +108,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
       ),
       'hybrid layer' => array(
         'type' => 'quad',
-        'urlTemplate' => $prot . 'ak.dynamic.t{s}.tiles.virtualearth.net/comp/ch/{q}?it=A,G,L&shading=hill',
+        'urlTemplate' => 'https://t{s}.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{q}?it=A,G,L',
         'options' => array(
           'maxZoom' => 19,
           'attribution' => $attr_bing,
