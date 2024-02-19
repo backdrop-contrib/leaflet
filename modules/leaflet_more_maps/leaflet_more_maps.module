@@ -83,6 +83,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
   // The Bing layers are non-transparent, so are entered as base_layers, which
   // is the leaflet.drupal.js default.
   $attr_bing = 'Tiles <a target="attr" href="http://www.bing.com/maps">Bing</a> &copy; Microsoft and suppliers';
+  $bing_base = 'https://t{s}.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{q}';
   $map_info['bing'] = array(
     'label' => 'Bing road & satellite & hybrid (zoom 1..19)',
     'description' => t('Bing road, satellite and hybrid layers'),
@@ -90,7 +91,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     'layers' => array(
       'road layer' => array(
         'type' => 'quad',
-        'urlTemplate' => $prot . 'ecn.t{s}.tiles.virtualearth.net/tiles/r{q}?g=1236',
+        'urlTemplate' => $bing_base . '?it=G,L&cstl=rd&mkt=' . $language->langcode,
         'options' => array(
           'maxZoom' => 19,
           'attribution' => $attr_bing,
@@ -99,7 +100,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
       ),
       'satellite layer' => array(
         'type' => 'quad',
-        'urlTemplate' => 'https://t{s}.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{q}?it=A',
+        'urlTemplate' => $bing_base . '?it=A',
         'options' => array(
           'maxZoom' => 19,
           'attribution' => $attr_bing,
@@ -108,7 +109,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
       ),
       'hybrid layer' => array(
         'type' => 'quad',
-        'urlTemplate' => 'https://t{s}.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{q}?mkt=' . $language->langcode . '&it=A,G,L',
+        'urlTemplate' => $bing_base . '?it=A,G,L&mkt=' . $language->langcode,
         'options' => array(
           'maxZoom' => 19,
           'attribution' => $attr_bing,
