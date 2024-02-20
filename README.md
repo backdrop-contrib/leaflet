@@ -60,7 +60,7 @@ In the settings of the style, select the geofield as the Data Source and
 select a field for Title and Description (which will be rendered in the popup).
 
 As a more powerful alternative, you can use node view modes to be rendered in
-the popup. In the Description field, select "<entire node>" and then select a View mode.
+the popup. In the Description field, select `<entire node>` and then select a View mode.
 
 For a tutorial, please read this (relatively old) blog post
 https://marzeelabs.org/blog/2012-09-24-building-maps-in-drupal-using-leaflet-views
