@@ -388,30 +388,6 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     ),
   );
 
-  $attr_piste = '<a target="attr" href="http://openpistemap.org">OpenPisteMap</a> ' . $attr_osm;
-  $map_info['osm-piste'] = array(
-    'label' => 'OSM OpenPisteMap (zoom 0..19)',
-    'description' => t('OpenStreetMap for skiers with 3 layers'),
-    'settings' => array('layerControl' => TRUE) + $default_settings,
-    'layers' => array(
-      'base' => array(
-        'urlTemplate' => $prot . "tile.openstreetmap.org/$zxy",
-        'options' => array('attribution' => $attr_piste),
-        'layer_type' => 'base',
-      ),
-      'relief shading' => array(
-        // Or tiles2?
-        'urlTemplate' => $prot . "tiles.openpistemap.org/landshaded/$zxy",
-        'options' => array('attribution' => $attr_piste),
-        'layer_type' => 'overlay',
-      ),
-      'pistes' => array(
-        'urlTemplate' => $prot . "tiles.openpistemap.org/nocontours/$zxy",
-        'options' => array('attribution' => $attr_piste),
-        'layer_type' => 'overlay',
-      ),
-    ),
-  );
   // OpenSeeMap http://openseamap.org
   $attr_ocm = 'OpenSeaMap. ' . $attr_osm;
   $map_info['osm-sea'] = array(
@@ -453,23 +429,6 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
         'urlTemplate' => $prot . "{s}.tile.openweathermap.org/map/pressure_cntr/$zxy",
         'options' => array('attribution' => $attr_owm),
         'layer_type' => 'overlay',
-      ),
-    ),
-  );
-
-  // @see http://geocommons.com
-  $attr_geocommons = 'Tiles by Geocommons &copy; <a target="attr" href="http://geocommons.com/overlays/acetate">Esri & Stamen</a>. ' . $attr_osm;
-  $map_info['geocommons'] = array(
-    'label' => 'Geocommons Acetate (zoom 2..19)',
-    'description' => t('Neutral basemap'),
-    'settings' => array('minZoom' => 2) + $default_settings,
-    'layers' => array(
-      'acetate' => array(
-        'urlTemplate' => $prot . "a{s}.acetate.geoiq.com/tiles/acetate/$zxy",
-        'options' => array(
-          'attribution' => $attr_geocommons,
-          'subdomains' => array(0, 1, 2, 3, 4, 5, 6),
-        ),
       ),
     ),
   );
@@ -524,15 +483,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     'settings' => array('layerControl' => TRUE) + $default_settings,
     'layers' => array(
       'road layer' => array(
-        'urlTemplate' => $prot . 'vec0{s}.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}&lang=' . $language->langcode,
-        'options' => array(
-          'attribution' => $attr_yandex,
-          'subdomains' => array(1, 2, 3, 4),
-          'maxZoom' => 20,
-        ),
-      ),
-      'satellite layer' => array(
-        'urlTemplate' => $prot . 'sat0{s}.maps.yandex.net/tiles?l=sat&x={x}&y={y}&z={z}',
+        'urlTemplate' => 'https://core-renderer-tiles.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}&lang=' . $language->langcode,
         'options' => array(
           'attribution' => $attr_yandex,
           'subdomains' => array(1, 2, 3, 4),
