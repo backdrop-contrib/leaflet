@@ -474,24 +474,42 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     ),
   );
 
-  // Stamen http://maps.stamen.com/
-  $attr_stamen = 'Tiles by <a target="attr" href="http://stamen.com">Stamen Design</a> under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ' . $attr_osm;
-  $stamen_names = array('Toner', 'Toner-Lite', 'Watercolor', 'Terrain');
+  // Stamen now at https://stadiamaps.com/
+  $attr_stamen = '&copy; <a href="https://stadiamaps.com/" target="_blank">Stadia Maps</a>';
+  $attr_stamen .= ' &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> ';
+  $attr_stamen .= ' &copy; <a href="https://stamen.com/" target="_blank">Stamen Design</a> ';
+  $attr_stamen .= $attr_osm;
+  $stamen_types = array(
+    'stamen-toner' => 'Toner',
+    'stamen-toner-lite' => 'Toner-Lite',
+    'stamen-watercolor' => 'Watercolor',
+    'stamen-terrain' => 'Terrain',
+  );
 
-  foreach ($stamen_names as $stamen_name) {
-    $code = backdrop_strtolower($stamen_name);
-    $max_zoom = ($code == 'terrain' || $code == 'watercolor') ? 17 : 18;
-    $label = t('Stamen @name (zoom 0..@zoom)', array(
+  foreach ($stamen_types as $info_key => $stamen_name) {
+    $key = str_replace('-', '_', $info_key);
+    $max_zoom = 20;
+    $ext = '{r}.png';// {r} for retina.
+    $retina = TRUE;
+    if ($key == 'stamen_watercolor') {
+      $max_zoom = 15;
+      $ext = '.jpg';
+      $retina = FALSE;
+    }
+    $label = t('Stamen @name (zoom 0..@zoom) (requires auth)', array(
       '@name' => $stamen_name,
       '@zoom' => $max_zoom,
     ));
-    $url_template = $prot . "stamen-tiles-{s}.a.ssl.fastly.net/$code/$zxy";
-    $map_info["stamen-$code"] = array(
+    $stamen_settings = array(
+      'maxZoom' => $max_zoom,
+      'detectRetina' => $retina,
+    );
+    $map_info[$info_key] = array(
       'label' => $label,
-      'settings' => array('maxZoom' => $max_zoom) + $default_settings,
+      'settings' => $stamen_settings + $default_settings,
       'layers' => array(
         'layer' => array(
-          'urlTemplate' => $url_template,
+          'urlTemplate' => "https://tiles.stadiamaps.com/tiles/$key/{z}/{x}/{y}$ext",
           'options' => array('attribution' => $attr_stamen),
         ),
       ),
