@@ -122,8 +122,6 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
   // Esri http://esri.com
   $attr_esri = 'Tiles &copy; <a target="attr" href="http://esri.com">Esri</a>';
   $esri_names = array(
-    // North America only, zoom 0..16.
-    'Specialty/Soil Survey Map',
     // Parts of the world, zoom 0..10.
     'Specialty/World Navigation Charts',
     // Zoom 0..17.
@@ -133,7 +131,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     // Zoom 0..8.
     'World Physical Map',
     // Zoom 0..10.
-    'Ocean BaseMap',
+    'Ocean/World Ocean Base',
     'Reference/World Transportation',
     'World Topo Map',
     'World Street Map',
