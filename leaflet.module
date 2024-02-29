@@ -242,7 +242,7 @@ function leaflet_leaflet_map_info() {
         // The "zoomDefault" is only used when no features are present.
         'zoomDefault' => 10,
         'minZoom' => 0,
-        'maxZoom' => 18,
+        'maxZoom' => 19,
         'dragging' => TRUE,
         'touchZoom' => TRUE,
         'scrollWheelZoom' => TRUE,
@@ -259,6 +259,7 @@ function leaflet_leaflet_map_info() {
           'urlTemplate' => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           'options' => array(
             'attribution' => '<a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap </a> contributors',
+            'maxZoom' => 19,
           ),
         ),
       ),
