@@ -372,8 +372,16 @@
       return overlays;
     },
     create_layer: function (layer, key) {
-      // Use a Zoomswitch Layer extension to enable zoom-switch option.
-      var map_layer = new L.TileLayerZoomSwitch(layer.urlTemplate);
+      // WMS layer
+      if (layer.type == 'wms') {
+        // layer.options.layers is required by leaflet
+        var map_layer = new L.tileLayer.wms(layer.urlTemplate, layer.options);
+      }
+      // Other Layer Types
+      else {
+        // Use a Zoomswitch Layer extension to enable zoom-switch option.
+        var map_layer = new L.TileLayerZoomSwitch(layer.urlTemplate);
+      }
       map_layer._leaflet_id = key;
 
       if (layer.options) {
