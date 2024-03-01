@@ -128,7 +128,8 @@
           // if we have map controls enabled
           switch (layer.layer_type) {
             case 'overlay':
-              // don't activate overlays initially ??? // lMap.addLayer(map_layer);
+              //Enable overlay layers if enabled is set to true
+              if (layer.enabled) lMap.addLayer(map_layer);
               overlays[key] = map_layer;
               break;
             default:
