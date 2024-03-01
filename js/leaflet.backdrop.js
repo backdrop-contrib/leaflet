@@ -117,8 +117,6 @@
           var layer = this.map.layers[key];
           var map_layer = Backdrop.leaflet.create_layer(layer, key);
 
-          layers[key] = map_layer;
-
           // keep the reference of first layer
           // Distinguish between "base layers" and "overlays", fallback to "base"
           // in case "layer_type" has not been defined in hook_leaflet_map_info()
