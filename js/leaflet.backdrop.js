@@ -129,7 +129,9 @@
           switch (layer.layer_type) {
             case 'overlay':
               //Enable overlay layers if enabled is set to true
-              if (layer.enabled) lMap.addLayer(map_layer);
+              if (layer.enabled) {
+                lMap.addLayer(map_layer);
+              }
               overlays[key] = map_layer;
               break;
             default:
@@ -372,15 +374,14 @@
       return overlays;
     },
     create_layer: function (layer, key) {
-      // WMS layer
-      if (layer.type == 'wms') {
-        // layer.options.layers is required by leaflet
-        var map_layer = new L.tileLayer.wms(layer.urlTemplate, layer.options);
+      let map_layer;
+      if (layer.type === 'wms') {
+        // WMS layers require options.
+        map_layer = new L.tileLayer.wms(layer.urlTemplate, layer.options);
       }
-      // Other Layer Types
       else {
         // Use a Zoomswitch Layer extension to enable zoom-switch option.
-        var map_layer = new L.TileLayerZoomSwitch(layer.urlTemplate);
+        map_layer = new L.TileLayerZoomSwitch(layer.urlTemplate);
       }
       map_layer._leaflet_id = key;
 
