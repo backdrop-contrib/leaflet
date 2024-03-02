@@ -117,8 +117,6 @@
           var layer = this.map.layers[key];
           var map_layer = Backdrop.leaflet.create_layer(layer, key);
 
-          layers[key] = map_layer;
-
           // keep the reference of first layer
           // Distinguish between "base layers" and "overlays", fallback to "base"
           // in case "layer_type" has not been defined in hook_leaflet_map_info()
@@ -130,7 +128,8 @@
           // if we have map controls enabled
           switch (layer.layer_type) {
             case 'overlay':
-              // don't activate overlays initially ??? // lMap.addLayer(map_layer);
+              //Enable overlay layers if enabled is set to true
+              if (layer.enabled) lMap.addLayer(map_layer);
               overlays[key] = map_layer;
               break;
             default:
@@ -373,8 +372,16 @@
       return overlays;
     },
     create_layer: function (layer, key) {
-      // Use a Zoomswitch Layer extension to enable zoom-switch option.
-      var map_layer = new L.TileLayerZoomSwitch(layer.urlTemplate);
+      // WMS layer
+      if (layer.type == 'wms') {
+        // layer.options.layers is required by leaflet
+        var map_layer = new L.tileLayer.wms(layer.urlTemplate, layer.options);
+      }
+      // Other Layer Types
+      else {
+        // Use a Zoomswitch Layer extension to enable zoom-switch option.
+        var map_layer = new L.TileLayerZoomSwitch(layer.urlTemplate);
+      }
       map_layer._leaflet_id = key;
 
       if (layer.options) {
