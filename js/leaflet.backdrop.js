@@ -2,6 +2,8 @@
  * @file
  * Leaflet class extensions and backdrop behavior.
  */
+var mapcounter = 0;
+
 (function ($) {
   'use strict';
 
@@ -81,11 +83,15 @@
     attach:function (context, backdropSettings) {
 
       $(backdropSettings.leaflet).each(function () {
+        console.log(this.mapId); // This shows in some cases duplicated mapIds
         // skip to the next iteration if the map already exists
         var container = L.DomUtil.get(this.mapId);
         if (!container || container._leaflet) {
           return;
         }
+        // this fixes the Uncaught Error: Map container is already initialized.
+        if (mapcounter > 0) return;
+        mapcounter = mapcounter + 1;
 
         // New setting - defensive handling.
         var popupMinWidth = 50;
