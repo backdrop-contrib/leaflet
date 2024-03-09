@@ -83,7 +83,7 @@
       $(backdropSettings.leaflet).each(function () {
         // skip to the next iteration if the map already exists
         var container = L.DomUtil.get(this.mapId);
-        if (!container || container._leaflet) {
+        if (!container || container._leaflet_id || container._leaflet) {
           return;
         }
 
