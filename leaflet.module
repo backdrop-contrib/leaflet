@@ -110,7 +110,10 @@ function leaflet_library_info() {
  *   A renderable array.
  */
 function leaflet_build_map(array $map, array $features = array(), $height = '400px') {
-  $map_id = backdrop_html_id('leaflet_map');
+  // Function backdrop_html_id() is unreliable when creating unique IDs.
+  // We attach a pseudo random number instead to make multiple maps on a page
+  // work properly with maps in blocks.
+  $map_id = 'leaflet-map-' . rand();
   $build = array(
     '#theme' => 'head_tag',
     '#tag' => 'div',
