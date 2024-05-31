@@ -67,3 +67,9 @@
     mix-blend-mode: plus-lighter;
   }
 }
+/**
+ * Push admin bar above leaflet control containers.
+ */
+#admin-bar {
+  z-index: 1000;
+}
