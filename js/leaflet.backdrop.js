@@ -174,7 +174,10 @@
           lMap.addControl(new L.control.scale({imperial: false}));
 
         // add Zoomslider control //+
-          lMap.addControl(new L.Control.Zoomslider());
+        let zoomsliderControl = new L.Control.Zoomslider();
+        lMap.addControl(zoomsliderControl);
+        // Expose this control via lMap.
+        lMap.zoomsliderControl = zoomsliderControl;
 
         // Small box with lat/lon coordinates of mouse click event on map.
         var c = new L.Control.Coordinates({
@@ -182,6 +185,8 @@
           precision: 5
         });
         c.addTo(lMap);
+        // Expose this control via lMap.
+        lMap.controlCoordinates = c;
         lMap.on('click', function(e) {
           c.setCoordinates(e);
           // Hide the coordinates box again after 4 seconds.
@@ -203,6 +208,8 @@
           vcZoom: zoom
         });
         lMap.addControl(viewCenter);
+        // Expose this control via lMap.
+        lMap.viewcenterControl = viewCenter;
 
         // center the map
         if (this.map.center && (this.map.center.force || this.features.length === 0)) {
