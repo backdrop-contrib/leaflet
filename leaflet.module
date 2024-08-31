@@ -136,6 +136,13 @@ function leaflet_build_map(array $map, array $features = array(), $height = '400
   $settings = array(
     'mapId' => $map_id,
     'map' => $map,
+    'mapControls' => array(
+      'ControlFullscreen' => TRUE,
+      'ControlScale' => TRUE,
+      'ControlZoomslider' => TRUE,
+      'ControlCoordinates' => TRUE,
+      'ControlViewCenter' => TRUE,
+    ),
     'features' => $features,
   );
   backdrop_alter('leaflet_map_prebuild', $settings);
