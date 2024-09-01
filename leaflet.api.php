@@ -93,7 +93,7 @@ function hook_leaflet_map_prebuild_alter(array &$settings) {
   $settings['mapId'] = 'my-map-id';
   $settings['features']['icon'] = 'my-icon-url';
 
-  // Remove all controls. Available for all controls besided (dynamic) layer
+  // Remove all controls. Available for all controls besides (dynamic) layer
   // switcher or attribution.
   $settings['mapControls']['ControlFullscreen'] = FALSE;
   $settings['mapControls']['ControlScale'] = FALSE;
