@@ -93,7 +93,8 @@
           popupMinWidth = this.map.popupMinWidth;
         }
 
-        let controls = this.mapControls;
+        // Defensive coding: mapControls is only set if leaflet_build_map() ran.
+        let controls = (this.mapControls) ? this.mapControls : {};
         let settings = {};
         if (controls.ControlFullscreen) {
           settings.fullscreenControl = true;
