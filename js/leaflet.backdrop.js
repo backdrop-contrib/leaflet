@@ -93,7 +93,8 @@
           popupMinWidth = this.map.popupMinWidth;
         }
 
-        // Defensive coding: mapControls is only set if leaflet_build_map() ran.
+        // Defensive coding: mapControls gets set in leaflet_build_map(), but
+        // might be missing in edge cases.
         let controls = (this.mapControls) ? this.mapControls : {};
         let settings = {};
         if (controls.ControlFullscreen) {
