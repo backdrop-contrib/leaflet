@@ -5,7 +5,7 @@
  */
 
 /**
- * Define one or map definitions to be used when rendering a map.
+ * Add map definitions to be used when rendering a map.
  *
  * leaflet_map_get_info() will grab every defined map, and the returned
  * associative array is then passed to leaflet_render_map(), along with a
@@ -76,6 +76,20 @@ function hook_leaflet_map_info() {
       // @endcode
     ),
   );
+}
+
+/**
+ * Implements hook_leaflet_map_info_alter().
+ *
+ * @param array $map_info
+ *   An array of map definitions, filtered for the ones available on the
+ *   current page.
+ *
+ * @see hook_leaflet_map_info()
+ * @see leaflet_map_get_info()
+ */
+function hook_leaflet_map_info_alter(array &$map_info) {
+  // Alter the map defined by another module in its hook_leaflet_map_info().
 }
 
 /**
