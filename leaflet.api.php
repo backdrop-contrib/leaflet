@@ -5,7 +5,7 @@
  */
 
 /**
- * Define one or map definitions to be used when rendering a map.
+ * Add map definitions to be used when rendering a map.
  *
  * leaflet_map_get_info() will grab every defined map, and the returned
  * associative array is then passed to leaflet_render_map(), along with a
@@ -79,6 +79,20 @@ function hook_leaflet_map_info() {
 }
 
 /**
+ * Alter the map defined by another module in its hook_leaflet_map_info().
+ *
+ * @param array $map_info
+ *   An array of map definitions, filtered for the ones available on the
+ *   current page.
+ *
+ * @see hook_leaflet_map_info()
+ * @see leaflet_map_get_info()
+ */
+function hook_leaflet_map_info_alter(array &$map_info) {
+  // See examples for available data above in hook_leaflet_map_info().
+}
+
+/**
  * Alters the js settings passed to the leaflet map.
  *
  * This hook is called when the leaflet map is being rendered and attaching the
@@ -104,4 +118,66 @@ function hook_leaflet_map_prebuild_alter(array &$settings) {
   // Also turn off default zoom buttons, which would appear, as the Zoomslider
   // has been turned off above.
   $settings['map']['settings']['zoomControl'] = FALSE;
+}
+
+/**
+ * Alter the build array before it is rendered.
+ *
+ * @param array $build
+ *   Complete build array for this map.
+ *
+ * @see leaflet_build_map()
+ */
+function hook_leaflet_build_map_alter(array &$build) {
+  // Attach additional Javascript to maps.
+  $path = backdrop_get_path('module', 'my_module') . '/js/my-module.js';
+  $build['#attached']['js'][] = array(
+    'data' => $path,
+    'type' => 'file',
+    // Make sure this loads before leaflet.backdrop.js, so the event listener is
+    // ready, when the event is dispatched.
+    'group' => JS_LIBRARY,
+    'weight' => -1,
+  );
+
+  // File my-module.js:
+  /*
+  // @code
+  (function($) {
+    "use strict";
+
+    Backdrop.behaviors.myModule = {
+      attach: function (context, settings) {
+        // Add listener to custom leaflet event.
+        // This event is fired, as soon as the map is created.
+        $(document).on('leaflet.map', function (event, map, lMap) {
+          // Do whatever you need with the lMap...
+        });
+      }
+    };
+  })(jQuery);
+  // @endcode
+  */
+}
+
+/**
+ * Customize the settings of a map.
+ *
+ * @param array $map
+ *   Map info as defined in hook_leaflet_map_info().
+ * @param array $features
+ *   Array of map items, like points or polygons.
+ * @param array $settings
+ *   Field instance settings from field admin form.
+ * @param array $entity_wrapper
+ *   Array containing entity_type and the entity (e.g. the node object).
+ *
+ * @see leaflet_field_formatter_view()
+ */
+function hook_leaflet_map_settings_alter(array $map, array $features, array &$settings, array $entity_wrapper) {
+  global $user;
+  if ($entity_wrapper['entity']->type == 'mytype' && !$user->uid) {
+    // Special customization per node type for anonymous only.
+    $settings['zoom']['maxZoom'] = 12;
+  }
 }
