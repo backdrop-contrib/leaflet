@@ -179,12 +179,16 @@
         // add scale control //+
         if (controls.ControlScale) {
           // @todo Evaluate options for dynamic options (imperial).
-          lMap.addControl(new L.control.scale({imperial: false}));
+          let scaleControl = new L.control.scale({imperial: false});
+          lMap.scaleControl = scaleControl;
+          lMap.addControl(scaleControl);
         }
 
         // add Zoomslider control //+
         if (controls.ControlZoomslider) {
-          lMap.addControl(new L.Control.Zoomslider());
+          let zoomsliderControl = new L.Control.Zoomslider();
+          lMap.zoomsliderControl = zoomsliderControl;
+          lMap.addControl(zoomsliderControl);
         }
 
         // Small box with lat/lon coordinates of mouse click event on map.
@@ -193,6 +197,7 @@
             promptText: Backdrop.t('Press Ctrl+C to copy coordinates'),
             precision: 5
           });
+          lMap.coordinatesControl = c;
           c.addTo(lMap);
           lMap.on('click', function(e) {
             c.setCoordinates(e);
@@ -217,6 +222,7 @@
         });
         // @todo viewCenter is in use further down. Might need restructuring.
         if (controls.ControlViewCenter) {
+          lMap.viewCenterControl = viewCenter;
           lMap.addControl(viewCenter);
         }
 
