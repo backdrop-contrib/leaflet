@@ -161,14 +161,14 @@ function hook_leaflet_build_map_alter(array &$build) {
 }
 
 /**
- * Customize the JavaScript settings of a map beyond admin form options.
+ * Customize the settings of a map.
  *
  * @param array $map
  *   Map info as defined in hook_leaflet_map_info().
  * @param array $features
  *   Array of map items, like points or polygons.
  * @param array $settings
- *   Settings as defined in the field admin form.
+ *   Field instance settings from field admin form.
  * @param array $entity_wrapper
  *   Array containing entity_type and the entity (e.g. the node object).
  *
