@@ -93,14 +93,20 @@
           popupMinWidth = this.map.popupMinWidth;
         }
 
+        // Defensive coding: mapControls gets set in leaflet_build_map(), but
+        // might be missing in edge cases.
+        let controls = (this.mapControls) ? this.mapControls : {};
+        let settings = {};
+        if (controls.ControlFullscreen) {
+          settings.fullscreenControl = true;
+        }
         // load a settings object with all of our map settings
-        var settings = {
-          'fullscreenControl': true,
-        };
         for (let setting in this.map.settings) {
           settings[setting] = this.map.settings[setting];
         }
-        settings.zoomControl = false; // replaced by L.Control.Zoomslider
+        if (controls.ControlZoomslider) {
+          settings.zoomControl = false; // replaced by L.Control.Zoomslider
+        }
 
         // Workaround for Safari bug.
         // @see https://github.com/backdrop-contrib/leaflet/issues/17
@@ -171,27 +177,39 @@
         }
 
         // add scale control //+
-          lMap.addControl(new L.control.scale({imperial: false}));
+        if (controls.ControlScale) {
+          // @todo Evaluate options for dynamic options (imperial).
+          let scaleControl = new L.control.scale({imperial: false});
+          lMap.scaleControl = scaleControl;
+          lMap.addControl(scaleControl);
+        }
 
         // add Zoomslider control //+
-          lMap.addControl(new L.Control.Zoomslider());
+        if (controls.ControlZoomslider) {
+          let zoomsliderControl = new L.Control.Zoomslider();
+          lMap.zoomsliderControl = zoomsliderControl;
+          lMap.addControl(zoomsliderControl);
+        }
 
         // Small box with lat/lon coordinates of mouse click event on map.
-        var c = new L.Control.Coordinates({
-          promptText: Backdrop.t('Press Ctrl+C to copy coordinates'),
-          precision: 5
-        });
-        c.addTo(lMap);
-        lMap.on('click', function(e) {
-          c.setCoordinates(e);
-          // Hide the coordinates box again after 4 seconds.
-          if (typeof this.hideTimer !== 'undefined') {
-            clearTimeout(this.hideTimer);
-          }
-          this.hideTimer = window.setTimeout(function() {
-            c._container.classList.add('hidden');
-          }, 4000);
-        });
+        if (controls.ControlCoordinates) {
+          let c = new L.Control.Coordinates({
+            promptText: Backdrop.t('Press Ctrl+C to copy coordinates'),
+            precision: 5
+          });
+          lMap.coordinatesControl = c;
+          c.addTo(lMap);
+          lMap.on('click', function(e) {
+            c.setCoordinates(e);
+            // Hide the coordinates box again after 4 seconds.
+            if (typeof this.hideTimer !== 'undefined') {
+              clearTimeout(this.hideTimer);
+            }
+            this.hideTimer = window.setTimeout(function() {
+              c._container.classList.add('hidden');
+            }, 4000);
+          });
+        }
 
         let zoom = this.map.settings.zoom ? this.map.settings.zoom : this.map.settings.zoomDefault;
         // Init ViewCenter plugin with some defaults.
@@ -202,7 +220,11 @@
           vcLatLng: [0, 0],
           vcZoom: zoom
         });
-        lMap.addControl(viewCenter);
+        // @todo viewCenter is in use further down. Might need restructuring.
+        if (controls.ControlViewCenter) {
+          lMap.viewCenterControl = viewCenter;
+          lMap.addControl(viewCenter);
+        }
 
         // center the map
         if (this.map.center && (this.map.center.force || this.features.length === 0)) {

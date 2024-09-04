@@ -87,10 +87,21 @@ function hook_leaflet_map_info() {
  * @param array $settings
  *   A javascript settings array used for building the leaflet map.
  *
- * @see leaflet_map_get_info()
- * @see hook_leaflet_map_info()
+ * @see leaflet_build_map()
  */
 function hook_leaflet_map_prebuild_alter(array &$settings) {
   $settings['mapId'] = 'my-map-id';
   $settings['features']['icon'] = 'my-icon-url';
+
+  // Remove all controls. Available for all controls besides (dynamic) layer
+  // switcher or attribution.
+  $settings['mapControls']['ControlFullscreen'] = FALSE;
+  $settings['mapControls']['ControlScale'] = FALSE;
+  $settings['mapControls']['ControlZoomslider'] = FALSE;
+  $settings['mapControls']['ControlCoordinates'] = FALSE;
+  $settings['mapControls']['ControlViewCenter'] = FALSE;
+
+  // Also turn off default zoom buttons, which would appear, as the Zoomslider
+  // has been turned off above.
+  $settings['map']['settings']['zoomControl'] = FALSE;
 }
