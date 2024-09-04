@@ -79,7 +79,7 @@ function hook_leaflet_map_info() {
 }
 
 /**
- * Implements hook_leaflet_map_info_alter().
+ * Alter the map defined by another module in its hook_leaflet_map_info().
  *
  * @param array $map_info
  *   An array of map definitions, filtered for the ones available on the
@@ -89,7 +89,7 @@ function hook_leaflet_map_info() {
  * @see leaflet_map_get_info()
  */
 function hook_leaflet_map_info_alter(array &$map_info) {
-  // Alter the map defined by another module in its hook_leaflet_map_info().
+  // See examples for available data above in hook_leaflet_map_info().
 }
 
 /**
@@ -121,10 +121,10 @@ function hook_leaflet_map_prebuild_alter(array &$settings) {
 }
 
 /**
- * Implements hook_leaflet_build_map_alter().
+ * Alter the build array before it is rendered.
  *
  * @param array $build
- *   Complete renderable build array for this map.
+ *   Complete build array for this map.
  *
  * @see leaflet_build_map()
  */
@@ -161,7 +161,7 @@ function hook_leaflet_build_map_alter(array &$build) {
 }
 
 /**
- * Implements hook_leaflet_map_settings_alter().
+ * Customize the JavaScript settings of a map beyond admin form options.
  *
  * @param array $map
  *   Map info as defined in hook_leaflet_map_info().
@@ -170,7 +170,7 @@ function hook_leaflet_build_map_alter(array &$build) {
  * @param array $settings
  *   Settings as defined in the field admin form.
  * @param array $entity_wrapper
- *   Array containing entity_type and the entity (like the node object).
+ *   Array containing entity_type and the entity (e.g. the node object).
  *
  * @see leaflet_field_formatter_view()
  */
