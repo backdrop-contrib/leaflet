@@ -105,3 +105,64 @@ function hook_leaflet_map_prebuild_alter(array &$settings) {
   // has been turned off above.
   $settings['map']['settings']['zoomControl'] = FALSE;
 }
+
+/**
+ * Implements hook_leaflet_build_map_alter().
+ *
+ * @param array $build
+ *   Complete renderable build array for this map.
+ *
+ * @see leaflet_build_map()
+ */
+function hook_leaflet_build_map_alter(array &$build) {
+  // Attach additional Javascript to maps.
+  $path = backdrop_get_path('module', 'my_module') . '/js/my-module.js';
+  $build['#attached']['js'][] = array(
+    'data' => $path,
+    'type' => 'file',
+    // Make sure this loads before leaflet.backdrop.js.
+    'group' => JS_LIBRARY,
+    'weight' => -1,
+  );
+
+  // File my-module.js:
+  /*
+  // @code
+  (function($) {
+    "use strict";
+
+    Backdrop.behaviors.myModule = {
+      attach: function (context, settings) {
+        // Add listener to custom leaflet event.
+        // This event is fired, as soon as the map is created.
+        $(document).on('leaflet.map', function (event, map, lMap) {
+          // Do whatever you need with the lMap...
+        });
+      }
+    };
+  })(jQuery);
+  // @endcode
+  */
+}
+
+/**
+ * Implements hook_leaflet_map_settings_alter().
+ *
+ * @param array $map
+ *   Map info as defined in hook_leaflet_map_info().
+ * @param array $features
+ *   Array of map items, like points or polygons.
+ * @param array $settings
+ *   Settings as defined in the field admin form.
+ * @param array $entity_wrapper
+ *   Array containing entity_type and the entity (like the node object).
+ *
+ * @see leaflet_field_formatter_view()
+ */
+function hook_leaflet_map_settings_alter(array $map, array $features, array &$settings, array $entity_wrapper) {
+  global $user;
+  if ($entity_wrapper['entity']->type == 'mytype' && !$user->uid) {
+    // Special customization per node type for anonymous only.
+    $settings['zoom']['maxZoom'] = 12;
+  }
+}
