@@ -134,7 +134,8 @@ function hook_leaflet_build_map_alter(array &$build) {
   $build['#attached']['js'][] = array(
     'data' => $path,
     'type' => 'file',
-    // Make sure this loads before leaflet.backdrop.js.
+    // Make sure this loads before leaflet.backdrop.js, so the event listener is
+    // ready, when the event is dispatched.
     'group' => JS_LIBRARY,
     'weight' => -1,
   );
