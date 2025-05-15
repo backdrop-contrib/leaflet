@@ -195,6 +195,7 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
     }
   }
 
+  // Google maps
   $attr_google = 'Map data &copy; <a target="attr" href="http://googlemaps.com">Google</a>';
   $v = config_get('leaflet_more_maps.settings', 'google_satellite_version');
   $map_info['google-satellite'] = array(
@@ -224,6 +225,24 @@ function _leaflet_more_maps_assemble_default_map_info(&$map_info, $default_setti
           'subdomains' => array(0, 1, 2, 3),
         ),
         'layer_type' => 'overlay',
+      ),
+    ),
+  );
+  $map_info['google-hybrid'] = array(
+    'label' => 'Google hybrid (zoom 0..21)',
+    'description' => t('Google hybrid'),
+    'settings' => array('layerControl' => FALSE, 'maxZoom' => 21) + $default_settings,
+    'layers' => array(
+      'layer' => array(
+        'type' => 'google',
+        'urlTemplate' => $prot . 'mt{s}.googleapis.com/vt?lyrs=s,h&x={x}&y={y}&z={z}',
+        'options' => array(
+          'attribution' => $attr_google,
+          'detectRetina' => TRUE,
+          'maxZoom' => 21,
+          'className' => 'type-google',
+          'subdomains' => array(0, 1, 2, 3),
+        ),
       ),
     ),
   );
