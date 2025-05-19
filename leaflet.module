@@ -29,7 +29,7 @@ function leaflet_library_info() {
 
   $libraries['leaflet'] = array(
     'title' => t('Leaflet JavaScript Library'),
-    'version' => '1.9.4',
+    'version' => '2.0.0-alpha',
     'website' => 'https://leafletjs.com/',
     'js' => array(
       // This setting is needed in order to properly render market images.
@@ -38,10 +38,20 @@ function leaflet_library_info() {
         'data' => 'L_ROOT_URL = "' . base_path() . $library_path . '";',
         'group' => JS_LIBRARY,
       ),
-      $library_path . 'leaflet.js' => array(
+      $library_path . 'leaflet-global.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
+      // @see https://github.com/Falke-Design/Leaflet-V1-polyfill
+      $module_path . '/libraries/Leaflet-V1-polyfill/leaflet-v1-polyfill.js' => array(
+        'type' => 'file',
+        'group' => JS_LIBRARY,
+      ),
+      $module_path . '/js/leaflet.backdrop-polyfills.js' => array(
+        'type' => 'file',
+        'group' => JS_LIBRARY,
+      ),
+      // Other 3rd party plugins.
       $plugins_path . 'Leaflet.fullscreen.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
