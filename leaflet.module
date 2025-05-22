@@ -24,28 +24,48 @@ function leaflet_theme($existing, $type, $theme, $path) {
  */
 function leaflet_library_info() {
   $module_path = backdrop_get_path('module', 'leaflet');
-  $library_path = $module_path . '/libraries/leaflet/';
+  $library_path = $module_path . '/libraries/';
   $plugins_path = $module_path . '/libraries/leaflet_plugins/';
 
-  $libraries['leaflet'] = array(
+  // Vanilla Leaflet, no 3rd party plugins besides polyfill.
+  $libraries['leaflet.global'] = array(
     'title' => t('Leaflet JavaScript Library'),
     'version' => '2.0-dev',
     'website' => 'https://leafletjs.com/',
     'js' => array(
-      $library_path . 'leaflet-global.js' => array(
+      $library_path . 'leaflet/leaflet-global.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
+      // Polyfill - loaded, but not active by default.
       // @see https://github.com/Falke-Design/Leaflet-V1-polyfill
-      $module_path . '/libraries/Leaflet-V1-polyfill/leaflet-v1-polyfill.js' => array(
+      $library_path . 'Leaflet-V1-polyfill/leaflet-v1-polyfill.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
+    ),
+    'css' => array(
+      $library_path . 'leaflet/leaflet.css' => array(
+        'type' => 'file',
+        'media' => 'all',
+      ),
+    ),
+  );
+
+  // As of Leaflet integration v2, this has been moved to its own library, but
+  // keeps the old name for backwards compatibility.
+  $info = system_get_info('module', 'leaflet');
+  $libraries['leaflet'] = array(
+    'title' => t('Leaflet Backdrop integration'),
+    'version' => isset($info['version']) ? $info['version'] : 'dev',
+    'dependencies' => array(array('leaflet', 'leaflet.global')),
+    'js' => array(
+      // Activate the polyfills we need for plugins.
       $module_path . '/js/leaflet.backdrop-polyfills.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
       ),
-      // Other 3rd party plugins.
+      // 3rd party plugins.
       $plugins_path . 'Leaflet.fullscreen.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
@@ -69,10 +89,6 @@ function leaflet_library_info() {
       ),
     ),
     'css' => array(
-      $library_path . 'leaflet.css' => array(
-        'type' => 'file',
-        'media' => 'all',
-      ),
       $plugins_path . 'leaflet.fullscreen.css' => array(
         'type' => 'file',
         'media' => 'all',
