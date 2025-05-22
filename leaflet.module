@@ -270,7 +270,6 @@ function leaflet_leaflet_map_info() {
         'minZoom' => 0,
         'maxZoom' => 19,
         'dragging' => TRUE,
-        'touchZoom' => TRUE,
         'scrollWheelZoom' => TRUE,
         'doubleClickZoom' => TRUE,
         'zoomControl' => TRUE,

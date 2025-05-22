@@ -27,7 +27,6 @@ function hook_leaflet_map_info() {
       'description' => t('Leaflet default map.'),
       'settings' => array(
         'dragging' => TRUE,
-        'touchZoom' => TRUE,
         'scrollWheelZoom' => TRUE,
         'doubleClickZoom' => TRUE,
         'zoomControl' => TRUE,

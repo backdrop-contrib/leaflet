@@ -22,7 +22,6 @@ function leaflet_more_maps_default_settings() {
     'maxZoom'            => 19,
     'minZoom'            => 0,
     'scrollWheelZoom'    => TRUE,
-    'touchZoom'          => TRUE,
     'trackResize'        => TRUE,
     // Don't specify, if you want to use Auto-box.
     // @codingStandardsIgnoreLine
