@@ -32,12 +32,6 @@ function leaflet_library_info() {
     'version' => '2.0-dev',
     'website' => 'https://leafletjs.com/',
     'js' => array(
-      // This setting is needed in order to properly render market images.
-      'leaflet_root_url' => array(
-        'type' => 'inline',
-        'data' => 'L_ROOT_URL = "' . base_path() . $library_path . '";',
-        'group' => JS_LIBRARY,
-      ),
       $library_path . 'leaflet-global.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
@@ -67,11 +61,6 @@ function leaflet_library_info() {
       $plugins_path . 'leaflet.viewcenter.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
-      ),
-      // For AdvAgg module. See [#2294639] This runs after leaflet.js.
-      'leaflet_imagepath' => array(
-        'type' => 'inline',
-        'data' => 'L.Icon.Default.imagePath = "' . base_path() . $library_path . 'images/";',
       ),
       // Load integration file AFTER libraries.
       $module_path . '/js/leaflet.backdrop.js' => array(
