@@ -1,5 +1,5 @@
 /* @preserve
- * Leaflet 2.0.0-alpha+main.a01d0a9, a JS library for interactive maps. https://leafletjs.com
+ * Leaflet 2.0.0-alpha+main.d5bd661, a JS library for interactive maps. https://leafletjs.com
  * (c) 2010-2025 Volodymyr Agafonkin, (c) 2010-2011 CloudMade
  */
 
@@ -1444,7 +1444,7 @@
 		}
 
 		// @method distanceTo(otherLatLng: LatLng): Number
-		// Returns the distance (in meters) to the given `LatLng` calculated using the [Spherical Law of Cosines](https://en.wikipedia.org/wiki/Spherical_law_of_cosines).
+		// Returns the distance (in meters) to the given `LatLng` calculated using the [Haversine formula](https://en.wikipedia.org/wiki/Haversine_formula).
 		distanceTo(other) {
 			return Earth.distance(this, new LatLng(other));
 		}
@@ -1633,7 +1633,7 @@
 		// see https://rosettacode.org/wiki/Haversine_formula
 		static R = 6371000;
 
-		// distance between two geographical points using spherical law of cosines approximation
+		// distance between two geographical points using Haversine approximation
 		static distance(latlng1, latlng2) {
 			const rad = Math.PI / 180,
 			lat1 = latlng1.lat * rad,
@@ -1987,9 +1987,7 @@
 		const el = document.createElement(tagName);
 		el.className = className ?? '';
 
-		if (container) {
-			container.appendChild(el);
-		}
+		container?.appendChild(el);
 		return el;
 	}
 
@@ -3259,6 +3257,9 @@
 			onError = this._handleGeolocationError.bind(this);
 
 			if (options.watch) {
+				if (this._locationWatchId !== undefined) {
+					navigator.geolocation.clearWatch(this._locationWatchId);
+				}
 				this._locationWatchId =
 				        navigator.geolocation.watchPosition(onResponse, onError, options);
 			} else {
@@ -3876,9 +3877,7 @@
 
 		_stop() {
 			cancelAnimationFrame(this._flyToFrame);
-			if (this._panAnim) {
-				this._panAnim.stop();
-			}
+			this._panAnim?.stop();
 			return this;
 		},
 
@@ -4076,8 +4075,8 @@
 		},
 
 		_draggableMoved(obj) {
-			obj = obj.dragging && obj.dragging.enabled() ? obj : this;
-			return (obj.dragging && obj.dragging.moved()) || (this.boxZoom && this.boxZoom.moved());
+			obj = obj.dragging?.enabled() ? obj : this;
+			return obj.dragging?.moved() || this.boxZoom?.moved();
 		},
 
 		_clearHandlers() {
@@ -4355,9 +4354,7 @@
 		_onZoomTransitionEnd() {
 			if (!this._animatingZoom) { return; }
 
-			if (this._mapPane) {
-				this._mapPane.classList.remove('leaflet-zoom-anim');
-			}
+			this._mapPane?.classList.remove('leaflet-zoom-anim');
 
 			this._animatingZoom = false;
 
@@ -4411,15 +4408,11 @@
 		setPosition(position) {
 			const map = this._map;
 
-			if (map) {
-				map.removeControl(this);
-			}
+			map?.removeControl(this);
 
 			this.options.position = position;
 
-			if (map) {
-				map.addControl(this);
-			}
+			map?.addControl(this);
 
 			return this;
 		},
@@ -6310,9 +6303,7 @@
 		// @method removeFrom(group: LayerGroup): this
 		// Removes the layer from the given `LayerGroup`
 		removeFrom(obj) {
-			if (obj) {
-				obj.removeLayer(this);
-			}
+			obj?.removeLayer(this);
 			return this;
 		},
 
@@ -6553,9 +6544,7 @@
 
 			this._layers[id] = layer;
 
-			if (this._map) {
-				this._map.addLayer(layer);
-			}
+			this._map?.addLayer(layer);
 
 			return this;
 		},
@@ -6599,9 +6588,7 @@
 		// implement `methodName`.
 		invoke(methodName, ...args) {
 			for (const layer of Object.values(this._layers)) {
-				if (layer[methodName]) {
-					layer[methodName].apply(layer, args);
-				}
+				layer[methodName]?.apply(layer, args);
 			}
 			return this;
 		},
@@ -7010,9 +6997,7 @@
 				dragend: this._onDragEnd
 			}, this).disable();
 
-			if (this._marker._icon) {
-				this._marker._icon.classList.remove('leaflet-marker-draggable');
-			}
+			this._marker._icon?.classList.remove('leaflet-marker-draggable');
 		},
 
 		moved() {
@@ -7066,7 +7051,7 @@
 			this._oldLatLng = this._marker.getLatLng();
 
 			// When using ES6 imports it could not be set when `Popup` was not imported as well
-			this._marker.closePopup && this._marker.closePopup();
+			this._marker.closePopup?.();
 
 			this._marker
 				.fire('movestart')
@@ -7235,7 +7220,7 @@
 		},
 
 		onRemove(map) {
-			if (this.dragging && this.dragging.enabled()) {
+			if (this.dragging?.enabled()) {
 				this.options.draggable = true;
 				this.dragging.removeHooks();
 			}
@@ -7413,9 +7398,7 @@
 		},
 
 		_removeShadow() {
-			if (this._shadow) {
-				this._shadow.remove();
-			}
+			this._shadow?.remove();
 			this._shadow = null;
 		},
 
@@ -7636,18 +7619,14 @@
 		// @method bringToFront(): this
 		// Brings the layer to the top of all path layers.
 		bringToFront() {
-			if (this._renderer) {
-				this._renderer._bringToFront(this);
-			}
+			this._renderer?._bringToFront(this);
 			return this;
 		},
 
 		// @method bringToBack(): this
 		// Brings the layer to the bottom of all path layers.
 		bringToBack() {
-			if (this._renderer) {
-				this._renderer._bringToBack(this);
-			}
+			this._renderer?._bringToBack(this);
 			return this;
 		},
 
@@ -9335,9 +9314,7 @@
 		// Alternative to `map.closePopup(popup)`/`.closeTooltip(tooltip)`
 		// and `layer.closePopup()`/`.closeTooltip()`.
 		close() {
-			if (this._map) {
-				this._map.removeLayer(this);
-			}
+			this._map?.removeLayer(this);
 			return this;
 		},
 
@@ -9886,7 +9863,7 @@
 
 		_adjustPan() {
 			if (!this.options.autoPan) { return; }
-			if (this._map._panAnim) { this._map._panAnim.stop(); }
+			this._map._panAnim?.stop();
 
 			// We can endlessly recurse if keepInView is set and the view resets.
 			// Let's guard against that by exiting early if we're responding to our own autopan.
@@ -9977,9 +9954,7 @@
 		// Closes the popup previously opened with [openPopup](#map-openpopup) (or the given one).
 		closePopup(popup) {
 			popup = arguments.length ? popup : this._popup;
-			if (popup) {
-				popup.close();
-			}
+			popup?.close();
 			return this;
 		}
 	});
@@ -10055,33 +10030,27 @@
 		// @method closePopup(): this
 		// Closes the popup bound to this layer if it is open.
 		closePopup() {
-			if (this._popup) {
-				this._popup.close();
-			}
+			this._popup?.close();
 			return this;
 		},
 
 		// @method togglePopup(): this
 		// Opens or closes the popup bound to this layer depending on its current state.
 		togglePopup() {
-			if (this._popup) {
-				this._popup.toggle(this);
-			}
+			this._popup?.toggle(this);
 			return this;
 		},
 
 		// @method isPopupOpen(): boolean
 		// Returns `true` if the popup bound to this layer is currently open.
 		isPopupOpen() {
-			return (this._popup ? this._popup.isOpen() : false);
+			return this._popup?.isOpen() ?? false;
 		},
 
 		// @method setPopupContent(content: String|HTMLElement|Popup): this
 		// Sets the content of the popup bound to this layer.
 		setPopupContent(content) {
-			if (this._popup) {
-				this._popup.setContent(content);
-			}
+			this._popup?.setContent(content);
 			return this;
 		},
 
@@ -10469,9 +10438,7 @@
 		// @method toggleTooltip(): this
 		// Opens or closes the tooltip bound to this layer depending on its current state.
 		toggleTooltip() {
-			if (this._tooltip) {
-				this._tooltip.toggle(this);
-			}
+			this._tooltip?.toggle(this);
 			return this;
 		},
 
@@ -10484,9 +10451,7 @@
 		// @method setTooltipContent(content: String|HTMLElement|Tooltip): this
 		// Sets the content of the tooltip bound to this layer.
 		setTooltipContent(content) {
-			if (this._tooltip) {
-				this._tooltip.setContent(content);
-			}
+			this._tooltip?.setContent(content);
 			return this;
 		},
 
@@ -10532,9 +10497,7 @@
 
 		_setAriaDescribedByOnLayer(layer) {
 			const el = typeof layer.getElement === 'function' && layer.getElement();
-			if (el) {
-				el.setAttribute('aria-describedby', this._tooltip._container.id);
-			}
+			el?.setAttribute?.('aria-describedby', this._tooltip._container.id);
 		},
 
 
@@ -10544,7 +10507,7 @@
 			}
 
 			// If the map is moving, we will show the tooltip after it's done.
-			if (this._map.dragging && this._map.dragging.moving()) {
+			if (this._map.dragging?.moving()) {
 				if (e.type === 'add' && !this._moveEndOpensTooltip) {
 					this._moveEndOpensTooltip = true;
 					this._map.once('moveend', () => {
@@ -11556,7 +11519,7 @@
 	 * ```
 	 */
 
-	// @constructor Tilelayer(urlTemplate: String, options?: TileLayer options)
+	// @constructor TileLayer(urlTemplate: String, options?: TileLayer options)
 	// Instantiates a tile layer object given a `URL template` and optionally an options object.
 	const TileLayer = GridLayer.extend({
 
