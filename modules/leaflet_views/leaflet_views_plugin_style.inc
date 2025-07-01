@@ -16,14 +16,25 @@ class leaflet_views_plugin_style extends views_plugin_style {
   public function init(&$view, &$display, $options = NULL) {
     parent::init($view, $display, $options);
     $this->entity_type = $this->options['entity_type'];
-    $this->entity_info = entity_get_info($this->entity_type);
+    if (!empty($this->entity_type)) {
+      $this->entity_info = entity_get_info($this->entity_type);
+    }
     // Fallback for views that do not have entity_type set, for example
-    // because the view was created before this option got introduced.
-    if (empty($this->entity_type)) {
-      $info = entity_get_info($view->base_table);
-      if (!empty($info)) {
-        $this->entity_type = $view->base_table;
-        $this->entity_info = $info;
+    // when switching from different style plugins.
+    else {
+      $all_entity_info = entity_get_info();
+      $derived_entity_type = FALSE;
+      foreach ($all_entity_info as $entity_type => $definition) {
+        if ($definition['base table'] == $view->base_table) {
+          $derived_entity_type = $entity_type;
+          break;
+        }
+      }
+      if ($derived_entity_type) {
+        $this->entity_info = $all_entity_info[$derived_entity_type];
+      }
+      else {
+        $this->entity_info = array('view modes' => array());
       }
     }
   }
@@ -319,7 +330,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
             $entities = entity_load($this->entity_type, array($entity_id));
             $entity = $entities[$entity_id];
             if ($this->options['description_field'] === '#rendered_entity') {
-              $build = node_view($entity, $this->options['view_mode']);
+              $build = entity_view($entity, $this->options['view_mode']);
               $description = backdrop_render($build);
             }
             // Normal rendering via fields:
