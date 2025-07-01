@@ -20,7 +20,7 @@ class leaflet_views_plugin_style extends views_plugin_style {
       $this->entity_info = entity_get_info($this->entity_type);
     }
     // Fallback for views that do not have entity_type set, for example
-    // because the view was created before this option was set.
+    // when switching from different style plugins.
     else {
       $all_entity_info = entity_get_info();
       $derived_entity_type = FALSE;
