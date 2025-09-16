@@ -1,5 +1,5 @@
 /* @preserve
- * Leaflet 2.0.0-alpha+main.d5bd661, a JS library for interactive maps. https://leafletjs.com
+ * Leaflet 2.0.0-alpha.1+main.14eaf6f3, a JS library for interactive maps. https://leafletjs.com
  * (c) 2010-2025 Volodymyr Agafonkin, (c) 2010-2011 CloudMade
  */
 
@@ -62,8 +62,8 @@ function throttle(fn, time, context) {
 // `range[1]` unless `includeMax` is set to `true`.
 function wrapNum(x, range, includeMax) {
 	const max = range[1],
-	    min = range[0],
-	    d = max - min;
+	min = range[0],
+	d = max - min;
 	return x === max && includeMax ? x : ((x - min) % d + d) % d + min;
 }
 
@@ -152,6 +152,7 @@ var Util = {
 class Class {
 	// @function extend(props: Object): Function
 	// [Extends the current class](#class-inheritance) given the properties to be included.
+	// Deprecated - use `class X extends Class` instead!
 	// Returns a Javascript function that is a class constructor (to be called with `new`).
 	static extend({statics, includes, ...props}) {
 		const NewClass = class extends this {};
@@ -170,10 +171,10 @@ class Class {
 		// mix includes into the prototype
 		if (Array.isArray(includes)) {
 			for (const include of includes) {
-				Object.assign(proto, include);
+				NewClass.include(include);
 			}
 		} else if (includes) {
-			Object.assign(proto, includes);
+			NewClass.include(includes);
 		}
 
 		// mix given properties into the prototype
@@ -185,8 +186,6 @@ class Class {
 			Object.assign(proto.options, props.options);
 		}
 
-		proto._initHooks = [];
-
 		return NewClass;
 	}
 
@@ -194,11 +193,31 @@ class Class {
 	// [Includes a mixin](#class-includes) into the current class.
 	static include(props) {
 		const parentOptions = this.prototype.options;
-		Object.assign(this.prototype, props);
+		for (const k of getAllMethodNames(props)) {
+			this.prototype[k] = props[k];
+		}
 		if (props.options) {
 			this.prototype.options = parentOptions;
 			this.mergeOptions(props.options);
 		}
+		return this;
+
+		function *getAllMethodNames(obj) {
+			do {
+				if (obj === Object || obj === Object.prototype) {
+					break;
+				}
+				for (const k of Object.getOwnPropertyNames(obj)) {
+					yield k;
+				}
+			} while ((obj = Object.getPrototypeOf(obj)) !== undefined);
+		}
+	}
+
+	// @function setDefaultOptions(options: Object): this
+	// Configures the [default `options`](#class-options) on the prototype of this class.
+	static setDefaultOptions(options) {
+		setOptions(this.prototype, options);
 		return this;
 	}
 
@@ -217,7 +236,9 @@ class Class {
 			this[fn].apply(this, args);
 		};
 
-		this.prototype._initHooks ??= [];
+		if (!Object.hasOwn(this.prototype, '_initHooks')) { // do not use ??= here
+			this.prototype._initHooks = [];
+		}
 		this.prototype._initHooks.push(init);
 		return this;
 	}
@@ -234,6 +255,11 @@ class Class {
 
 		// call all constructor hooks
 		this.callInitHooks();
+	}
+
+	initialize(/* ...args */) {
+		// Override this method in subclasses to implement custom initialization logic.
+		// This method is called automatically when a new instance of the class is created.
 	}
 
 	callInitHooks() {
@@ -287,7 +313,7 @@ class Class {
  * ```
  */
 
-const Events = {
+class Evented extends Class {
 	/* @method on(type: String, fn: Function, context?: Object): this
 	 * Adds a listener function (`fn`) to a particular event type of the object. You can optionally specify the context of the listener (object the this keyword will point to). You can also pass several space-separated types (e.g. `'click dblclick'`).
 	 *
@@ -313,7 +339,7 @@ const Events = {
 		}
 
 		return this;
-	},
+	}
 
 	/* @method off(type: String, fn?: Function, context?: Object): this
 	 * Removes a previously added listener function. If no function is specified, it will remove all the listeners of that particular event from the object. Note that if you passed a custom context to `on`, you must pass the same context to `off` in order to remove the listener.
@@ -349,7 +375,7 @@ const Events = {
 		}
 
 		return this;
-	},
+	}
 
 	// attach listener (without syntactic sugar now)
 	_on(type, fn, context, _once) {
@@ -376,7 +402,7 @@ const Events = {
 		this._events ??= {};
 		this._events[type] ??= [];
 		this._events[type].push(newListener);
-	},
+	}
 
 	_off(type, fn, context) {
 		if (!this._events) {
@@ -419,7 +445,7 @@ const Events = {
 			}
 			listeners.splice(index, 1);
 		}
-	},
+	}
 
 	// @method fire(type: String, data?: Object, propagate?: Boolean): this
 	// Fires an event of the specified type. You can optionally provide a data
@@ -458,7 +484,7 @@ const Events = {
 		}
 
 		return this;
-	},
+	}
 
 	// @method listens(type: String, propagate?: Boolean): Boolean
 	// @method listens(type: String, fn: Function, context?: Object, propagate?: Boolean): Boolean
@@ -492,7 +518,7 @@ const Events = {
 			}
 		}
 		return false;
-	},
+	}
 
 	// returns the index (number) or false
 	_listens(type, fn, context) {
@@ -513,7 +539,7 @@ const Events = {
 		const index = listeners.findIndex(l => l.fn === fn && l.ctx === context);
 		return index === -1 ? false : index;
 
-	},
+	}
 
 	// @method once(…): this
 	// Behaves as [`on(…)`](#evented-on), except the listener will only get fired once and then removed.
@@ -535,7 +561,7 @@ const Events = {
 		}
 
 		return this;
-	},
+	}
 
 	// @method addEventParent(obj: Evented): this
 	// Adds an event parent - an `Evented` that will receive propagated events
@@ -543,7 +569,7 @@ const Events = {
 		this._eventParents ??= {};
 		this._eventParents[stamp(obj)] = obj;
 		return this;
-	},
+	}
 
 	// @method removeEventParent(obj: Evented): this
 	// Removes an event parent, so it will stop receiving propagated events
@@ -552,7 +578,7 @@ const Events = {
 			delete this._eventParents[stamp(obj)];
 		}
 		return this;
-	},
+	}
 
 	_propagateEvent(e) {
 		for (const p of Object.values(this._eventParents ?? {})) {
@@ -562,34 +588,7 @@ const Events = {
 			}, true);
 		}
 	}
-};
-
-// aliases; we should ditch those eventually
-
-// @method addEventListener(…): this
-// Alias to [`on(…)`](#evented-on)
-Events.addEventListener = Events.on;
-
-// @method removeEventListener(…): this
-// Alias to [`off(…)`](#evented-off)
-
-// @method clearAllEventListeners(…): this
-// Alias to [`off()`](#evented-off)
-Events.removeEventListener = Events.clearAllEventListeners = Events.off;
-
-// @method addOneTimeEventListener(…): this
-// Alias to [`once(…)`](#evented-once)
-Events.addOneTimeEventListener = Events.once;
-
-// @method fireEvent(…): this
-// Alias to [`fire(…)`](#evented-fire)
-Events.fireEvent = Events.fire;
-
-// @method hasEventListeners(…): Boolean
-// Alias to [`listens(…)`](#evented-listens)
-Events.hasEventListeners = Events.listens;
-
-const Evented = Class.extend(Events);
+}
 
 /*
  * @class Point
@@ -922,8 +921,8 @@ class Bounds {
 	// Returns the center point of the bounds.
 	getCenter(round) {
 		return new Point(
-		        (this.min.x + this.max.x) / 2,
-		        (this.min.y + this.max.y) / 2, round);
+			(this.min.x + this.max.x) / 2,
+			(this.min.y + this.max.y) / 2, round);
 	}
 
 	// @method getBottomLeft(): Point
@@ -1431,7 +1430,7 @@ class LatLng {
 		return margin <= (maxMargin ?? 1.0E-9);
 	}
 
-	// @method toString(): String
+	// @method toString(precision?: Number): String
 	// Returns a string representation of the point (for debugging purposes).
 	toString(precision) {
 		return `LatLng(${formatNum(this.lat, precision)}, ${formatNum(this.lng, precision)})`;
@@ -1456,8 +1455,8 @@ class LatLng {
 		lngAccuracy = latAccuracy / Math.cos((Math.PI / 180) * this.lat);
 
 		return new LatLngBounds(
-		        [this.lat - latAccuracy, this.lng - lngAccuracy],
-		        [this.lat + latAccuracy, this.lng + lngAccuracy]);
+			[this.lat - latAccuracy, this.lng - lngAccuracy],
+			[this.lat + latAccuracy, this.lng + lngAccuracy]);
 	}
 
 	// @method clone(): LatLng
@@ -1497,7 +1496,7 @@ class CRS {
 	// Projects geographical coordinates into pixel coordinates for a given zoom.
 	static latLngToPoint(latlng, zoom) {
 		const projectedPoint = this.projection.project(latlng),
-		    scale = this.scale(zoom);
+		scale = this.scale(zoom);
 
 		return this.transformation._transform(projectedPoint, scale);
 	}
@@ -1507,7 +1506,7 @@ class CRS {
 	// zoom into geographical coordinates.
 	static pointToLatLng(point, zoom) {
 		const scale = this.scale(zoom),
-		    untransformedPoint = this.transformation.untransform(point, scale);
+		untransformedPoint = this.transformation.untransform(point, scale);
 
 		return this.projection.unproject(untransformedPoint);
 	}
@@ -1547,9 +1546,9 @@ class CRS {
 		if (this.infinite) { return null; }
 
 		const b = this.projection.bounds,
-		    s = this.scale(zoom),
-		    min = this.transformation.transform(b.min, s),
-		    max = this.transformation.transform(b.max, s);
+		s = this.scale(zoom),
+		min = this.transformation.transform(b.min, s),
+		max = this.transformation.transform(b.max, s);
 
 		return new Bounds(min, max);
 	}
@@ -1579,9 +1578,10 @@ class CRS {
 	// Returns a `LatLng` where lat and lng has been wrapped according to the
 	// CRS's `wrapLat` and `wrapLng` properties, if they are outside the CRS's bounds.
 	static wrapLatLng(latlng) {
+		latlng = new LatLng(latlng);
 		const lng = this.wrapLng ? wrapNum(latlng.lng, this.wrapLng, true) : latlng.lng,
-		    lat = this.wrapLat ? wrapNum(latlng.lat, this.wrapLat, true) : latlng.lat,
-		    alt = latlng.alt;
+		lat = this.wrapLat ? wrapNum(latlng.lat, this.wrapLat, true) : latlng.lat,
+		alt = latlng.alt;
 
 		return new LatLng(lat, lng, alt);
 	}
@@ -1589,21 +1589,21 @@ class CRS {
 	// @method wrapLatLngBounds(bounds: LatLngBounds): LatLngBounds
 	// Returns a `LatLngBounds` with the same size as the given one, ensuring
 	// that its center is within the CRS's bounds.
-	// Only accepts actual `LatLngBounds` instances, not arrays.
 	static wrapLatLngBounds(bounds) {
+		bounds = new LatLngBounds(bounds);
 		const center = bounds.getCenter(),
-		    newCenter = this.wrapLatLng(center),
-		    latShift = center.lat - newCenter.lat,
-		    lngShift = center.lng - newCenter.lng;
+		newCenter = this.wrapLatLng(center),
+		latShift = center.lat - newCenter.lat,
+		lngShift = center.lng - newCenter.lng;
 
 		if (latShift === 0 && lngShift === 0) {
 			return bounds;
 		}
 
 		const sw = bounds.getSouthWest(),
-		    ne = bounds.getNorthEast(),
-		    newSw = new LatLng(sw.lat - latShift, sw.lng - lngShift),
-		    newNe = new LatLng(ne.lat - latShift, ne.lng - lngShift);
+		ne = bounds.getNorthEast(),
+		newSw = new LatLng(sw.lat - latShift, sw.lng - lngShift),
+		newNe = new LatLng(ne.lat - latShift, ne.lng - lngShift);
 
 		return new LatLngBounds(newSw, newNe);
 	}
@@ -1649,18 +1649,19 @@ class Earth extends CRS {
  * a sphere. Used by the `EPSG:3857` CRS.
  */
 
-const earthRadius = 6378137;
+const earthRadius$1 = 6378137;
 
 const SphericalMercator = {
 
-	R: earthRadius,
+	R: earthRadius$1,
 	MAX_LATITUDE: 85.0511287798,
 
 	project(latlng) {
+		latlng = new LatLng(latlng);
 		const d = Math.PI / 180,
-		    max = this.MAX_LATITUDE,
-		    lat = Math.max(Math.min(max, latlng.lat), -max),
-		    sin = Math.sin(lat * d);
+		max = this.MAX_LATITUDE,
+		lat = Math.max(Math.min(max, latlng.lat), -max),
+		sin = Math.sin(lat * d);
 
 		return new Point(
 			this.R * latlng.lng * d,
@@ -1668,6 +1669,7 @@ const SphericalMercator = {
 	},
 
 	unproject(point) {
+		point = new Point(point);
 		const d = 180 / Math.PI;
 
 		return new LatLng(
@@ -1676,7 +1678,7 @@ const SphericalMercator = {
 	},
 
 	bounds: (() => {
-		const d = earthRadius * Math.PI;
+		const d = earthRadius$1 * Math.PI;
 		return new Bounds([-d, -d], [d, d]);
 	})()
 };
@@ -1816,7 +1818,7 @@ const retina = typeof window === 'undefined' || typeof window.devicePixelRatio =
 // @property mac: Boolean; `true` when the browser is running in a Mac platform
 const mac = typeof navigator === 'undefined' || typeof navigator.platform === 'undefined' ? false : navigator.platform.startsWith('Mac');
 
-// @property mac: Boolean; `true` when the browser is running in a Linux platform
+// @property linux: Boolean; `true` when the browser is running in a Linux platform
 const linux = typeof navigator === 'undefined' || typeof navigator.platform === 'undefined' ? false : navigator.platform.startsWith('Linux');
 
 function userAgentContains(str) {
@@ -1904,7 +1906,7 @@ function addDoubleTapListener(obj, handler) {
 	// It seems that in all such cases `detail` property of `click` event is always `1`.
 	// So here we rely on that fact to avoid excessive 'dblclick' simulation when not needed.
 	let last = 0,
-	    detail;
+	detail;
 	function simDblclick(ev) {
 		if (ev.detail !== 1) {
 			detail = ev.detail; // keep in sync to avoid false dblclick in some cases
@@ -2192,7 +2194,7 @@ function _onDelete(e) {
 	activePointers.delete(e.pointerId);
 }
 
-// @function getPointers(): PointerEvents[]
+// @function getPointers(): PointerEvent[]
 // Returns the active pointers on the document.
 function getPointers() {
 	return [...activePointers.values()];
@@ -2489,7 +2491,6 @@ function isExternalTarget(el, e) {
 var DomEvent = {
 	__proto__: null,
 	PointerEvents: DomEvent_PointerEvents,
-	addListener: on,
 	disableClickPropagation: disableClickPropagation,
 	disableScrollPropagation: disableScrollPropagation,
 	getPointerPosition: getPointerPosition,
@@ -2500,7 +2501,6 @@ var DomEvent = {
 	off: off,
 	on: on,
 	preventDefault: preventDefault,
-	removeListener: off,
 	stop: stop,
 	stopPropagation: stopPropagation
 };
@@ -2534,7 +2534,7 @@ var DomEvent = {
  *
  */
 
-const PosAnimation = Evented.extend({
+class PosAnimation extends Evented {
 
 	// @method run(el: HTMLElement, newPos: Point, duration?: Number, easeLinearity?: Number)
 	// Run an animation of a given element to a new position, optionally setting
@@ -2558,7 +2558,7 @@ const PosAnimation = Evented.extend({
 		this.fire('start');
 
 		this._animate();
-	},
+	}
 
 	// @method stop()
 	// Stops the animation (if currently running).
@@ -2567,17 +2567,17 @@ const PosAnimation = Evented.extend({
 
 		this._step(true);
 		this._complete();
-	},
+	}
 
 	_animate() {
 		// animation loop
 		this._animId = requestAnimationFrame(this._animate.bind(this));
 		this._step();
-	},
+	}
 
 	_step(round) {
 		const elapsed = (+new Date()) - this._startTime,
-		    duration = this._duration * 1000;
+		duration = this._duration * 1000;
 
 		if (elapsed < duration) {
 			this._runFrame(this._easeOut(elapsed / duration), round);
@@ -2585,7 +2585,7 @@ const PosAnimation = Evented.extend({
 			this._runFrame(1);
 			this._complete();
 		}
-	},
+	}
 
 	_runFrame(progress, round) {
 		const pos = this._startPos.add(this._offset.multiplyBy(progress));
@@ -2597,7 +2597,7 @@ const PosAnimation = Evented.extend({
 		// @event step: Event
 		// Fired continuously during the animation.
 		this.fire('step');
-	},
+	}
 
 	_complete() {
 		cancelAnimationFrame(this._animId);
@@ -2606,12 +2606,12 @@ const PosAnimation = Evented.extend({
 		// @event end: Event
 		// Fired when the animation ends.
 		this.fire('end');
-	},
+	}
 
 	_easeOut(t) {
 		return 1 - (1 - t) ** this._easeOutPower;
 	}
-});
+}
 
 /*
  * @class Map
@@ -2640,99 +2640,111 @@ const PosAnimation = Evented.extend({
 // @constructor Map(el: HTMLElement, options?: Map options)
 // Instantiates a map object given an instance of a `<div>` HTML element
 // and optionally an object literal with `Map options`.
-const Map$1 = Evented.extend({
+//
+// @alternative
+// @constructor LeafletMap(id: String, options?: LeafletMap options)
+// Instantiates a map object given the DOM ID of a `<div>` element
+// and optionally an object literal with `LeafletMap options`.
+//
+// @alternative
+// @constructor LeafletMap(el: HTMLElement, options?: LeafletMap options)
+// Instantiates a map object given an instance of a `<div>` HTML element
+// and optionally an object literal with `LeafletMap options`.
+let Map$1 = class Map extends Evented {
 
-	options: {
-		// @section Map State Options
-		// @option crs: CRS = CRS.EPSG3857
-		// The [Coordinate Reference System](#crs) to use. Don't change this if you're not
-		// sure what it means.
-		crs: EPSG3857,
+	static {
+		this.setDefaultOptions({
+			// @section Map State Options
+			// @option crs: CRS = CRS.EPSG3857
+			// The [Coordinate Reference System](#crs) to use. Don't change this if you're not
+			// sure what it means.
+			crs: EPSG3857,
 
-		// @option center: LatLng = undefined
-		// Initial geographic center of the map
-		center: undefined,
+			// @option center: LatLng = undefined
+			// Initial geographic center of the map
+			center: undefined,
 
-		// @option zoom: Number = undefined
-		// Initial map zoom level
-		zoom: undefined,
+			// @option zoom: Number = undefined
+			// Initial map zoom level
+			zoom: undefined,
 
-		// @option minZoom: Number = *
-		// Minimum zoom level of the map.
-		// If not specified and at least one `GridLayer` or `TileLayer` is in the map,
-		// the lowest of their `minZoom` options will be used instead.
-		minZoom: undefined,
+			// @option minZoom: Number = *
+			// Minimum zoom level of the map.
+			// If not specified and at least one `GridLayer` or `TileLayer` is in the map,
+			// the lowest of their `minZoom` options will be used instead.
+			minZoom: undefined,
 
-		// @option maxZoom: Number = *
-		// Maximum zoom level of the map.
-		// If not specified and at least one `GridLayer` or `TileLayer` is in the map,
-		// the highest of their `maxZoom` options will be used instead.
-		maxZoom: undefined,
+			// @option maxZoom: Number = *
+			// Maximum zoom level of the map.
+			// If not specified and at least one `GridLayer` or `TileLayer` is in the map,
+			// the highest of their `maxZoom` options will be used instead.
+			maxZoom: undefined,
 
-		// @option layers: Layer[] = []
-		// Array of layers that will be added to the map initially
-		layers: [],
+			// @option layers: Layer[] = []
+			// Array of layers that will be added to the map initially
+			layers: [],
 
-		// @option maxBounds: LatLngBounds = null
-		// When this option is set, the map restricts the view to the given
-		// geographical bounds, bouncing the user back if the user tries to pan
-		// outside the view. To set the restriction dynamically, use
-		// [`setMaxBounds`](#map-setmaxbounds) method.
-		maxBounds: undefined,
+			// @option maxBounds: LatLngBounds = null
+			// When this option is set, the map restricts the view to the given
+			// geographical bounds, bouncing the user back if the user tries to pan
+			// outside the view. To set the restriction dynamically, use
+			// [`setMaxBounds`](#map-setmaxbounds) method.
+			maxBounds: undefined,
 
-		// @option renderer: Renderer = *
-		// The default method for drawing vector layers on the map. `SVG`
-		// or `Canvas` by default depending on browser support.
-		renderer: undefined,
+			// @option renderer: Renderer = *
+			// The default method for drawing vector layers on the map. `SVG`
+			// or `Canvas` by default depending on browser support.
+			renderer: undefined,
 
 
-		// @section Animation Options
-		// @option zoomAnimation: Boolean = true
-		// Whether the map zoom animation is enabled. By default it's enabled
-		// in all browsers that support CSS Transitions except Android.
-		zoomAnimation: true,
+			// @section Animation Options
+			// @option zoomAnimation: Boolean = true
+			// Whether the map zoom animation is enabled. By default it's enabled
+			// in all browsers that support CSS Transitions except Android.
+			zoomAnimation: true,
 
-		// @option zoomAnimationThreshold: Number = 4
-		// Won't animate zoom if the zoom difference exceeds this value.
-		zoomAnimationThreshold: 4,
+			// @option zoomAnimationThreshold: Number = 4
+			// Won't animate zoom if the zoom difference exceeds this value.
+			zoomAnimationThreshold: 4,
 
-		// @option fadeAnimation: Boolean = true
-		// Whether the tile fade animation is enabled. By default it's enabled
-		// in all browsers that support CSS Transitions except Android.
-		fadeAnimation: true,
+			// @option fadeAnimation: Boolean = true
+			// Whether the tile fade animation is enabled. By default it's enabled
+			// in all browsers that support CSS Transitions except Android.
+			fadeAnimation: true,
 
-		// @option markerZoomAnimation: Boolean = true
-		// Whether markers animate their zoom with the zoom animation, if disabled
-		// they will disappear for the length of the animation. By default it's
-		// enabled in all browsers that support CSS Transitions except Android.
-		markerZoomAnimation: true,
+			// @option markerZoomAnimation: Boolean = true
+			// Whether markers animate their zoom with the zoom animation, if disabled
+			// they will disappear for the length of the animation. By default it's
+			// enabled in all browsers that support CSS Transitions except Android.
+			markerZoomAnimation: true,
 
-		// @option transform3DLimit: Number = 2^23
-		// Defines the maximum size of a CSS translation transform. The default
-		// value should not be changed unless a web browser positions layers in
-		// the wrong place after doing a large `panBy`.
-		transform3DLimit: 8388608, // Precision limit of a 32-bit float
+			// @option transform3DLimit: Number = 2^23
+			// Defines the maximum size of a CSS translation transform. The default
+			// value should not be changed unless a web browser positions layers in
+			// the wrong place after doing a large `panBy`.
+			transform3DLimit: 8388608, // Precision limit of a 32-bit float
 
-		// @section Interaction Options
-		// @option zoomSnap: Number = 1
-		// Forces the map's zoom level to always be a multiple of this, particularly
-		// right after a [`fitBounds()`](#map-fitbounds) or a pinch-zoom.
-		// By default, the zoom level snaps to the nearest integer; lower values
-		// (e.g. `0.5` or `0.1`) allow for greater granularity. A value of `0`
-		// means the zoom level will not be snapped after `fitBounds` or a pinch-zoom.
-		zoomSnap: 1,
+			// @section Interaction Options
+			// @option zoomSnap: Number = 1
+			// Forces the map's zoom level to always be a multiple of this, particularly
+			// right after a [`fitBounds()`](#map-fitbounds) or a pinch-zoom.
+			// By default, the zoom level snaps to the nearest integer; lower values
+			// (e.g. `0.5` or `0.1`) allow for greater granularity. A value of `0`
+			// means the zoom level will not be snapped after `fitBounds` or a pinch-zoom.
+			zoomSnap: 1,
 
-		// @option zoomDelta: Number = 1
-		// Controls how much the map's zoom level will change after a
-		// [`zoomIn()`](#map-zoomin), [`zoomOut()`](#map-zoomout), pressing `+`
-		// or `-` on the keyboard, or using the [zoom controls](#control-zoom).
-		// Values smaller than `1` (e.g. `0.5`) allow for greater granularity.
-		zoomDelta: 1,
+			// @option zoomDelta: Number = 1
+			// Controls how much the map's zoom level will change after a
+			// [`zoomIn()`](#map-zoomin), [`zoomOut()`](#map-zoomout), pressing `+`
+			// or `-` on the keyboard, or using the [zoom controls](#control-zoom).
+			// Values smaller than `1` (e.g. `0.5`) allow for greater granularity.
+			zoomDelta: 1,
 
-		// @option trackResize: Boolean = true
-		// Whether the map automatically handles browser window resize to update itself.
-		trackResize: true
-	},
+			// @option trackResize: Boolean = true
+			// Whether the map automatically handles browser window resize to update itself.
+			trackResize: true
+		});
+	}
 
 	initialize(id, options) { // (HTMLElement or String, Object)
 		options = setOptions(this, options);
@@ -2773,12 +2785,11 @@ const Map$1 = Evented.extend({
 		}
 
 		this._addLayers(this.options.layers);
-	},
-
+	}
 
 	// @section Methods for modifying map state
 
-	// @method setView(center: LatLng, zoom: Number, options?: Zoom/pan options): this
+	// @method setView(center: LatLng, zoom?: Number, options?: Zoom/pan options): this
 	// Sets the view of the map (geographical center and zoom) with the given
 	// animation options.
 	setView(center, zoom, options) {
@@ -2812,7 +2823,7 @@ const Map$1 = Evented.extend({
 		this._resetView(center, zoom, options.pan?.noMoveStart);
 
 		return this;
-	},
+	}
 
 	// @method setZoom(zoom: Number, options?: Zoom/pan options): this
 	// Sets the zoom of the map.
@@ -2822,21 +2833,21 @@ const Map$1 = Evented.extend({
 			return this;
 		}
 		return this.setView(this.getCenter(), zoom, {zoom: options});
-	},
+	}
 
 	// @method zoomIn(delta?: Number, options?: Zoom options): this
 	// Increases the zoom of the map by `delta` ([`zoomDelta`](#map-zoomdelta) by default).
 	zoomIn(delta, options) {
 		delta ??= this.options.zoomDelta;
 		return this.setZoom(this._zoom + delta, options);
-	},
+	}
 
 	// @method zoomOut(delta?: Number, options?: Zoom options): this
 	// Decreases the zoom of the map by `delta` ([`zoomDelta`](#map-zoomdelta) by default).
 	zoomOut(delta, options) {
 		delta ??= this.options.zoomDelta;
 		return this.setZoom(this._zoom - delta, options);
-	},
+	}
 
 	// @method setZoomAround(latlng: LatLng, zoom: Number, options: Zoom options): this
 	// Zooms the map while keeping a specified geographical point on the map
@@ -2853,7 +2864,7 @@ const Map$1 = Evented.extend({
 		newCenter = this.containerPointToLatLng(viewHalf.add(centerOffset));
 
 		return this.setView(newCenter, zoom, {zoom: options});
-	},
+	}
 
 	_getBoundsCenterZoom(bounds, options) {
 
@@ -2861,7 +2872,7 @@ const Map$1 = Evented.extend({
 		bounds = bounds.getBounds ? bounds.getBounds() : new LatLngBounds(bounds);
 
 		const paddingTL = new Point(options.paddingTopLeft || options.padding || [0, 0]),
-		      paddingBR = new Point(options.paddingBottomRight || options.padding || [0, 0]);
+		paddingBR = new Point(options.paddingBottomRight || options.padding || [0, 0]);
 
 		let zoom = this.getBoundsZoom(bounds, false, paddingTL.add(paddingBR));
 
@@ -2884,7 +2895,7 @@ const Map$1 = Evented.extend({
 			center,
 			zoom
 		};
-	},
+	}
 
 	// @method fitBounds(bounds: LatLngBounds, options?: fitBounds options): this
 	// Sets a map view that contains the given geographical bounds with the
@@ -2899,20 +2910,20 @@ const Map$1 = Evented.extend({
 
 		const target = this._getBoundsCenterZoom(bounds, options);
 		return this.setView(target.center, target.zoom, options);
-	},
+	}
 
 	// @method fitWorld(options?: fitBounds options): this
 	// Sets a map view that mostly contains the whole world with the maximum
 	// zoom level possible.
 	fitWorld(options) {
 		return this.fitBounds([[-90, -180], [90, 180]], options);
-	},
+	}
 
 	// @method panTo(latlng: LatLng, options?: Pan options): this
 	// Pans the map to a given center.
-	panTo(center, options) { // (LatLng)
+	panTo(center, options) {
 		return this.setView(center, this._zoom, {pan: options});
-	},
+	}
 
 	// @method panBy(offset: Point, options?: Pan options): this
 	// Pans the map by a given number of pixels (animated).
@@ -2956,7 +2967,7 @@ const Map$1 = Evented.extend({
 		}
 
 		return this;
-	},
+	}
 
 	// @method flyTo(latlng: LatLng, zoom?: Number, options?: Zoom/pan options): this
 	// Sets the view of the map (geographical center and zoom) performing a smooth
@@ -2979,10 +2990,10 @@ const Map$1 = Evented.extend({
 		targetZoom = targetZoom === undefined ? startZoom : this._limitZoom(targetZoom);
 
 		const w0 = Math.max(size.x, size.y),
-		    w1 = w0 * this.getZoomScale(startZoom, targetZoom),
-		    u1 = (to.distanceTo(from)) || 1,
-		    rho = 1.42,
-		    rho2 = rho * rho;
+		w1 = w0 * this.getZoomScale(startZoom, targetZoom),
+		u1 = (to.distanceTo(from)) || 1,
+		rho = 1.42,
+		rho2 = rho * rho;
 
 		function r(i) {
 			const s1 = i ? -1 : 1,
@@ -3014,12 +3025,12 @@ const Map$1 = Evented.extend({
 		S = (r(1) - r0) / rho,
 		duration = options.duration ? 1000 * options.duration : 1000 * S * 0.8;
 
-		function frame() {
+		const frame = () => {
 			const t = (Date.now() - start) / duration,
 			s = easeOut(t) * S;
 
 			if (t <= 1) {
-				this._flyToFrame = requestAnimationFrame(frame.bind(this));
+				this._flyToFrame = requestAnimationFrame(frame);
 
 				this._move(
 					this.unproject(from.add(to.subtract(from).multiplyBy(u(s) / u1)), startZoom),
@@ -3031,13 +3042,13 @@ const Map$1 = Evented.extend({
 					._move(targetCenter, targetZoom)
 					._moveEnd(true);
 			}
-		}
+		};
 
 		this._moveStart(true, options.noMoveStart);
 
-		frame.call(this);
+		frame();
 		return this;
-	},
+	}
 
 	// @method flyToBounds(bounds: LatLngBounds, options?: fitBounds options): this
 	// Sets the view of the map with a smooth animation like [`flyTo`](#map-flyto),
@@ -3045,7 +3056,7 @@ const Map$1 = Evented.extend({
 	flyToBounds(bounds, options) {
 		const target = this._getBoundsCenterZoom(bounds, options);
 		return this.flyTo(target.center, target.zoom, options);
-	},
+	}
 
 	// @method setMaxBounds(bounds: LatLngBounds): this
 	// Restricts the map view to the given bounds (see the [maxBounds](#map-maxbounds) option).
@@ -3068,7 +3079,7 @@ const Map$1 = Evented.extend({
 		}
 
 		return this.on('moveend', this._panInsideMaxBounds);
-	},
+	}
 
 	// @method setMinZoom(zoom: Number): this
 	// Sets the lower limit for the available zoom levels (see the [minZoom](#map-minzoom) option).
@@ -3085,7 +3096,7 @@ const Map$1 = Evented.extend({
 		}
 
 		return this;
-	},
+	}
 
 	// @method setMaxZoom(zoom: Number): this
 	// Sets the upper limit for the available zoom levels (see the [maxZoom](#map-maxzoom) option).
@@ -3102,7 +3113,7 @@ const Map$1 = Evented.extend({
 		}
 
 		return this;
-	},
+	}
 
 	// @method panInsideBounds(bounds: LatLngBounds, options?: Pan options): this
 	// Pans the map to the closest view that would lie inside the given bounds (if it's not already), controlling the animation using the options specific, if any.
@@ -3117,7 +3128,7 @@ const Map$1 = Evented.extend({
 
 		this._enforcingBounds = false;
 		return this;
-	},
+	}
 
 	// @method panInside(latlng: LatLng, options?: padding options): this
 	// Pans the map the minimum amount to make the `latlng` visible. Use
@@ -3128,12 +3139,12 @@ const Map$1 = Evented.extend({
 		options ??= {};
 
 		const paddingTL = new Point(options.paddingTopLeft || options.padding || [0, 0]),
-		    paddingBR = new Point(options.paddingBottomRight || options.padding || [0, 0]),
-		    pixelCenter = this.project(this.getCenter()),
-		    pixelPoint = this.project(latlng),
-		    pixelBounds = this.getPixelBounds(),
-		    paddedBounds = new Bounds([pixelBounds.min.add(paddingTL), pixelBounds.max.subtract(paddingBR)]),
-		    paddedSize = paddedBounds.getSize();
+		paddingBR = new Point(options.paddingBottomRight || options.padding || [0, 0]),
+		pixelCenter = this.project(this.getCenter()),
+		pixelPoint = this.project(latlng),
+		pixelBounds = this.getPixelBounds(),
+		paddedBounds = new Bounds([pixelBounds.min.add(paddingTL), pixelBounds.max.subtract(paddingBR)]),
+		paddedSize = paddedBounds.getSize();
 
 		if (!paddedBounds.contains(pixelPoint)) {
 			this._enforcingBounds = true;
@@ -3145,9 +3156,9 @@ const Map$1 = Evented.extend({
 			this._enforcingBounds = false;
 		}
 		return this;
-	},
+	}
 
-	// @method invalidateSize(options: Zoom/pan options): this
+	// @method invalidateSize(options: invalidateSize options): this
 	// Checks if the map container size changed and updates the map if so —
 	// call it after you've changed the map size dynamically, also animating
 	// pan by default. If `options.pan` is `false`, panning will not occur.
@@ -3205,7 +3216,7 @@ const Map$1 = Evented.extend({
 			oldSize,
 			newSize
 		});
-	},
+	}
 
 	// @section Methods for modifying map state
 	// @method stop(): this
@@ -3216,7 +3227,7 @@ const Map$1 = Evented.extend({
 			this.fire('viewreset');
 		}
 		return this._stop();
-	},
+	}
 
 	// @section Geolocation methods
 	// @method locate(options?: Locate options): this
@@ -3260,7 +3271,7 @@ const Map$1 = Evented.extend({
 			navigator.geolocation.getCurrentPosition(onResponse, onError, options);
 		}
 		return this;
-	},
+	}
 
 	// @method stopLocate(): this
 	// Stops watching location previously initiated by `map.locate({watch: true})`
@@ -3272,7 +3283,7 @@ const Map$1 = Evented.extend({
 			this._locateOptions.setView = false;
 		}
 		return this;
-	},
+	}
 
 	_handleGeolocationError(error) {
 		if (!this._container._leaflet_id) { return; }
@@ -3293,7 +3304,7 @@ const Map$1 = Evented.extend({
 			code: c,
 			message: `Geolocation error: ${message}.`
 		});
-	},
+	}
 
 	_handleGeolocationResponse(pos) {
 		if (!this._container._leaflet_id) { return; }
@@ -3315,7 +3326,7 @@ const Map$1 = Evented.extend({
 			timestamp: pos.timestamp
 		};
 
-		for (const i of Object.keys(pos.coords)) {
+		for (const i in pos.coords) { // do not use Object.keys here to access getters of GeolocationCoordinates
 			if (typeof pos.coords[i] === 'number') {
 				data[i] = pos.coords[i];
 			}
@@ -3325,7 +3336,7 @@ const Map$1 = Evented.extend({
 		// Fired when geolocation (using the [`locate`](#map-locate) method)
 		// went successfully.
 		this.fire('locationfound', data);
-	},
+	}
 
 	// TODO Appropriate docs section?
 	// @section Other Methods
@@ -3343,7 +3354,7 @@ const Map$1 = Evented.extend({
 		}
 
 		return this;
-	},
+	}
 
 	// @method remove(): this
 	// Destroys the map and clears all related event listeners.
@@ -3356,16 +3367,8 @@ const Map$1 = Evented.extend({
 			throw new Error('Map container is being reused by another instance');
 		}
 
-		try {
-			// throws error in IE6-8
-			delete this._container._leaflet_id;
-			delete this._containerId;
-		} catch (e) {
-			/*eslint-disable */
-			this._container._leaflet_id = undefined;
-			/* eslint-enable */
-			this._containerId = undefined;
-		}
+		delete this._container._leaflet_id;
+		delete this._containerId;
 
 		if (this._locationWatchId !== undefined) {
 			this.stopLocate();
@@ -3410,7 +3413,7 @@ const Map$1 = Evented.extend({
 		delete this._renderer;
 
 		return this;
-	},
+	}
 
 	// @section Other Methods
 	// @method createPane(name: String, container?: HTMLElement): HTMLElement
@@ -3419,13 +3422,13 @@ const Map$1 = Evented.extend({
 	// as a child of the main map pane if not set.
 	createPane(name, container) {
 		const className = `leaflet-pane${name ? ` leaflet-${name.replace('Pane', '')}-pane` : ''}`,
-		    pane = create$1('div', className, container || this._mapPane);
+		pane = create$1('div', className, container || this._mapPane);
 
 		if (name) {
 			this._panes[name] = pane;
 		}
 		return pane;
-	},
+	}
 
 	// @section Methods for Getting Map State
 
@@ -3438,13 +3441,13 @@ const Map$1 = Evented.extend({
 			return this._lastCenter.clone();
 		}
 		return this.layerPointToLatLng(this._getCenterLayerPoint());
-	},
+	}
 
 	// @method getZoom(): Number
 	// Returns the current zoom level of the map view
 	getZoom() {
 		return this._zoom;
-	},
+	}
 
 	// @method getBounds(): LatLngBounds
 	// Returns the geographical bounds visible in the current map view
@@ -3454,19 +3457,19 @@ const Map$1 = Evented.extend({
 		ne = this.unproject(bounds.getTopRight());
 
 		return new LatLngBounds(sw, ne);
-	},
+	}
 
 	// @method getMinZoom(): Number
 	// Returns the minimum zoom level of the map (if set in the `minZoom` option of the map or of any layers), or `0` by default.
 	getMinZoom() {
 		return this.options.minZoom ?? this._layersMinZoom ?? 0;
-	},
+	}
 
 	// @method getMaxZoom(): Number
 	// Returns the maximum zoom level of the map (if set in the `maxZoom` option of the map or of any layers).
 	getMaxZoom() {
 		return this.options.maxZoom ?? this._layersMaxZoom ?? Infinity;
-	},
+	}
 
 	// @method getBoundsZoom(bounds: LatLngBounds, inside?: Boolean, padding?: Point): Number
 	// Returns the maximum zoom level on which the given bounds fit to the map
@@ -3497,7 +3500,7 @@ const Map$1 = Evented.extend({
 		}
 
 		return Math.max(min, Math.min(max, zoom));
-	},
+	}
 
 	// @method getSize(): Point
 	// Returns the current size of the map container (in pixels).
@@ -3510,15 +3513,16 @@ const Map$1 = Evented.extend({
 			this._sizeChanged = false;
 		}
 		return this._size.clone();
-	},
+	}
 
-	// @method getPixelBounds(): Bounds
+	// @method getPixelBounds(center?: LatLng, zoom?: Number): Bounds
 	// Returns the bounds of the current map view in projected pixel
 	// coordinates (sometimes useful in layer and overlay implementations).
+	// If `center` and `zoom` is omitted, the map's current zoom level and center is used.
 	getPixelBounds(center, zoom) {
 		const topLeftPoint = this._getTopLeftPoint(center, zoom);
 		return new Bounds(topLeftPoint, topLeftPoint.add(this.getSize()));
-	},
+	}
 
 	// TODO: Check semantics - isn't the pixel origin the 0,0 coord relative to
 	// the map pane? "left point of the map layer" can be confusing, specially
@@ -3529,14 +3533,14 @@ const Map$1 = Evented.extend({
 	getPixelOrigin() {
 		this._checkIfLoaded();
 		return this._pixelOrigin;
-	},
+	}
 
 	// @method getPixelWorldBounds(zoom?: Number): Bounds
 	// Returns the world's bounds in pixel coordinates for zoom level `zoom`.
 	// If `zoom` is omitted, the map's current zoom level is used.
 	getPixelWorldBounds(zoom) {
 		return this.options.crs.getProjectedBounds(zoom ?? this.getZoom());
-	},
+	}
 
 	// @section Other Methods
 
@@ -3544,25 +3548,25 @@ const Map$1 = Evented.extend({
 	// Returns a [map pane](#map-pane), given its name or its HTML element (its identity).
 	getPane(pane) {
 		return typeof pane === 'string' ? this._panes[pane] : pane;
-	},
+	}
 
 	// @method getPanes(): Object
 	// Returns a plain object containing the names of all [panes](#map-pane) as keys and
 	// the panes as values.
 	getPanes() {
 		return this._panes;
-	},
+	}
 
 	// @method getContainer: HTMLElement
 	// Returns the HTML element that contains the map.
 	getContainer() {
 		return this._container;
-	},
+	}
 
 
 	// @section Conversion Methods
 
-	// @method getZoomScale(toZoom: Number, fromZoom: Number): Number
+	// @method getZoomScale(toZoom: Number, fromZoom?: Number): Number
 	// Returns the scale factor to be applied to a map transition from zoom level
 	// `fromZoom` to `toZoom`. Used internally to help with zoom animations.
 	getZoomScale(toZoom, fromZoom) {
@@ -3570,9 +3574,9 @@ const Map$1 = Evented.extend({
 		const crs = this.options.crs;
 		fromZoom ??= this._zoom;
 		return crs.scale(toZoom) / crs.scale(fromZoom);
-	},
+	}
 
-	// @method getScaleZoom(scale: Number, fromZoom: Number): Number
+	// @method getScaleZoom(scale: Number, fromZoom?: Number): Number
 	// Returns the zoom level that the map would end up at, if it is at `fromZoom`
 	// level and everything is scaled by a factor of `scale`. Inverse of
 	// [`getZoomScale`](#map-getZoomScale).
@@ -3581,9 +3585,9 @@ const Map$1 = Evented.extend({
 		fromZoom ??= this._zoom;
 		const zoom = crs.zoom(scale * crs.scale(fromZoom));
 		return isNaN(zoom) ? Infinity : zoom;
-	},
+	}
 
-	// @method project(latlng: LatLng, zoom: Number): Point
+	// @method project(latlng: LatLng, zoom?: Number): Point
 	// Projects a geographical coordinate `LatLng` according to the projection
 	// of the map's CRS, then scales it according to `zoom` and the CRS's
 	// `Transformation`. The result is pixel coordinate relative to
@@ -3591,14 +3595,14 @@ const Map$1 = Evented.extend({
 	project(latlng, zoom) {
 		zoom ??= this._zoom;
 		return this.options.crs.latLngToPoint(new LatLng(latlng), zoom);
-	},
+	}
 
-	// @method unproject(point: Point, zoom: Number): LatLng
+	// @method unproject(point: Point, zoom?: Number): LatLng
 	// Inverse of [`project`](#map-project).
 	unproject(point, zoom) {
 		zoom ??= this._zoom;
 		return this.options.crs.pointToLatLng(new Point(point), zoom);
-	},
+	}
 
 	// @method layerPointToLatLng(point: Point): LatLng
 	// Given a pixel coordinate relative to the [origin pixel](#map-getpixelorigin),
@@ -3606,7 +3610,7 @@ const Map$1 = Evented.extend({
 	layerPointToLatLng(point) {
 		const projectedPoint = new Point(point).add(this.getPixelOrigin());
 		return this.unproject(projectedPoint);
-	},
+	}
 
 	// @method latLngToLayerPoint(latlng: LatLng): Point
 	// Given a geographical coordinate, returns the corresponding pixel coordinate
@@ -3614,7 +3618,7 @@ const Map$1 = Evented.extend({
 	latLngToLayerPoint(latlng) {
 		const projectedPoint = this.project(new LatLng(latlng))._round();
 		return projectedPoint._subtract(this.getPixelOrigin());
-	},
+	}
 
 	// @method wrapLatLng(latlng: LatLng): LatLng
 	// Returns a `LatLng` where `lat` and `lng` has been wrapped according to the
@@ -3624,7 +3628,7 @@ const Map$1 = Evented.extend({
 	// value is between -180 and +180 degrees.
 	wrapLatLng(latlng) {
 		return this.options.crs.wrapLatLng(new LatLng(latlng));
-	},
+	}
 
 	// @method wrapLatLngBounds(bounds: LatLngBounds): LatLngBounds
 	// Returns a `LatLngBounds` with the same size as the given one, ensuring that
@@ -3632,30 +3636,30 @@ const Map$1 = Evented.extend({
 	// By default this means the center longitude is wrapped around the dateline so its
 	// value is between -180 and +180 degrees, and the majority of the bounds
 	// overlaps the CRS's bounds.
-	wrapLatLngBounds(latlng) {
-		return this.options.crs.wrapLatLngBounds(new LatLngBounds(latlng));
-	},
+	wrapLatLngBounds(bounds) {
+		return this.options.crs.wrapLatLngBounds(new LatLngBounds(bounds));
+	}
 
 	// @method distance(latlng1: LatLng, latlng2: LatLng): Number
 	// Returns the distance between two geographical coordinates according to
 	// the map's CRS. By default this measures distance in meters.
 	distance(latlng1, latlng2) {
 		return this.options.crs.distance(new LatLng(latlng1), new LatLng(latlng2));
-	},
+	}
 
 	// @method containerPointToLayerPoint(point: Point): Point
 	// Given a pixel coordinate relative to the map container, returns the corresponding
 	// pixel coordinate relative to the [origin pixel](#map-getpixelorigin).
 	containerPointToLayerPoint(point) { // (Point)
 		return new Point(point).subtract(this._getMapPanePos());
-	},
+	}
 
 	// @method layerPointToContainerPoint(point: Point): Point
 	// Given a pixel coordinate relative to the [origin pixel](#map-getpixelorigin),
 	// returns the corresponding pixel coordinate relative to the map container.
 	layerPointToContainerPoint(point) { // (Point)
 		return new Point(point).add(this._getMapPanePos());
-	},
+	}
 
 	// @method containerPointToLatLng(point: Point): LatLng
 	// Given a pixel coordinate relative to the map container, returns
@@ -3663,35 +3667,35 @@ const Map$1 = Evented.extend({
 	containerPointToLatLng(point) {
 		const layerPoint = this.containerPointToLayerPoint(new Point(point));
 		return this.layerPointToLatLng(layerPoint);
-	},
+	}
 
 	// @method latLngToContainerPoint(latlng: LatLng): Point
 	// Given a geographical coordinate, returns the corresponding pixel coordinate
 	// relative to the map container.
 	latLngToContainerPoint(latlng) {
 		return this.layerPointToContainerPoint(this.latLngToLayerPoint(new LatLng(latlng)));
-	},
+	}
 
 	// @method pointerEventToContainerPoint(ev: PointerEvent): Point
 	// Given a PointerEvent object, returns the pixel coordinate relative to the
 	// map container where the event took place.
 	pointerEventToContainerPoint(e) {
 		return getPointerPosition(e, this._container);
-	},
+	}
 
 	// @method pointerEventToLayerPoint(ev: PointerEvent): Point
 	// Given a PointerEvent object, returns the pixel coordinate relative to
 	// the [origin pixel](#map-getpixelorigin) where the event took place.
 	pointerEventToLayerPoint(e) {
 		return this.containerPointToLayerPoint(this.pointerEventToContainerPoint(e));
-	},
+	}
 
 	// @method pointerEventToLayerPoint(ev: PointerEvent): LatLng
 	// Given a PointerEvent object, returns geographical coordinate where the
 	// event took place.
 	pointerEventToLatLng(e) { // (PointerEvent)
 		return this.layerPointToLatLng(this.pointerEventToLayerPoint(e));
-	},
+	}
 
 
 	// map initialization methods
@@ -3709,16 +3713,15 @@ const Map$1 = Evented.extend({
 		this._containerId = stamp(container);
 
 		enablePointerDetection();
-	},
+	}
 
 	_initLayout() {
 		const container = this._container;
 
 		this._fadeAnimated = this.options.fadeAnimation;
 
-		const classes = ['leaflet-container'];
+		const classes = ['leaflet-container', 'leaflet-touch'];
 
-		if (Browser.touch) { classes.push('leaflet-touch'); }
 		if (Browser.retina) { classes.push('leaflet-retina'); }
 		if (Browser.safari) { classes.push('leaflet-safari'); }
 		if (this._fadeAnimated) { classes.push('leaflet-fade-anim'); }
@@ -3736,7 +3739,7 @@ const Map$1 = Evented.extend({
 		if (this._initControlPos) {
 			this._initControlPos();
 		}
-	},
+	}
 
 	_initPanes() {
 		const panes = this._panes = {};
@@ -3780,7 +3783,7 @@ const Map$1 = Evented.extend({
 			panes.markerPane.classList.add('leaflet-zoom-hide');
 			panes.shadowPane.classList.add('leaflet-zoom-hide');
 		}
-	},
+	}
 
 
 	// private methods that modify map state
@@ -3812,7 +3815,7 @@ const Map$1 = Evented.extend({
 		if (loading) {
 			this.fire('load');
 		}
-	},
+	}
 
 	_moveStart(zoomChanged, noMoveStart) {
 		// @event zoomstart: Event
@@ -3826,7 +3829,7 @@ const Map$1 = Evented.extend({
 			this.fire('movestart');
 		}
 		return this;
-	},
+	}
 
 	_move(center, zoom, data, supressEvent) {
 		if (zoom === undefined) {
@@ -3854,7 +3857,7 @@ const Map$1 = Evented.extend({
 			this.fire('zoom', data);
 		}
 		return this;
-	},
+	}
 
 	_moveEnd(zoomChanged) {
 		// @event zoomend: Event
@@ -3867,33 +3870,33 @@ const Map$1 = Evented.extend({
 		// Fired when the center of the map stops changing
 		// (e.g. user stopped dragging the map or after non-centered zoom).
 		return this.fire('moveend');
-	},
+	}
 
 	_stop() {
 		cancelAnimationFrame(this._flyToFrame);
 		this._panAnim?.stop();
 		return this;
-	},
+	}
 
 	_rawPanBy(offset) {
 		setPosition(this._mapPane, this._getMapPanePos().subtract(offset));
-	},
+	}
 
 	_getZoomSpan() {
 		return this.getMaxZoom() - this.getMinZoom();
-	},
+	}
 
 	_panInsideMaxBounds() {
 		if (!this._enforcingBounds) {
 			this.panInsideBounds(this.options.maxBounds);
 		}
-	},
+	}
 
 	_checkIfLoaded() {
 		if (!this._loaded) {
 			throw new Error('Set map center and zoom first.');
 		}
-	},
+	}
 
 	// DOM event handling
 
@@ -3948,17 +3951,17 @@ const Map$1 = Evented.extend({
 		if (this.options.transform3DLimit) {
 			(remove ? this.off : this.on).call(this, 'moveend', this._onMoveEnd);
 		}
-	},
+	}
 
 	_onResize() {
 		cancelAnimationFrame(this._resizeRequest);
 		this._resizeRequest = requestAnimationFrame(() => { this.invalidateSize({debounceMoveend: true}); });
-	},
+	}
 
 	_onScroll() {
 		this._container.scrollTop  = 0;
 		this._container.scrollLeft = 0;
-	},
+	}
 
 	_onMoveEnd() {
 		const pos = this._getMapPanePos();
@@ -3967,13 +3970,13 @@ const Map$1 = Evented.extend({
 			// a pixel offset on very high values, see: https://jsfiddle.net/dg6r5hhb/
 			this._resetView(this.getCenter(), this.getZoom());
 		}
-	},
+	}
 
 	_findEventTargets(e, type) {
 		let targets = [],
-		    target,
-		    src = e.target || e.srcElement,
-		    dragging = false;
+		target,
+		src = e.target || e.srcElement,
+		dragging = false;
 		const isHover = type === 'pointerout' || type === 'pointerover';
 
 		while (src) {
@@ -3995,14 +3998,14 @@ const Map$1 = Evented.extend({
 			targets = [this];
 		}
 		return targets;
-	},
+	}
 
 	_isClickDisabled(el) {
 		while (el && el !== this._container) {
 			if (el['_leaflet_disable_click'] || !el.parentNode) { return true; }
 			el = el.parentNode;
 		}
-	},
+	}
 
 	_handleDOMEvent(e) {
 		const el = e.target ?? e.srcElement;
@@ -4018,9 +4021,9 @@ const Map$1 = Evented.extend({
 		}
 
 		this._fireDOMEvent(e, type);
-	},
+	};
 
-	_pointerEvents: ['click', 'dblclick', 'pointerover', 'pointerout', 'contextmenu'],
+	static _pointerEvents = ['click', 'dblclick', 'pointerover', 'pointerout', 'contextmenu'];
 
 	_fireDOMEvent(e, type, canvasTargets) {
 
@@ -4064,20 +4067,20 @@ const Map$1 = Evented.extend({
 		for (const t of targets) {
 			t.fire(type, data, true);
 			if (data.originalEvent._stopped ||
-				(t.options.bubblingPointerEvents === false && this._pointerEvents.includes(type))) { return; }
+				(t.options.bubblingPointerEvents === false && Map._pointerEvents.includes(type))) { return; }
 		}
-	},
+	}
 
 	_draggableMoved(obj) {
 		obj = obj.dragging?.enabled() ? obj : this;
 		return obj.dragging?.moved() || this.boxZoom?.moved();
-	},
+	}
 
 	_clearHandlers() {
 		for (const handler of this._handlers) {
 			handler.disable();
 		}
-	},
+	}
 
 	// @section Other Methods
 
@@ -4092,36 +4095,36 @@ const Map$1 = Evented.extend({
 			this.on('load', callback, context);
 		}
 		return this;
-	},
+	}
 
 
 	// private methods for getting map state
 
 	_getMapPanePos() {
 		return getPosition(this._mapPane);
-	},
+	}
 
 	_moved() {
 		const pos = this._getMapPanePos();
 		return pos && !pos.equals([0, 0]);
-	},
+	}
 
 	_getTopLeftPoint(center, zoom) {
 		const pixelOrigin = center && zoom !== undefined ?
 			this._getNewPixelOrigin(center, zoom) :
 			this.getPixelOrigin();
 		return pixelOrigin.subtract(this._getMapPanePos());
-	},
+	}
 
 	_getNewPixelOrigin(center, zoom) {
 		const viewHalf = this.getSize()._divideBy(2);
 		return this.project(center, zoom)._subtract(viewHalf)._add(this._getMapPanePos())._round();
-	},
+	}
 
 	_latLngToNewLayerPoint(latlng, zoom, center) {
 		const topLeft = this._getNewPixelOrigin(center, zoom);
 		return this.project(latlng, zoom)._subtract(topLeft);
-	},
+	}
 
 	_latLngBoundsToNewLayerBounds(latLngBounds, zoom, center) {
 		const topLeft = this._getNewPixelOrigin(center, zoom);
@@ -4131,17 +4134,17 @@ const Map$1 = Evented.extend({
 			this.project(latLngBounds.getSouthEast(), zoom)._subtract(topLeft),
 			this.project(latLngBounds.getNorthEast(), zoom)._subtract(topLeft)
 		]);
-	},
+	}
 
 	// layer point of the current center
 	_getCenterLayerPoint() {
 		return this.containerPointToLayerPoint(this.getSize()._divideBy(2));
-	},
+	}
 
 	// offset of the specified place to the current center in pixels
 	_getCenterOffset(latlng) {
 		return this.latLngToLayerPoint(latlng).subtract(this._getCenterLayerPoint());
-	},
+	}
 
 	// adjust center for view to get inside bounds
 	_limitCenter(center, zoom, bounds) {
@@ -4161,7 +4164,7 @@ const Map$1 = Evented.extend({
 		}
 
 		return this.unproject(centerPoint.add(offset), zoom);
-	},
+	}
 
 	// adjust offset for view to get inside bounds
 	_limitOffset(offset, bounds) {
@@ -4171,7 +4174,7 @@ const Map$1 = Evented.extend({
 		newBounds = new Bounds(viewBounds.min.add(offset), viewBounds.max.add(offset));
 
 		return offset.add(this._getBoundsOffset(newBounds, bounds));
-	},
+	}
 
 	// returns offset needed for pxBounds to get inside maxBounds at a specified zoom
 	_getBoundsOffset(pxBounds, maxBounds, zoom) {
@@ -4186,13 +4189,13 @@ const Map$1 = Evented.extend({
 		dy = this._rebound(minOffset.y, -maxOffset.y);
 
 		return new Point(dx, dy);
-	},
+	}
 
 	_rebound(left, right) {
 		return left + right > 0 ?
 			Math.round(left - right) / 2 :
 			Math.max(0, Math.ceil(left)) - Math.max(0, Math.floor(right));
-	},
+	}
 
 	_limitZoom(zoom) {
 		const min = this.getMinZoom(),
@@ -4202,16 +4205,16 @@ const Map$1 = Evented.extend({
 			zoom = Math.round(zoom / snap) * snap;
 		}
 		return Math.max(min, Math.min(max, zoom));
-	},
+	}
 
 	_onPanTransitionStep() {
 		this.fire('move');
-	},
+	}
 
 	_onPanTransitionEnd() {
 		this._mapPane.classList.remove('leaflet-pan-anim');
 		this.fire('moveend');
-	},
+	}
 
 	_tryAnimatedPan(center, options) {
 		// difference between the new and current centers in pixels
@@ -4223,7 +4226,7 @@ const Map$1 = Evented.extend({
 		this.panBy(offset, options);
 
 		return true;
-	},
+	}
 
 	_createAnimProxy() {
 		this._proxy = create$1('div', 'leaflet-proxy leaflet-zoom-animated');
@@ -4233,7 +4236,7 @@ const Map$1 = Evented.extend({
 		this.on('load moveend', this._animMoveEnd, this);
 
 		on(this._proxy, 'transitionend', this._catchTransitionEnd, this);
-	},
+	}
 
 	_animateProxyZoom(e) {
 		const transform = this._proxy.style.transform;
@@ -4248,7 +4251,7 @@ const Map$1 = Evented.extend({
 		if (transform === this._proxy.style.transform && this._animatingZoom) {
 			this._onZoomTransitionEnd();
 		}
-	},
+	}
 
 	_animMoveEnd() {
 		const c = this.getCenter();
@@ -4261,7 +4264,7 @@ const Map$1 = Evented.extend({
 			this.project(c, z),
 			this.getZoomScale(z, 1),
 		);
-	},
+	}
 
 	_destroyAnimProxy() {
 		// Just make sure this method is safe to call from anywhere, without knowledge
@@ -4275,17 +4278,17 @@ const Map$1 = Evented.extend({
 
 			delete this._proxy;
 		}
-	},
+	}
 
 	_catchTransitionEnd(e) {
 		if (this._animatingZoom && e.propertyName.includes('transform')) {
 			this._onZoomTransitionEnd();
 		}
-	},
+	}
 
 	_nothingToAnimate() {
 		return !this._container.getElementsByClassName('leaflet-zoom-animated').length;
-	},
+	}
 
 	_tryAnimatedZoom(center, zoom, options) {
 
@@ -4311,7 +4314,7 @@ const Map$1 = Evented.extend({
 		});
 
 		return true;
-	},
+	}
 
 	_animateZoom(center, zoom, startAnim, noUpdate) {
 		if (!this._mapPane) { return; }
@@ -4343,7 +4346,7 @@ const Map$1 = Evented.extend({
 
 		// Work around webkit not firing 'transitionend', see https://github.com/Leaflet/Leaflet/issues/3689, 2693
 		this._transitionEndTimer = setTimeout(this._onZoomTransitionEnd.bind(this), 250);
-	},
+	}
 
 	_onZoomTransitionEnd() {
 		if (!this._animatingZoom) { return; }
@@ -4363,7 +4366,9 @@ const Map$1 = Evented.extend({
 
 		this._moveEnd(true);
 	}
-});
+};
+
+const LeafletMap = Map$1;
 
 /*
  * @class Control
@@ -4373,19 +4378,23 @@ const Map$1 = Evented.extend({
  * All other controls extend from this class.
  */
 
-const Control = Class.extend({
-	// @section
-	// @aka Control Options
-	options: {
-		// @option position: String = 'topright'
-		// The position of the control (one of the map corners). Possible values are `'topleft'`,
-		// `'topright'`, `'bottomleft'` or `'bottomright'`
-		position: 'topright'
-	},
+class Control extends Class {
+
+	static {
+		// @section
+		// @aka Control Options
+		this.setDefaultOptions({
+			// @option position: String = 'topright'
+			// The position of the control (one of the map corners). Possible values are `'topleft'`,
+			// `'topright'`, `'bottomleft'` or `'bottomright'`
+			position: 'topright'
+		});
+	}
+
 
 	initialize(options) {
 		setOptions(this, options);
-	},
+	}
 
 	/* @section
 	 * Classes extending Control will inherit the following methods:
@@ -4395,7 +4404,7 @@ const Control = Class.extend({
 	 */
 	getPosition() {
 		return this.options.position;
-	},
+	}
 
 	// @method setPosition(position: string): this
 	// Sets the position of the control.
@@ -4409,13 +4418,13 @@ const Control = Class.extend({
 		map?.addControl(this);
 
 		return this;
-	},
+	}
 
 	// @method getContainer: HTMLElement
 	// Returns the HTMLElement that contains the control.
 	getContainer() {
 		return this._container;
-	},
+	}
 
 	// @method addTo(map: Map): this
 	// Adds the control to the given map.
@@ -4438,7 +4447,7 @@ const Control = Class.extend({
 		this._map.on('unload', this.remove, this);
 
 		return this;
-	},
+	}
 
 	// @method remove: this
 	// Removes the control from the map it is currently active on.
@@ -4457,7 +4466,7 @@ const Control = Class.extend({
 		this._map = null;
 
 		return this;
-	},
+	}
 
 	_refocusOnMap(e) {
 		// We exclude keyboard-click event to keep the focus on the control for accessibility.
@@ -4466,7 +4475,7 @@ const Control = Class.extend({
 			this._map.getContainer().focus();
 		}
 	}
-});
+}
 
 /* @section Extension methods
  * @uninheritable
@@ -4566,38 +4575,46 @@ Map$1.include({
 
 // @constructor Control.Layers(baselayers?: Object, overlays?: Object, options?: Control.Layers options)
 // Creates a layers control with the given layers. Base layers will be switched with radio buttons, while overlays will be switched with checkboxes. Note that all base layers should be passed in the base layers object, but only one should be added to the map during map instantiation.
-const Layers = Control.extend({
-	// @section
-	// @aka Control.Layers options
-	options: {
-		// @option collapsed: Boolean = true
-		// If `true`, the control will be collapsed into an icon and expanded on pointer hover, touch, or keyboard activation.
-		collapsed: true,
-		position: 'topright',
+class Layers extends Control {
 
-		// @option autoZIndex: Boolean = true
-		// If `true`, the control will assign zIndexes in increasing order to all of its layers so that the order is preserved when switching them on/off.
-		autoZIndex: true,
+	static {
+		// @section
+		// @aka Control.Layers options
+		this.setDefaultOptions({
+			// @option collapsed: Boolean = true
+			// If `true`, the control will be collapsed into an icon and expanded on pointer hover, touch, or keyboard activation.
+			collapsed: true,
 
-		// @option hideSingleBase: Boolean = false
-		// If `true`, the base layers in the control will be hidden when there is only one.
-		hideSingleBase: false,
+			// @option collapseDelay: Number = 0
+			// Collapse delay in milliseconds. If greater than 0, the control will remain open longer, making it easier to scroll through long layer lists.
+			collapseDelay: 0,
 
-		// @option sortLayers: Boolean = false
-		// Whether to sort the layers. When `false`, layers will keep the order
-		// in which they were added to the control.
-		sortLayers: false,
+			position: 'topright',
 
-		// @option sortFunction: Function = *
-		// A [compare function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/sort)
-		// that will be used for sorting the layers, when `sortLayers` is `true`.
-		// The function receives both the `Layer` instances and their names, as in
-		// `sortFunction(layerA, layerB, nameA, nameB)`.
-		// By default, it sorts layers alphabetically by their name.
-		sortFunction(layerA, layerB, nameA, nameB) {
-			return nameA < nameB ? -1 : (nameB < nameA ? 1 : 0);
-		}
-	},
+			// @option autoZIndex: Boolean = true
+			// If `true`, the control will assign zIndexes in increasing order to all of its layers so that the order is preserved when switching them on/off.
+			autoZIndex: true,
+
+			// @option hideSingleBase: Boolean = false
+			// If `true`, the base layers in the control will be hidden when there is only one.
+			hideSingleBase: false,
+
+			// @option sortLayers: Boolean = false
+			// Whether to sort the layers. When `false`, layers will keep the order
+			// in which they were added to the control.
+			sortLayers: false,
+
+			// @option sortFunction: Function = *
+			// A [compare function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/sort)
+			// that will be used for sorting the layers, when `sortLayers` is `true`.
+			// The function receives both the `Layer` instances and their names, as in
+			// `sortFunction(layerA, layerB, nameA, nameB)`.
+			// By default, it sorts layers alphabetically by their name.
+			sortFunction(layerA, layerB, nameA, nameB) {
+				return nameA < nameB ? -1 : (nameB < nameA ? 1 : 0);
+			}
+		});
+	}
 
 	initialize(baseLayers, overlays, options) {
 		setOptions(this, options);
@@ -4615,7 +4632,7 @@ const Layers = Control.extend({
 		for (const [name, layer] of Object.entries(overlays ?? {})) {
 			this._addLayer(layer, name, true);
 		}
-	},
+	}
 
 	onAdd(map) {
 		this._initLayout();
@@ -4634,13 +4651,13 @@ const Layers = Control.extend({
 		}
 
 		return this._container;
-	},
+	}
 
 	addTo(map) {
 		Control.prototype.addTo.call(this, map);
 		// Trigger expand after Layers Control has been inserted into DOM so that is now has an actual height.
 		return this._expandIfNotCollapsed();
-	},
+	}
 
 	onRemove() {
 		this._map.off('zoomend', this._checkDisabledLayers, this);
@@ -4650,21 +4667,21 @@ const Layers = Control.extend({
 		}
 
 		this._map.off('resize', this._expandIfNotCollapsed, this);
-	},
+	}
 
 	// @method addBaseLayer(layer: Layer, name: String): this
 	// Adds a base layer (radio button entry) with the given name to the control.
 	addBaseLayer(layer, name) {
 		this._addLayer(layer, name);
 		return (this._map) ? this._update() : this;
-	},
+	}
 
 	// @method addOverlay(layer: Layer, name: String): this
 	// Adds an overlay (checkbox entry) with the given name to the control.
 	addOverlay(layer, name) {
 		this._addLayer(layer, name, true);
 		return (this._map) ? this._update() : this;
-	},
+	}
 
 	// @method removeLayer(layer: Layer): this
 	// Remove the given layer from the control.
@@ -4676,11 +4693,13 @@ const Layers = Control.extend({
 			this._layers.splice(this._layers.indexOf(obj), 1);
 		}
 		return (this._map) ? this._update() : this;
-	},
+	}
 
 	// @method expand(): this
 	// Expand the control container if collapsed.
 	expand() {
+		clearTimeout(this._collapseDelayTimeout);
+
 		this._container.classList.add('leaflet-control-layers-expanded');
 		this._section.style.height = null;
 		const acceptableHeight = this._map.getSize().y - (this._container.offsetTop + 50);
@@ -4692,7 +4711,7 @@ const Layers = Control.extend({
 		}
 		this._checkDisabledLayers();
 		return this;
-	},
+	}
 
 	// @method collapse(): this
 	// Collapse the control container if expanded.
@@ -4701,10 +4720,19 @@ const Layers = Control.extend({
 		// The control was collapsed instead of adding the layer to the map.
 		// So we allow collapse only if it is not touch.
 		if (!ev || !((ev.type === 'pointerleave' || ev.type === 'pointerout') && ev.pointerType === 'touch')) {
+			if (this.options.collapseDelay > 0) {
+				// Collapse delayed
+				this._collapseDelayTimeout = setTimeout(() => {
+					this._container.classList.remove('leaflet-control-layers-expanded');
+				}, this.options.collapseDelay);
+				return this;
+			}
+
+			// Collapse immediatelly
 			this._container.classList.remove('leaflet-control-layers-expanded');
 		}
 		return this;
-	},
+	}
 
 	_initLayout() {
 		const className = 'leaflet-control-layers',
@@ -4752,7 +4780,7 @@ const Layers = Control.extend({
 		this._overlaysList = create$1('div', `${className}-overlays`, section);
 
 		container.appendChild(section);
-	},
+	}
 
 	_getLayer(id) {
 		for (const layer of this._layers) {
@@ -4760,7 +4788,7 @@ const Layers = Control.extend({
 				return layer;
 			}
 		}
-	},
+	}
 
 	_addLayer(layer, name, overlay) {
 		if (this._map) {
@@ -4783,7 +4811,7 @@ const Layers = Control.extend({
 		}
 
 		this._expandIfNotCollapsed();
-	},
+	}
 
 	_update() {
 		if (!this._container) { return this; }
@@ -4810,7 +4838,7 @@ const Layers = Control.extend({
 		this._separator.style.display = overlaysPresent && baseLayersPresent ? '' : 'none';
 
 		return this;
-	},
+	}
 
 	_onLayerChange(e) {
 		if (!this._handlingClick) {
@@ -4835,31 +4863,18 @@ const Layers = Control.extend({
 		if (type) {
 			this._map.fire(type, obj);
 		}
-	},
-
-	// IE7 bugs out if you create a radio dynamically, so you have to do it this hacky way (see https://stackoverflow.com/a/119079)
-	_createRadioElement(name, checked) {
-
-		const radioHtml = `<input type="radio" class="leaflet-control-layers-selector" name="${name}"${checked ? ' checked="checked"' : ''}/>`;
-
-		const radioFragment = document.createElement('div');
-		radioFragment.innerHTML = radioHtml;
-
-		return radioFragment.firstChild;
-	},
+	}
 
 	_addItem(obj) {
 		const label = document.createElement('label'),
 		checked = this._map.hasLayer(obj.layer);
-		let input;
 
-		if (obj.overlay) {
-			input = document.createElement('input');
-			input.type = 'checkbox';
-			input.className = 'leaflet-control-layers-selector';
-			input.defaultChecked = checked;
-		} else {
-			input = this._createRadioElement(`leaflet-base-layers_${stamp(this)}`, checked);
+		const input = document.createElement('input');
+		input.type = obj.overlay ? 'checkbox' : 'radio';
+		input.className = 'leaflet-control-layers-selector';
+		input.defaultChecked = checked;
+		if (!obj.overlay) {
+			input.name = `leaflet-base-layers_${stamp(this)}`;
 		}
 
 		this._layerControlInputs.push(input);
@@ -4883,7 +4898,7 @@ const Layers = Control.extend({
 
 		this._checkDisabledLayers();
 		return label;
-	},
+	}
 
 	_onInputClick(e) {
 		// expanding the control on mobile with a click can cause adding a layer - we don't want this
@@ -4922,7 +4937,7 @@ const Layers = Control.extend({
 		this._handlingClick = false;
 
 		this._refocusOnMap(e);
-	},
+	}
 
 	_checkDisabledLayers() {
 		const inputs = this._layerControlInputs,
@@ -4934,14 +4949,14 @@ const Layers = Control.extend({
 			                 (layer.options.maxZoom !== undefined && zoom > layer.options.maxZoom);
 
 		}
-	},
+	}
 
 	_expandIfNotCollapsed() {
 		if (this._map && !this.options.collapsed) {
 			this.expand();
 		}
 		return this;
-	},
+	}
 
 	_expandSafely() {
 		const section = this._section;
@@ -4954,7 +4969,7 @@ const Layers = Control.extend({
 		});
 	}
 
-});
+}
 
 /*
  * @class Control.Zoom
@@ -4966,75 +4981,78 @@ const Layers = Control.extend({
 // @namespace Control.Zoom
 // @constructor Control.Zoom(options: Control.Zoom options)
 // Creates a zoom control
-const Zoom = Control.extend({
-	// @section
-	// @aka Control.Zoom options
-	options: {
-		// @option position: String = 'topleft'
-		// The position of the control (one of the map corners). Possible values are `'topleft'`,
-		// `'topright'`, `'bottomleft'` or `'bottomright'`
-		position: 'topleft',
+class Zoom extends Control {
 
-		// @option zoomInText: String = '<span aria-hidden="true">+</span>'
-		// The text set on the 'zoom in' button.
-		zoomInText: '<span aria-hidden="true">+</span>',
+	static {
+		// @section
+		// @aka Control.Zoom options
+		this.setDefaultOptions({
+			// @option position: String = 'topleft'
+			// The position of the control (one of the map corners). Possible values are `'topleft'`,
+			// `'topright'`, `'bottomleft'` or `'bottomright'`
+			position: 'topleft',
 
-		// @option zoomInTitle: String = 'Zoom in'
-		// The title set on the 'zoom in' button.
-		zoomInTitle: 'Zoom in',
+			// @option zoomInText: String = '<span aria-hidden="true">+</span>'
+			// The text set on the 'zoom in' button.
+			zoomInText: '<span aria-hidden="true">+</span>',
 
-		// @option zoomOutText: String = '<span aria-hidden="true">&#x2212;</span>'
-		// The text set on the 'zoom out' button.
-		zoomOutText: '<span aria-hidden="true">&#x2212;</span>',
+			// @option zoomInTitle: String = 'Zoom in'
+			// The title set on the 'zoom in' button.
+			zoomInTitle: 'Zoom in',
 
-		// @option zoomOutTitle: String = 'Zoom out'
-		// The title set on the 'zoom out' button.
-		zoomOutTitle: 'Zoom out'
-	},
+			// @option zoomOutText: String = '<span aria-hidden="true">&#x2212;</span>'
+			// The text set on the 'zoom out' button.
+			zoomOutText: '<span aria-hidden="true">&#x2212;</span>',
+
+			// @option zoomOutTitle: String = 'Zoom out'
+			// The title set on the 'zoom out' button.
+			zoomOutTitle: 'Zoom out'
+		});
+	}
 
 	onAdd(map) {
 		const zoomName = 'leaflet-control-zoom',
-		    container = create$1('div', `${zoomName} leaflet-bar`),
-		    options = this.options;
+		container = create$1('div', `${zoomName} leaflet-bar`),
+		options = this.options;
 
 		this._zoomInButton  = this._createButton(options.zoomInText, options.zoomInTitle,
-		        `${zoomName}-in`,  container, this._zoomIn);
+			`${zoomName}-in`,  container, this._zoomIn);
 		this._zoomOutButton = this._createButton(options.zoomOutText, options.zoomOutTitle,
-		        `${zoomName}-out`, container, this._zoomOut);
+			`${zoomName}-out`, container, this._zoomOut);
 
 		this._updateDisabled();
 		map.on('zoomend zoomlevelschange', this._updateDisabled, this);
 
 		return container;
-	},
+	}
 
 	onRemove(map) {
 		map.off('zoomend zoomlevelschange', this._updateDisabled, this);
-	},
+	}
 
 	disable() {
 		this._disabled = true;
 		this._updateDisabled();
 		return this;
-	},
+	}
 
 	enable() {
 		this._disabled = false;
 		this._updateDisabled();
 		return this;
-	},
+	}
 
 	_zoomIn(e) {
 		if (!this._disabled && this._map._zoom < this._map.getMaxZoom()) {
 			this._map.zoomIn(this._map.options.zoomDelta * (e.shiftKey ? 3 : 1));
 		}
-	},
+	}
 
 	_zoomOut(e) {
 		if (!this._disabled && this._map._zoom > this._map.getMinZoom()) {
 			this._map.zoomOut(this._map.options.zoomDelta * (e.shiftKey ? 3 : 1));
 		}
-	},
+	}
 
 	_createButton(html, title, className, container, fn) {
 		const link = create$1('a', className, container);
@@ -5054,11 +5072,11 @@ const Zoom = Control.extend({
 		on(link, 'click', this._refocusOnMap, this);
 
 		return link;
-	},
+	}
 
 	_updateDisabled() {
 		const map = this._map,
-		    className = 'leaflet-disabled';
+		className = 'leaflet-disabled';
 
 		this._zoomInButton.classList.remove(className);
 		this._zoomOutButton.classList.remove(className);
@@ -5074,7 +5092,7 @@ const Zoom = Control.extend({
 			this._zoomInButton.setAttribute('aria-disabled', 'true');
 		}
 	}
-});
+}
 
 // @namespace Map
 // @section Control options
@@ -5110,35 +5128,39 @@ Map$1.addInitHook(function () {
 
 // @constructor Control.Scale(options?: Control.Scale options)
 // Creates an scale control with the given options.
-const Scale = Control.extend({
-	// @section
-	// @aka Control.Scale options
-	options: {
-		// @option position: String = 'bottomleft'
-		// The position of the control (one of the map corners). Possible values are `'topleft'`,
-		// `'topright'`, `'bottomleft'` or `'bottomright'`
-		position: 'bottomleft',
+class Scale extends Control {
 
-		// @option maxWidth: Number = 100
-		// Maximum width of the control in pixels. The width is set dynamically to show round values (e.g. 100, 200, 500).
-		maxWidth: 100,
+	static {
+		// @section
+		// @aka Control.Scale options
+		this.setDefaultOptions({
+			// @option position: String = 'bottomleft'
+			// The position of the control (one of the map corners). Possible values are `'topleft'`,
+			// `'topright'`, `'bottomleft'` or `'bottomright'`
+			position: 'bottomleft',
 
-		// @option metric: Boolean = True
-		// Whether to show the metric scale line (m/km).
-		metric: true,
+			// @option maxWidth: Number = 100
+			// Maximum width of the control in pixels. The width is set dynamically to show round values (e.g. 100, 200, 500).
+			maxWidth: 100,
 
-		// @option imperial: Boolean = True
-		// Whether to show the imperial scale line (mi/ft).
-		imperial: true
+			// @option metric: Boolean = True
+			// Whether to show the metric scale line (m/km).
+			metric: true,
 
-		// @option updateWhenIdle: Boolean = false
-		// If `true`, the control is updated on [`moveend`](#map-moveend), otherwise it's always up-to-date (updated on [`move`](#map-move)).
-	},
+			// @option imperial: Boolean = True
+			// Whether to show the imperial scale line (mi/ft).
+			imperial: true,
+
+			// @option updateWhenIdle: Boolean = false
+			// If `true`, the control is updated on [`moveend`](#map-moveend), otherwise it's always up-to-date (updated on [`move`](#map-move)).
+			updateWhenIdle: false
+		});
+	}
 
 	onAdd(map) {
 		const className = 'leaflet-control-scale',
-		    container = create$1('div', className),
-		    options = this.options;
+		container = create$1('div', className),
+		options = this.options;
 
 		this._addScales(options, `${className}-line`, container);
 
@@ -5146,11 +5168,11 @@ const Scale = Control.extend({
 		map.whenReady(this._update, this);
 
 		return container;
-	},
+	}
 
 	onRemove(map) {
 		map.off(this.options.updateWhenIdle ? 'moveend' : 'move', this._update, this);
-	},
+	}
 
 	_addScales(options, className, container) {
 		if (options.metric) {
@@ -5159,18 +5181,18 @@ const Scale = Control.extend({
 		if (options.imperial) {
 			this._iScale = create$1('div', className, container);
 		}
-	},
+	}
 
 	_update() {
 		const map = this._map,
-		    y = map.getSize().y / 2;
+		y = map.getSize().y / 2;
 
 		const maxMeters = map.distance(
 			map.containerPointToLatLng([0, y]),
 			map.containerPointToLatLng([this.options.maxWidth, y]));
 
 		this._updateScales(maxMeters);
-	},
+	}
 
 	_updateScales(maxMeters) {
 		if (this.options.metric && maxMeters) {
@@ -5179,14 +5201,14 @@ const Scale = Control.extend({
 		if (this.options.imperial && maxMeters) {
 			this._updateImperial(maxMeters);
 		}
-	},
+	}
 
 	_updateMetric(maxMeters) {
 		const meters = this._getRoundNum(maxMeters),
-		    label = meters < 1000 ? `${meters} m` : `${meters / 1000} km`;
+		label = meters < 1000 ? `${meters} m` : `${meters / 1000} km`;
 
 		this._updateScale(this._mScale, label, meters / maxMeters);
-	},
+	}
 
 	_updateImperial(maxMeters) {
 		const maxFeet = maxMeters * 3.2808399;
@@ -5201,25 +5223,25 @@ const Scale = Control.extend({
 			feet = this._getRoundNum(maxFeet);
 			this._updateScale(this._iScale, `${feet} ft`, feet / maxFeet);
 		}
-	},
+	}
 
 	_updateScale(scale, text, ratio) {
 		scale.style.width = `${Math.round(this.options.maxWidth * ratio)}px`;
 		scale.innerHTML = text;
-	},
+	}
 
 	_getRoundNum(num) {
 		const pow10 = 10 ** ((`${Math.floor(num)}`).length - 1);
 		let d = num / pow10;
 
 		d = d >= 10 ? 10 :
-		    d >= 5 ? 5 :
-		    d >= 3 ? 3 :
-		    d >= 2 ? 2 : 1;
+			d >= 5 ? 5 :
+			d >= 3 ? 3 :
+			d >= 2 ? 2 : 1;
 
 		return pow10 * d;
 	}
-});
+}
 
 const ukrainianFlag = '<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8" class="leaflet-attribution-flag"><path fill="#4C7BE1" d="M0 0h12v4H0z"/><path fill="#FFD500" d="M0 4h12v3H0z"/><path fill="#E0BC00" d="M0 7h12v1H0z"/></svg>';
 
@@ -5234,25 +5256,28 @@ const ukrainianFlag = '<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg
 // @namespace Control.Attribution
 // @constructor Control.Attribution(options: Control.Attribution options)
 // Creates an attribution control.
-const Attribution = Control.extend({
-	// @section
-	// @aka Control.Attribution options
-	options: {
-		// @option position: String = 'bottomright'
-		// The position of the control (one of the map corners). Possible values are `'topleft'`,
-		// `'topright'`, `'bottomleft'` or `'bottomright'`
-		position: 'bottomright',
+class Attribution extends Control {
 
-		// @option prefix: String|false = 'Leaflet'
-		// The HTML text shown before the attributions. Pass `false` to disable.
-		prefix: `<a target="_blank" href="https://leafletjs.com" title="A JavaScript library for interactive maps">${ukrainianFlag}Leaflet</a>`
-	},
+	static {
+		// @section
+		// @aka Control.Attribution options
+		this.setDefaultOptions({
+			// @option position: String = 'bottomright'
+			// The position of the control (one of the map corners). Possible values are `'topleft'`,
+			// `'topright'`, `'bottomleft'` or `'bottomright'`
+			position: 'bottomright',
+
+			// @option prefix: String|false = 'Leaflet'
+			// The HTML text shown before the attributions. Pass `false` to disable.
+			prefix: `<a target="_blank" href="https://leafletjs.com" title="A JavaScript library for interactive maps">${ukrainianFlag}Leaflet</a>`
+		});
+	}
 
 	initialize(options) {
 		setOptions(this, options);
 
 		this._attributions = {};
-	},
+	}
 
 	onAdd(map) {
 		map.attributionControl = this;
@@ -5271,18 +5296,18 @@ const Attribution = Control.extend({
 		map.on('layeradd', this._addAttribution, this);
 
 		return this._container;
-	},
+	}
 
 	onRemove(map) {
 		map.off('layeradd', this._addAttribution, this);
-	},
+	}
 
 	_addAttribution(ev) {
 		if (ev.layer.getAttribution) {
 			this.addAttribution(ev.layer.getAttribution());
 			ev.layer.once('remove', () => this.removeAttribution(ev.layer.getAttribution()));
 		}
-	},
+	}
 
 	// @method setPrefix(prefix: String|false): this
 	// The HTML text shown before the attributions. Pass `false` to disable.
@@ -5290,7 +5315,7 @@ const Attribution = Control.extend({
 		this.options.prefix = prefix;
 		this._update();
 		return this;
-	},
+	}
 
 	// @method addAttribution(text: String): this
 	// Adds an attribution text (e.g. `'&copy; OpenStreetMap contributors'`).
@@ -5305,7 +5330,7 @@ const Attribution = Control.extend({
 		this._update();
 
 		return this;
-	},
+	}
 
 	// @method removeAttribution(text: String): this
 	// Removes an attribution text.
@@ -5318,7 +5343,7 @@ const Attribution = Control.extend({
 		}
 
 		return this;
-	},
+	}
 
 	_update() {
 		if (!this._map) { return; }
@@ -5336,7 +5361,7 @@ const Attribution = Control.extend({
 
 		this._container.innerHTML = prefixAndAttribs.join(' <span aria-hidden="true">|</span> ');
 	}
-});
+}
 
 // @namespace Map
 // @section Control options
@@ -5365,10 +5390,10 @@ Control.Attribution = Attribution;
 // @class Handler
 // Abstract class for map interaction handlers
 
-const Handler = Class.extend({
+class Handler extends Class {
 	initialize(map) {
 		this._map = map;
-	},
+	}
 
 	// @method enable(): this
 	// Enables the handler
@@ -5378,7 +5403,7 @@ const Handler = Class.extend({
 		this._enabled = true;
 		this.addHooks();
 		return this;
-	},
+	}
 
 	// @method disable(): this
 	// Disables the handler
@@ -5388,7 +5413,7 @@ const Handler = Class.extend({
 		this._enabled = false;
 		this.removeHooks();
 		return this;
-	},
+	}
 
 	// @method enabled(): Boolean
 	// Returns `true` if the handler is enabled
@@ -5402,7 +5427,7 @@ const Handler = Class.extend({
 	// Called when the handler is enabled, should add event hooks.
 	// @method removeHooks()
 	// Called when the handler is disabled, should remove the event hooks added previously.
-});
+}
 
 // @section There is static function which can be called without instantiating Handler:
 // @function addTo(map: Map, name: String): this
@@ -5417,8 +5442,7 @@ Handler.addTo = function (map, name) {
  * @inherits Evented
  *
  * A class for making DOM elements draggable.
- * Used internally for map and marker dragging. Only works for elements
- * that were positioned with [`DomUtil.setPosition`](#domutil-setposition).
+ * Used internally for map and marker dragging. Works on any DOM element
  *
  * @example
  * ```js
@@ -5427,16 +5451,18 @@ Handler.addTo = function (map, name) {
  * ```
  */
 
-const Draggable = Evented.extend({
+class Draggable extends Evented {
 
-	options: {
-		// @section
-		// @aka Draggable options
-		// @option clickTolerance: Number = 3
-		// The max number of pixels a user can shift the pointer during a click
-		// for it to be considered a valid click (as opposed to a pointer drag).
-		clickTolerance: 3
-	},
+	static {
+		this.setDefaultOptions({
+			// @section
+			// @aka Draggable options
+			// @option clickTolerance: Number = 3
+			// The max number of pixels a user can shift the pointer during a click
+			// for it to be considered a valid click (as opposed to a pointer drag).
+			clickTolerance: 3
+		});
+	}
 
 	// @constructor Draggable(el: HTMLElement, dragHandle?: HTMLElement, preventOutline?: Boolean, options?: Draggable options)
 	// Creates a `Draggable` object for moving `el` when you start dragging the `dragHandle` element (equals `el` itself by default).
@@ -5446,7 +5472,7 @@ const Draggable = Evented.extend({
 		this._element = element;
 		this._dragStartTarget = dragStartTarget ?? element;
 		this._preventOutline = preventOutline;
-	},
+	}
 
 	// @method enable()
 	// Enables the dragging ability
@@ -5456,7 +5482,7 @@ const Draggable = Evented.extend({
 		on(this._dragStartTarget, 'pointerdown', this._onDown, this);
 
 		this._enabled = true;
-	},
+	}
 
 	// @method disable()
 	// Disables the dragging ability
@@ -5473,13 +5499,9 @@ const Draggable = Evented.extend({
 
 		this._enabled = false;
 		this._moved = false;
-	},
+	}
 
 	_onDown(e) {
-		// Ignore the event if disabled; this happens in IE11
-		// under some circumstances, see #3666.
-		if (!this._enabled) { return; }
-
 		this._moved = false;
 
 		if (this._element.classList.contains('leaflet-zoom-anim')) { return; }
@@ -5518,13 +5540,9 @@ const Draggable = Evented.extend({
 
 		on(document, 'pointermove', this._onMove, this);
 		on(document, 'pointerup pointercancel', this._onUp, this);
-	},
+	}
 
 	_onMove(e) {
-		// Ignore the event if disabled; this happens in IE11
-		// under some circumstances, see #3666.
-		if (!this._enabled) { return; }
-
 		if (getPointers().length > 1) {
 			this._moved = true;
 			return;
@@ -5563,7 +5581,7 @@ const Draggable = Evented.extend({
 
 		this._lastEvent = e;
 		this._updatePosition();
-	},
+	}
 
 	_updatePosition() {
 		const e = {originalEvent: this._lastEvent};
@@ -5577,14 +5595,11 @@ const Draggable = Evented.extend({
 		// @event drag: Event
 		// Fired continuously during dragging.
 		this.fire('drag', e);
-	},
+	}
 
 	_onUp() {
-		// Ignore the event if disabled; this happens in IE11
-		// under some circumstances, see #3666.
-		if (!this._enabled) { return; }
 		this.finishDrag();
-	},
+	}
 
 	finishDrag(noInertia) {
 		document.body.classList.remove('leaflet-dragging');
@@ -5615,7 +5630,7 @@ const Draggable = Evented.extend({
 		}
 	}
 
-});
+}
 
 /*
  * @namespace PolyUtil
@@ -5774,11 +5789,11 @@ function simplify(points, tolerance) {
 
 	const sqTolerance = tolerance * tolerance;
 
-	    // stage 1: vertex reduction
-	    points = _reducePoints(points, sqTolerance);
+	// stage 1: vertex reduction
+	points = _reducePoints(points, sqTolerance);
 
-	    // stage 2: Douglas-Peucker simplification
-	    points = _simplifyDP(points, sqTolerance);
+	// stage 2: Douglas-Peucker simplification
+	points = _simplifyDP(points, sqTolerance);
 
 	return points;
 }
@@ -5799,10 +5814,8 @@ function closestPointOnSegment(p, p1, p2) {
 function _simplifyDP(points, sqTolerance) {
 
 	const len = points.length,
-	    ArrayConstructor = typeof Uint8Array !== `${undefined}` ? Uint8Array : Array,
-	    markers = new ArrayConstructor(len);
-
-	    markers[0] = markers[len - 1] = 1;
+	markers = new Uint8Array(len);
+	markers[0] = markers[len - 1] = 1;
 
 	_simplifyDPStep(points, markers, sqTolerance, 0, len - 1);
 
@@ -5866,12 +5879,12 @@ let _lastCode;
 // points that are on the screen or near, increasing performance.
 function clipSegment(a, b, bounds, useLastCode, round) {
 	let codeA = useLastCode ? _lastCode : _getBitCode(a, bounds),
-	    codeB = _getBitCode(b, bounds),
+	codeB = _getBitCode(b, bounds),
 
-	    codeOut, p, newCode;
+	codeOut, p, newCode;
 
-	    // save 2nd code to avoid calculating it on the next segment
-	    _lastCode = codeB;
+	// save 2nd code to avoid calculating it on the next segment
+	_lastCode = codeB;
 
 	while (true) {
 		// if a,b is inside the clip window (trivial accept)
@@ -5901,9 +5914,9 @@ function clipSegment(a, b, bounds, useLastCode, round) {
 
 function _getEdgeIntersection(a, b, code, bounds, round) {
 	const dx = b.x - a.x,
-	      dy = b.y - a.y,
-	      min = bounds.min,
-	      max = bounds.max;
+	dy = b.y - a.y,
+	min = bounds.min,
+	max = bounds.max;
 	let x, y;
 
 	if (code & 8) { // top
@@ -5947,17 +5960,17 @@ function _getBitCode(p, bounds) {
 // square distance (to avoid unnecessary Math.sqrt calls)
 function _sqDist(p1, p2) {
 	const dx = p2.x - p1.x,
-	    dy = p2.y - p1.y;
+	dy = p2.y - p1.y;
 	return dx * dx + dy * dy;
 }
 
 // return closest point on segment or distance to that point
 function _sqClosestPointOnSegment(p, p1, p2, sqDist) {
 	let x = p1.x,
-	    y = p1.y,
-	    dx = p2.x - x,
-	    dy = p2.y - y,
-	    t;
+	y = p1.y,
+	dx = p2.x - x,
+	dy = p2.y - y,
+	t;
 	const dot = dx * dx + dy * dy;
 
 	if (dot > 0) {
@@ -6074,10 +6087,12 @@ var LineUtil = {
 
 const LonLat = {
 	project(latlng) {
+		latlng = new LatLng(latlng);
 		return new Point(latlng.lng, latlng.lat);
 	},
 
 	unproject(point) {
+		point = new Point(point);
 		return new LatLng(point.y, point.x);
 	},
 
@@ -6091,17 +6106,20 @@ const LonLat = {
  * Elliptical Mercator projection — more complex than Spherical Mercator. Assumes that Earth is an ellipsoid. Used by the EPSG:3395 CRS.
  */
 
+const earthRadius = 6378137;
+
 const Mercator = {
-	R: 6378137,
+	R: earthRadius,
 	R_MINOR: 6356752.314245179,
 
 	bounds: new Bounds([-20037508.34279, -15496570.73972], [20037508.34279, 18764656.23138]),
 
 	project(latlng) {
+		latlng = new LatLng(latlng);
 		const d = Math.PI / 180,
-		      r = this.R,
-		      tmp = this.R_MINOR / r,
-		      e = Math.sqrt(1 - tmp * tmp);
+		r = this.R,
+		tmp = this.R_MINOR / r,
+		e = Math.sqrt(1 - tmp * tmp);
 		let y = latlng.lat * d;
 		const con = e * Math.sin(y);
 
@@ -6112,11 +6130,12 @@ const Mercator = {
 	},
 
 	unproject(point) {
+		point = new Point(point);
 		const d = 180 / Math.PI,
-		      r = this.R,
-		      tmp = this.R_MINOR / r,
-		      e = Math.sqrt(1 - tmp * tmp),
-		      ts = Math.exp(-point.y / r);
+		r = this.R,
+		tmp = this.R_MINOR / r,
+		e = Math.sqrt(1 - tmp * tmp),
+		ts = Math.exp(-point.y / r);
 		let phi = Math.PI / 2 - 2 * Math.atan(ts);
 
 		for (let i = 0, dphi = 0.1, con; i < 15 && Math.abs(dphi) > 1e-7; i++) {
@@ -6257,21 +6276,23 @@ CRS.Simple = Simple;
  */
 
 
-const Layer = Evented.extend({
+class Layer extends Evented {
 
-	// Classes extending `Layer` will inherit the following options:
-	options: {
-		// @option pane: String = 'overlayPane'
-		// By default the layer will be added to the map's [overlay pane](#map-overlaypane). Overriding this option will cause the layer to be placed on another pane by default.
-		// Not effective if the `renderer` option is set (the `renderer` option will override the `pane` option).
-		pane: 'overlayPane',
+	static {
+		// Classes extending `Layer` will inherit the following options:
+		this.setDefaultOptions({
+			// @option pane: String = 'overlayPane'
+			// By default the layer will be added to the map's [overlay pane](#map-overlaypane). Overriding this option will cause the layer to be placed on another pane by default.
+			// Not effective if the `renderer` option is set (the `renderer` option will override the `pane` option).
+			pane: 'overlayPane',
 
-		// @option attribution: String = null
-		// String to be shown in the attribution control, e.g. "© OpenStreetMap contributors". It describes the layer data and is often a legal obligation towards copyright holders and tile providers.
-		attribution: null,
+			// @option attribution: String = null
+			// String to be shown in the attribution control, e.g. "© OpenStreetMap contributors". It describes the layer data and is often a legal obligation towards copyright holders and tile providers.
+			attribution: null,
 
-		bubblingPointerEvents: true
-	},
+			bubblingPointerEvents: true
+		});
+	}
 
 	/* @section
 	 * Classes extending `Layer` will inherit the following methods:
@@ -6282,13 +6303,13 @@ const Layer = Evented.extend({
 	addTo(map) {
 		map.addLayer(this);
 		return this;
-	},
+	}
 
 	// @method remove: this
 	// Removes the layer from the map it is currently active on.
 	remove() {
 		return this.removeFrom(this._map || this._mapToAdd);
-	},
+	}
 
 	// @method removeFrom(map: Map): this
 	// Removes the layer from the given map
@@ -6299,29 +6320,29 @@ const Layer = Evented.extend({
 	removeFrom(obj) {
 		obj?.removeLayer(this);
 		return this;
-	},
+	}
 
 	// @method getPane(name? : String): HTMLElement
 	// Returns the `HTMLElement` representing the named pane on the map. If `name` is omitted, returns the pane for this layer.
 	getPane(name) {
 		return this._map.getPane(name ? (this.options[name] || name) : this.options.pane);
-	},
+	}
 
 	addInteractiveTarget(targetEl) {
 		this._map._targets[stamp(targetEl)] = this;
 		return this;
-	},
+	}
 
 	removeInteractiveTarget(targetEl) {
 		delete this._map._targets[stamp(targetEl)];
 		return this;
-	},
+	}
 
 	// @method getAttribution: String
 	// Used by the `attribution control`, returns the [attribution option](#gridlayer-attribution).
 	getAttribution() {
 		return this.options.attribution;
-	},
+	}
 
 	_layerAdd(e) {
 		const map = e.target;
@@ -6343,7 +6364,7 @@ const Layer = Evented.extend({
 		this.fire('add');
 		map.fire('layeradd', {layer: this});
 	}
-});
+}
 
 /* @section Extension methods
  * @uninheritable
@@ -6357,7 +6378,7 @@ const Layer = Evented.extend({
  * Should contain all clean up code that removes the layer's elements from the DOM and removes listeners previously added in [`onAdd`](#layer-onadd). Called on [`map.removeLayer(layer)`](#map-removelayer).
  *
  * @method getEvents(): Object
- * This optional method should return an object like `{ viewreset: this._reset }` for [`addEventListener`](#evented-addeventlistener). The event handlers in this object will be automatically added and removed from the map with your layer.
+ * This optional method should return an object like `{ viewreset: this._reset }` for [`on`](#evented-on). The event handlers in this object will be automatically added and removed from the map with your layer.
  *
  * @method getAttribution(): String
  * This optional method should return a string containing HTML to be shown on the `Attribution control` whenever the layer is visible.
@@ -6519,9 +6540,9 @@ Map$1.include({
 
 // @constructor LayerGroup(layers?: Layer[], options?: Object)
 // Create a layer group, optionally given an initial set of layers and an `options` object.
-const LayerGroup = Layer.extend({
+class LayerGroup extends Layer {
 
-	initialize(layers, options) {
+	initialize(layers, options) { // for compatibility of code using `LayerGroup.extend`
 		setOptions(this, options);
 
 		this._layers = {};
@@ -6529,7 +6550,7 @@ const LayerGroup = Layer.extend({
 		for (const layer of layers ?? []) {
 			this.addLayer(layer);
 		}
-	},
+	}
 
 	// @method addLayer(layer: Layer): this
 	// Adds the given layer to the group.
@@ -6541,7 +6562,7 @@ const LayerGroup = Layer.extend({
 		this._map?.addLayer(layer);
 
 		return this;
-	},
+	}
 
 	// @method removeLayer(layer: Layer): this
 	// Removes the given layer from the group.
@@ -6558,7 +6579,7 @@ const LayerGroup = Layer.extend({
 		delete this._layers[id];
 
 		return this;
-	},
+	}
 
 	// @method hasLayer(layer: Layer): Boolean
 	// Returns `true` if the given layer is currently added to the group.
@@ -6568,13 +6589,13 @@ const LayerGroup = Layer.extend({
 	hasLayer(layer) {
 		const layerId = typeof layer === 'number' ? layer : this.getLayerId(layer);
 		return layerId in this._layers;
-	},
+	}
 
 	// @method clearLayers(): this
 	// Removes all the layers from the group.
 	clearLayers() {
 		return this.eachLayer(this.removeLayer, this);
-	},
+	}
 
 	// @method invoke(methodName: String, …): this
 	// Calls `methodName` on every layer contained in this group, passing any
@@ -6585,15 +6606,15 @@ const LayerGroup = Layer.extend({
 			layer[methodName]?.apply(layer, args);
 		}
 		return this;
-	},
+	}
 
 	onAdd(map) {
 		this.eachLayer(map.addLayer, map);
-	},
+	}
 
 	onRemove(map) {
 		this.eachLayer(map.removeLayer, map);
-	},
+	}
 
 	// @method eachLayer(fn: Function, context?: Object): this
 	// Iterates over the layers of the group, optionally specifying context of the iterator function.
@@ -6605,13 +6626,13 @@ const LayerGroup = Layer.extend({
 			method.call(context, layer);
 		}
 		return this;
-	},
+	}
 
 	// @method getLayer(id: Number): Layer
 	// Returns the layer with the given internal ID.
 	getLayer(id) {
 		return this._layers[id];
-	},
+	}
 
 	// @method getLayers(): Layer[]
 	// Returns an array of all the layers added to the group.
@@ -6619,20 +6640,20 @@ const LayerGroup = Layer.extend({
 		const layers = [];
 		this.eachLayer(layers.push, layers);
 		return layers;
-	},
+	}
 
 	// @method setZIndex(zIndex: Number): this
 	// Calls `setZIndex` on every layer contained in this group, passing the z-index.
 	setZIndex(zIndex) {
 		return this.invoke('setZIndex', zIndex);
-	},
+	}
 
 	// @method getLayerId(layer: Layer): Number
 	// Returns the internal ID for a layer
 	getLayerId(layer) {
 		return stamp(layer);
 	}
-});
+}
 
 /*
  * @class FeatureGroup
@@ -6657,7 +6678,7 @@ const LayerGroup = Layer.extend({
 
 // @constructor FeatureGroup(layers?: Layer[], options?: Object)
 // Create a feature group, optionally given an initial set of layers and an `options` object.
-const FeatureGroup = LayerGroup.extend({
+class FeatureGroup extends LayerGroup {
 
 	addLayer(layer) {
 		if (this.hasLayer(layer)) {
@@ -6671,7 +6692,7 @@ const FeatureGroup = LayerGroup.extend({
 		// @event layeradd: LayerEvent
 		// Fired when a layer is added to this `FeatureGroup`
 		return this.fire('layeradd', {layer});
-	},
+	}
 
 	removeLayer(layer) {
 		if (!this.hasLayer(layer)) {
@@ -6688,25 +6709,25 @@ const FeatureGroup = LayerGroup.extend({
 		// @event layerremove: LayerEvent
 		// Fired when a layer is removed from this `FeatureGroup`
 		return this.fire('layerremove', {layer});
-	},
+	}
 
 	// @method setStyle(style: Path options): this
 	// Sets the given path options to each layer of the group that has a `setStyle` method.
 	setStyle(style) {
 		return this.invoke('setStyle', style);
-	},
+	}
 
 	// @method bringToFront(): this
 	// Brings the layer group to the top of all other layers
 	bringToFront() {
 		return this.invoke('bringToFront');
-	},
+	}
 
 	// @method bringToBack(): this
 	// Brings the layer group to the back of all other layers
 	bringToBack() {
 		return this.invoke('bringToBack');
-	},
+	}
 
 	// @method getBounds(): LatLngBounds
 	// Returns the LatLngBounds of the Feature Group (created from bounds and coordinates of its children).
@@ -6718,7 +6739,7 @@ const FeatureGroup = LayerGroup.extend({
 		}
 		return bounds;
 	}
-});
+}
 
 /*
  * @class Icon
@@ -6749,75 +6770,76 @@ const FeatureGroup = LayerGroup.extend({
 
 // @constructor Icon(options: Icon options)
 // Creates an icon instance with the given options.
-const Icon = Class.extend({
+class Icon extends Class {
 
-	/* @section
-	 * @aka Icon options
-	 *
-	 * @option iconUrl: String = null
-	 * **(required)** The URL to the icon image (absolute or relative to your script path).
-	 *
-	 * @option iconRetinaUrl: String = null
-	 * The URL to a retina sized version of the icon image (absolute or relative to your
-	 * script path). Used for Retina screen devices.
-	 *
-	 * @option iconSize: Point = null
-	 * Size of the icon image in pixels.
-	 *
-	 * @option iconAnchor: Point = null
-	 * The coordinates of the "tip" of the icon (relative to its top left corner). The icon
-	 * will be aligned so that this point is at the marker's geographical location. Centered
-	 * by default if size is specified, also can be set in CSS with negative margins.
-	 *
-	 * @option popupAnchor: Point = [0, 0]
-	 * The coordinates of the point from which popups will "open", relative to the icon anchor.
-	 *
-	 * @option tooltipAnchor: Point = [0, 0]
-	 * The coordinates of the point from which tooltips will "open", relative to the icon anchor.
-	 *
-	 * @option shadowUrl: String = null
-	 * The URL to the icon shadow image. If not specified, no shadow image will be created.
-	 *
-	 * @option shadowRetinaUrl: String = null
-	 *
-	 * @option shadowSize: Point = null
-	 * Size of the shadow image in pixels.
-	 *
-	 * @option shadowAnchor: Point = null
-	 * The coordinates of the "tip" of the shadow (relative to its top left corner) (the same
-	 * as iconAnchor if not specified).
-	 *
-	 * @option className: String = ''
-	 * A custom class name to assign to both icon and shadow images. Empty by default.
-	 */
+	static {
+		/* @section
+		 * @aka Icon options
+		 *
+		 * @option iconUrl: String = null
+		 * **(required)** The URL to the icon image (absolute or relative to your script path).
+		 *
+		 * @option iconRetinaUrl: String = null
+		 * The URL to a retina sized version of the icon image (absolute or relative to your
+		 * script path). Used for Retina screen devices.
+		 *
+		 * @option iconSize: Point = null
+		 * Size of the icon image in pixels.
+		 *
+		 * @option iconAnchor: Point = null
+		 * The coordinates of the "tip" of the icon (relative to its top left corner). The icon
+		 * will be aligned so that this point is at the marker's geographical location. Centered
+		 * by default if size is specified, also can be set in CSS with negative margins.
+		 *
+		 * @option popupAnchor: Point = [0, 0]
+		 * The coordinates of the point from which popups will "open", relative to the icon anchor.
+		 *
+		 * @option tooltipAnchor: Point = [0, 0]
+		 * The coordinates of the point from which tooltips will "open", relative to the icon anchor.
+		 *
+		 * @option shadowUrl: String = null
+		 * The URL to the icon shadow image. If not specified, no shadow image will be created.
+		 *
+		 * @option shadowRetinaUrl: String = null
+		 *
+		 * @option shadowSize: Point = null
+		 * Size of the shadow image in pixels.
+		 *
+		 * @option shadowAnchor: Point = null
+		 * The coordinates of the "tip" of the shadow (relative to its top left corner) (the same
+		 * as iconAnchor if not specified).
+		 *
+		 * @option className: String = ''
+		 * A custom class name to assign to both icon and shadow images. Empty by default.
+		 */
+		this.setDefaultOptions({
+			popupAnchor: [0, 0],
+			tooltipAnchor: [0, 0],
 
-	options: {
-		popupAnchor: [0, 0],
-		tooltipAnchor: [0, 0],
-
-		// @option crossOrigin: Boolean|String = false
-		// Whether the crossOrigin attribute will be added to the tiles.
-		// If a String is provided, all tiles will have their crossOrigin attribute set to the String provided. This is needed if you want to access tile pixel data.
-		// Refer to [CORS Settings](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for valid String values.
-		crossOrigin: false
-	},
+			// @option crossOrigin: Boolean|String = false
+			// Whether the crossOrigin attribute will be added to the tiles.
+			// If a String is provided, all tiles will have their crossOrigin attribute set to the String provided. This is needed if you want to access tile pixel data.
+			// Refer to [CORS Settings](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for valid String values.
+			crossOrigin: false
+		});
+	}
 
 	initialize(options) {
 		setOptions(this, options);
-	},
+	}
 
 	// @method createIcon(oldIcon?: HTMLElement): HTMLElement
 	// Called internally when the icon has to be shown, returns a `<img>` HTML element
 	// styled according to the options.
 	createIcon(oldIcon) {
 		return this._createIcon('icon', oldIcon);
-	},
+	}
 
 	// @method createShadow(oldIcon?: HTMLElement): HTMLElement
 	// As `createIcon`, but for the shadow beneath it.
 	createShadow(oldIcon) {
 		return this._createIcon('shadow', oldIcon);
-	},
+	}
 
 	_createIcon(name, oldIcon) {
 		const src = this._getIconUrl(name);
@@ -6837,7 +6859,7 @@ const Icon = Class.extend({
 		}
 
 		return img;
-	},
+	}
 
 	_setIconStyles(img, name) {
 		const options = this.options;
@@ -6863,18 +6885,18 @@ const Icon = Class.extend({
 			img.style.width  = `${size.x}px`;
 			img.style.height = `${size.y}px`;
 		}
-	},
+	}
 
 	_createImg(src, el) {
 		el ??= document.createElement('img');
 		el.src = src;
 		return el;
-	},
+	}
 
 	_getIconUrl(name) {
 		return Browser.retina && this.options[`${name}RetinaUrl`] || this.options[`${name}Url`];
 	}
-});
+}
 
 /*
  * @miniclass Icon.Default (Icon)
@@ -6891,18 +6913,20 @@ const Icon = Class.extend({
  * `Marker.prototype.options.icon` with your own icon instead.
  */
 
-const IconDefault = Icon.extend({
+class IconDefault extends Icon {
 
-	options: {
-		iconUrl:       'marker-icon.png',
-		iconRetinaUrl: 'marker-icon-2x.png',
-		shadowUrl:     'marker-shadow.png',
-		iconSize:    [25, 41],
-		iconAnchor:  [12, 41],
-		popupAnchor: [1, -34],
-		tooltipAnchor: [16, -28],
-		shadowSize:  [41, 41]
-	},
+	static {
+		this.setDefaultOptions({
+			iconUrl:       'marker-icon.png',
+			iconRetinaUrl: 'marker-icon-2x.png',
+			shadowUrl:     'marker-shadow.png',
+			iconSize:    [25, 41],
+			iconAnchor:  [12, 41],
+			popupAnchor: [1, -34],
+			tooltipAnchor: [16, -28],
+			shadowSize:  [41, 41]
+		});
+	}
 
 	_getIconUrl(name) {
 		// only detect once
@@ -6920,7 +6944,7 @@ const IconDefault = Icon.extend({
 		// blue icon images. If you are placing these images in a non-standard
 		// way, set this option to point to the right path.
 		return (this.options.imagePath || IconDefault.imagePath) + url;
-	},
+	}
 
 	_stripUrl(path) {	// separate function to use in tests
 		const strip = function (str, re, idx) {
@@ -6929,7 +6953,7 @@ const IconDefault = Icon.extend({
 		};
 		path = strip(path, /^url\((['"])?(.+)\1\)$/, 2);
 		return path && strip(path, /^(.*)marker-icon\.png$/, 1);
-	},
+	}
 
 	_detectIconPath() {
 		const el = create$1('div',  'leaflet-default-icon-path', document.body);
@@ -6941,7 +6965,7 @@ const IconDefault = Icon.extend({
 		if (!link) { return ''; }
 		return link.href.substring(0, link.href.length - 'leaflet.css'.length - 1);
 	}
-});
+}
 
 /*
  * Handler.MarkerDrag is used internally by Marker to make the markers draggable.
@@ -6961,10 +6985,10 @@ const IconDefault = Icon.extend({
  * Marker dragging handler. Only valid when the marker is on the map (Otherwise set [`marker.options.draggable`](#marker-draggable)).
  */
 
-const MarkerDrag = Handler.extend({
+class MarkerDrag extends Handler {
 	initialize(marker) {
 		this._marker = marker;
-	},
+	}
 
 	addHooks() {
 		const icon = this._marker._icon;
@@ -6981,7 +7005,7 @@ const MarkerDrag = Handler.extend({
 		}, this).enable();
 
 		icon.classList.add('leaflet-marker-draggable');
-	},
+	}
 
 	removeHooks() {
 		this._draggable.off({
@@ -6992,20 +7016,20 @@ const MarkerDrag = Handler.extend({
 		}, this).disable();
 
 		this._marker._icon?.classList.remove('leaflet-marker-draggable');
-	},
+	}
 
 	moved() {
 		return this._draggable?._moved;
-	},
+	}
 
 	_adjustPan(e) {
 		const marker = this._marker,
-		    map = marker._map,
-		    speed = this._marker.options.autoPanSpeed,
-		    padding = this._marker.options.autoPanPadding,
-		    iconPos = getPosition(marker._icon),
-		    bounds = map.getPixelBounds(),
-		    origin = map.getPixelOrigin();
+		map = marker._map,
+		speed = this._marker.options.autoPanSpeed,
+		padding = this._marker.options.autoPanPadding,
+		iconPos = getPosition(marker._icon),
+		bounds = map.getPixelBounds(),
+		origin = map.getPixelOrigin();
 
 		const panBounds = new Bounds(
 			bounds.min._subtract(origin).add(padding),
@@ -7032,7 +7056,7 @@ const MarkerDrag = Handler.extend({
 
 			this._panRequest = requestAnimationFrame(this._adjustPan.bind(this, e));
 		}
-	},
+	}
 
 	_onDragStart() {
 		// @section Dragging events
@@ -7050,20 +7074,20 @@ const MarkerDrag = Handler.extend({
 		this._marker
 			.fire('movestart')
 			.fire('dragstart');
-	},
+	}
 
 	_onPreDrag(e) {
 		if (this._marker.options.autoPan) {
 			cancelAnimationFrame(this._panRequest);
 			this._panRequest = requestAnimationFrame(this._adjustPan.bind(this, e));
 		}
-	},
+	}
 
 	_onDrag(e) {
 		const marker = this._marker,
-		    shadow = marker._shadow,
-		    iconPos = getPosition(marker._icon),
-		    latlng = marker._map.layerPointToLatLng(iconPos);
+		shadow = marker._shadow,
+		iconPos = getPosition(marker._icon),
+		latlng = marker._map.layerPointToLatLng(iconPos);
 
 		// update shadow position
 		if (shadow) {
@@ -7077,24 +7101,24 @@ const MarkerDrag = Handler.extend({
 		// @event drag: Event
 		// Fired repeatedly while the user drags the marker.
 		marker
-		    .fire('move', e)
-		    .fire('drag', e);
-	},
+			.fire('move', e)
+			.fire('drag', e);
+	}
 
 	_onDragEnd(e) {
 		// @event dragend: DragEndEvent
 		// Fired when the user stops dragging the marker.
 
-		 cancelAnimationFrame(this._panRequest);
+		cancelAnimationFrame(this._panRequest);
 
 		// @event moveend: Event
 		// Fired when the marker stops moving (because of dragging).
 		delete this._oldLatLng;
 		this._marker
-		    .fire('moveend')
-		    .fire('dragend', e);
+			.fire('moveend')
+			.fire('dragend', e);
 	}
-});
+}
 
 /*
  * @class Marker
@@ -7110,87 +7134,89 @@ const MarkerDrag = Handler.extend({
 
 // @constructor Marker(latlng: LatLng, options? : Marker options)
 // Instantiates a Marker object given a geographical point and optionally an options object.
-const Marker = Layer.extend({
+class Marker extends Layer {
 
-	// @section
-	// @aka Marker options
-	options: {
-		// @option icon: Icon = *
-		// Icon instance to use for rendering the marker.
-		// See [Icon documentation](#Icon) for details on how to customize the marker icon.
-		// If not specified, a common instance of `Icon.Default` is used.
-		icon: new IconDefault(),
+	static {
+		// @section
+		// @aka Marker options
+		this.setDefaultOptions({
+			// @option icon: Icon = *
+			// Icon instance to use for rendering the marker.
+			// See [Icon documentation](#Icon) for details on how to customize the marker icon.
+			// If not specified, a common instance of `Icon.Default` is used.
+			icon: new IconDefault(),
 
-		// Option inherited from "Interactive layer" abstract class
-		interactive: true,
+			// Option inherited from "Interactive layer" abstract class
+			interactive: true,
 
-		// @option keyboard: Boolean = true
-		// Whether the marker can be tabbed to with a keyboard and clicked by pressing enter.
-		keyboard: true,
+			// @option keyboard: Boolean = true
+			// Whether the marker can be tabbed to with a keyboard and clicked by pressing enter.
+			keyboard: true,
 
-		// @option title: String = ''
-		// Text for the browser tooltip that appear on marker hover (no tooltip by default).
-		// [Useful for accessibility](https://leafletjs.com/examples/accessibility/#markers-must-be-labelled).
-		title: '',
+			// @option title: String = ''
+			// Text for the browser tooltip that appear on marker hover (no tooltip by default).
+			// [Useful for accessibility](https://leafletjs.com/examples/accessibility/#markers-must-be-labelled).
+			title: '',
 
-		// @option alt: String = 'Marker'
-		// Text for the `alt` attribute of the icon image.
-		// [Useful for accessibility](https://leafletjs.com/examples/accessibility/#markers-must-be-labelled).
-		alt: 'Marker',
+			// @option alt: String = 'Marker'
+			// Text for the `alt` attribute of the icon image.
+			// [Useful for accessibility](https://leafletjs.com/examples/accessibility/#markers-must-be-labelled).
+			alt: 'Marker',
 
-		// @option zIndexOffset: Number = 0
-		// By default, marker images zIndex is set automatically based on its latitude. Use this option if you want to put the marker on top of all others (or below), specifying a high value like `1000` (or high negative value, respectively).
-		zIndexOffset: 0,
+			// @option zIndexOffset: Number = 0
+			// By default, marker images zIndex is set automatically based on its latitude. Use this option if you want to put the marker on top of all others (or below), specifying a high value like `1000` (or high negative value, respectively).
+			zIndexOffset: 0,
 
-		// @option opacity: Number = 1.0
-		// The opacity of the marker.
-		opacity: 1,
+			// @option opacity: Number = 1.0
+			// The opacity of the marker.
+			opacity: 1,
 
-		// @option riseOnHover: Boolean = false
-		// If `true`, the marker will get on top of others when you hover the pointer over it.
-		riseOnHover: false,
+			// @option riseOnHover: Boolean = false
+			// If `true`, the marker will get on top of others when you hover the pointer over it.
+			riseOnHover: false,
 
-		// @option riseOffset: Number = 250
-		// The z-index offset used for the `riseOnHover` feature.
-		riseOffset: 250,
+			// @option riseOffset: Number = 250
+			// The z-index offset used for the `riseOnHover` feature.
+			riseOffset: 250,
 
-		// @option pane: String = 'markerPane'
-		// `Map pane` where the markers icon will be added.
-		pane: 'markerPane',
+			// @option pane: String = 'markerPane'
+			// `Map pane` where the markers icon will be added.
+			pane: 'markerPane',
 
-		// @option shadowPane: String = 'shadowPane'
-		// `Map pane` where the markers shadow will be added.
-		shadowPane: 'shadowPane',
+			// @option shadowPane: String = 'shadowPane'
+			// `Map pane` where the markers shadow will be added.
+			shadowPane: 'shadowPane',
 
-		// @option bubblingPointerEvents: Boolean = false
-		// When `true`, a pointer event on this marker will trigger the same event on the map
-		// (unless [`DomEvent.stopPropagation`](#domevent-stoppropagation) is used).
-		bubblingPointerEvents: false,
+			// @option bubblingPointerEvents: Boolean = false
+			// When `true`, a pointer event on this marker will trigger the same event on the map
+			// (unless [`DomEvent.stopPropagation`](#domevent-stoppropagation) is used).
+			bubblingPointerEvents: false,
 
-		// @option autoPanOnFocus: Boolean = true
-		// When `true`, the map will pan whenever the marker is focused (via
-		// e.g. pressing `tab` on the keyboard) to ensure the marker is
-		// visible within the map's bounds
-		autoPanOnFocus: true,
+			// @option autoPanOnFocus: Boolean = true
+			// When `true`, the map will pan whenever the marker is focused (via
+			// e.g. pressing `tab` on the keyboard) to ensure the marker is
+			// visible within the map's bounds
+			autoPanOnFocus: true,
 
-		// @section Draggable marker options
-		// @option draggable: Boolean = false
-		// Whether the marker is draggable with pointer or not.
-		draggable: false,
+			// @section Draggable marker options
+			// @option draggable: Boolean = false
+			// Whether the marker is draggable with pointer or not.
+			draggable: false,
 
-		// @option autoPan: Boolean = false
-		// Whether to pan the map when dragging this marker near its edge or not.
-		autoPan: false,
+			// @option autoPan: Boolean = false
+			// Whether to pan the map when dragging this marker near its edge or not.
+			autoPan: false,
 
-		// @option autoPanPadding: Point = Point(50, 50)
-		// Distance (in pixels to the left/right and to the top/bottom) of the
-		// map edge to start panning the map.
-		autoPanPadding: [50, 50],
+			// @option autoPanPadding: Point = Point(50, 50)
+			// Distance (in pixels to the left/right and to the top/bottom) of the
+			// map edge to start panning the map.
+			autoPanPadding: [50, 50],
 
-		// @option autoPanSpeed: Number = 10
-		// Number of pixels the map should pan by.
-		autoPanSpeed: 10
-	},
+			// @option autoPanSpeed: Number = 10
+			// Number of pixels the map should pan by.
+			autoPanSpeed: 10
+		});
+	}
 
 	/* @section
 	 *
@@ -7200,7 +7226,7 @@ const Marker = Layer.extend({
 	initialize(latlng, options) {
 		setOptions(this, options);
 		this._latlng = new LatLng(latlng);
-	},
+	}
 
 	onAdd(map) {
 		this._zoomAnimated = this._zoomAnimated && map.options.markerZoomAnimation;
@@ -7211,7 +7237,7 @@ const Marker = Layer.extend({
 
 		this._initIcon();
 		this.update();
-	},
+	}
 
 	onRemove(map) {
 		if (this.dragging?.enabled()) {
@@ -7226,20 +7252,20 @@ const Marker = Layer.extend({
 
 		this._removeIcon();
 		this._removeShadow();
-	},
+	}
 
 	getEvents() {
 		return {
 			zoom: this.update,
 			viewreset: this.update
 		};
-	},
+	}
 
 	// @method getLatLng: LatLng
 	// Returns the current geographical position of the marker.
 	getLatLng() {
 		return this._latlng;
-	},
+	}
 
 	// @method setLatLng(latlng: LatLng): this
 	// Changes the marker position to the given point.
@@ -7251,20 +7277,20 @@ const Marker = Layer.extend({
 		// @event move: Event
 		// Fired when the marker is moved via [`setLatLng`](#marker-setlatlng) or by [dragging](#marker-dragging). Old and new coordinates are included in event arguments as `oldLatLng`, `latlng`.
 		return this.fire('move', {oldLatLng, latlng: this._latlng});
-	},
+	}
 
 	// @method setZIndexOffset(offset: Number): this
 	// Changes the [zIndex offset](#marker-zindexoffset) of the marker.
 	setZIndexOffset(offset) {
 		this.options.zIndexOffset = offset;
 		return this.update();
-	},
+	}
 
 	// @method getIcon: Icon
 	// Returns the current icon used by the marker
 	getIcon() {
 		return this.options.icon;
-	},
+	}
 
 	// @method setIcon(icon: Icon): this
 	// Changes the marker icon.
@@ -7282,14 +7308,14 @@ const Marker = Layer.extend({
 		}
 
 		return this;
-	},
+	}
 
 	// @method getElement(): HTMLElement
 	// Returns the instance of [`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement)
 	// used by Marker layer.
 	getElement() {
 		return this._icon;
-	},
+	}
 
 	update() {
 
@@ -7299,11 +7325,11 @@ const Marker = Layer.extend({
 		}
 
 		return this;
-	},
+	}
 
 	_initIcon() {
 		const options = this.options,
-		    classToAdd = `leaflet-zoom-${this._zoomAnimated ? 'animated' : 'hide'}`;
+		classToAdd = `leaflet-zoom-${this._zoomAnimated ? 'animated' : 'hide'}`;
 
 		const icon = options.icon.createIcon(this._icon);
 		let addIcon = false;
@@ -7371,7 +7397,7 @@ const Marker = Layer.extend({
 		if (newShadow && addShadow) {
 			this.getPane(options.shadowPane).appendChild(this._shadow);
 		}
-	},
+	}
 
 	_removeIcon() {
 		if (this.options.riseOnHover) {
@@ -7389,12 +7415,12 @@ const Marker = Layer.extend({
 		this.removeInteractiveTarget(this._icon);
 
 		this._icon = null;
-	},
+	}
 
 	_removeShadow() {
 		this._shadow?.remove();
 		this._shadow = null;
-	},
+	}
 
 	_setPos(pos) {
 
@@ -7409,19 +7435,19 @@ const Marker = Layer.extend({
 		this._zIndex = pos.y + this.options.zIndexOffset;
 
 		this._resetZIndex();
-	},
+	}
 
 	_updateZIndex(offset) {
 		if (this._icon) {
 			this._icon.style.zIndex = this._zIndex + offset;
 		}
-	},
+	}
 
 	_animateZoom(opt) {
 		const pos = this._map._latLngToNewLayerPoint(this._latlng, opt.zoom, opt.center).round();
 
 		this._setPos(pos);
-	},
+	}
 
 	_initInteraction() {
 
@@ -7444,7 +7470,7 @@ const Marker = Layer.extend({
 				this.dragging.enable();
 			}
 		}
-	},
+	}
 
 	// @method setOpacity(opacity: Number): this
 	// Changes the opacity of the marker.
@@ -7455,7 +7481,7 @@ const Marker = Layer.extend({
 		}
 
 		return this;
-	},
+	}
 
 	_updateOpacity() {
 		const opacity = this.options.opacity;
@@ -7467,15 +7493,15 @@ const Marker = Layer.extend({
 		if (this._shadow) {
 			this._shadow.style.opacity = opacity;
 		}
-	},
+	}
 
 	_bringToFront() {
 		this._updateZIndex(this.options.riseOffset);
-	},
+	}
 
 	_resetZIndex() {
 		this._updateZIndex(0);
-	},
+	}
 
 	_panOnFocus() {
 		const map = this._map;
@@ -7489,16 +7515,16 @@ const Marker = Layer.extend({
 			paddingTopLeft: anchor,
 			paddingBottomRight: size.subtract(anchor)
 		});
-	},
+	}
 
 	_getPopupAnchor() {
 		return this.options.icon.options.popupAnchor;
-	},
+	}
 
 	_getTooltipAnchor() {
 		return this.options.icon.options.tooltipAnchor;
 	}
-});
+}
 
 /*
  * @class Path
@@ -7508,85 +7534,87 @@ const Marker = Layer.extend({
  * overlays (Polygon, Polyline, Circle). Do not use it directly. Extends `Layer`.
  */
 
-const Path = Layer.extend({
+class Path extends Layer {
 
-	// @section
-	// @aka Path options
-	options: {
-		// @option stroke: Boolean = true
-		// Whether to draw stroke along the path. Set it to `false` to disable borders on polygons or circles.
-		stroke: true,
+	static {
+		// @section
+		// @aka Path options
+		this.setDefaultOptions({
+			// @option stroke: Boolean = true
+			// Whether to draw stroke along the path. Set it to `false` to disable borders on polygons or circles.
+			stroke: true,
 
-		// @option color: String = '#3388ff'
-		// Stroke color
-		color: '#3388ff',
+			// @option color: String = '#3388ff'
+			// Stroke color
+			color: '#3388ff',
 
-		// @option weight: Number = 3
-		// Stroke width in pixels
-		weight: 3,
+			// @option weight: Number = 3
+			// Stroke width in pixels
+			weight: 3,
 
-		// @option opacity: Number = 1.0
-		// Stroke opacity
-		opacity: 1,
+			// @option opacity: Number = 1.0
+			// Stroke opacity
+			opacity: 1,
 
-		// @option lineCap: String= 'round'
-		// A string that defines [shape to be used at the end](https://developer.mozilla.org/docs/Web/SVG/Attribute/stroke-linecap) of the stroke.
-		lineCap: 'round',
+			// @option lineCap: String= 'round'
+			// A string that defines [shape to be used at the end](https://developer.mozilla.org/docs/Web/SVG/Attribute/stroke-linecap) of the stroke.
+			lineCap: 'round',
 
-		// @option lineJoin: String = 'round'
-		// A string that defines [shape to be used at the corners](https://developer.mozilla.org/docs/Web/SVG/Attribute/stroke-linejoin) of the stroke.
-		lineJoin: 'round',
+			// @option lineJoin: String = 'round'
+			// A string that defines [shape to be used at the corners](https://developer.mozilla.org/docs/Web/SVG/Attribute/stroke-linejoin) of the stroke.
+			lineJoin: 'round',
 
-		// @option dashArray: String = null
-		// A string that defines the stroke [dash pattern](https://developer.mozilla.org/docs/Web/SVG/Attribute/stroke-dasharray).
-		dashArray: null,
+			// @option dashArray: String = null
+			// A string that defines the stroke [dash pattern](https://developer.mozilla.org/docs/Web/SVG/Attribute/stroke-dasharray).
+			dashArray: null,
 
-		// @option dashOffset: String = null
-		// A string that defines the [distance into the dash pattern to start the dash](https://developer.mozilla.org/docs/Web/SVG/Attribute/stroke-dashoffset).
-		dashOffset: null,
+			// @option dashOffset: String = null
+			// A string that defines the [distance into the dash pattern to start the dash](https://developer.mozilla.org/docs/Web/SVG/Attribute/stroke-dashoffset).
+			dashOffset: null,
 
-		// @option fill: Boolean = depends
-		// Whether to fill the path with color. Set it to `false` to disable filling on polygons or circles.
-		fill: false,
+			// @option fill: Boolean = depends
+			// Whether to fill the path with color. Set it to `false` to disable filling on polygons or circles.
+			fill: false,
 
-		// @option fillColor: String = *
-		// Fill color. Defaults to the value of the [`color`](#path-color) option
-		fillColor: null,
+			// @option fillColor: String = *
+			// Fill color. Defaults to the value of the [`color`](#path-color) option
+			fillColor: null,
 
-		// @option fillOpacity: Number = 0.2
-		// Fill opacity.
-		fillOpacity: 0.2,
+			// @option fillOpacity: Number = 0.2
+			// Fill opacity.
+			fillOpacity: 0.2,
 
-		// @option fillRule: String = 'evenodd'
-		// A string that defines [how the inside of a shape](https://developer.mozilla.org/docs/Web/SVG/Attribute/fill-rule) is determined.
-		fillRule: 'evenodd',
+			// @option fillRule: String = 'evenodd'
+			// A string that defines [how the inside of a shape](https://developer.mozilla.org/docs/Web/SVG/Attribute/fill-rule) is determined.
+			fillRule: 'evenodd',
 
-		// className: '',
+			// className: '',
 
-		// Option inherited from "Interactive layer" abstract class
-		interactive: true,
+			// Option inherited from "Interactive layer" abstract class
+			interactive: true,
 
-		// @option bubblingPointerEvents: Boolean = true
-		// When `true`, a pointer event on this path will trigger the same event on the map
-		// (unless [`DomEvent.stopPropagation`](#domevent-stoppropagation) is used).
-		bubblingPointerEvents: true
-	},
+			// @option bubblingPointerEvents: Boolean = true
+			// When `true`, a pointer event on this path will trigger the same event on the map
+			// (unless [`DomEvent.stopPropagation`](#domevent-stoppropagation) is used).
+			bubblingPointerEvents: true
+		});
+	}
 
 	beforeAdd(map) {
 		// Renderer is set here because we need to call renderer.getEvents
 		// before this.getEvents.
 		this._renderer = map.getRenderer(this);
-	},
+	}
 
 	onAdd() {
 		this._renderer._initPath(this);
 		this._reset();
 		this._renderer._addPath(this);
-	},
+	}
 
 	onRemove() {
 		this._renderer._removePath(this);
-	},
+	}
 
 	// @method redraw(): this
 	// Redraws the layer. Sometimes useful after you changed the coordinates that the path uses.
@@ -7595,7 +7623,7 @@ const Path = Layer.extend({
 			this._renderer._updatePath(this);
 		}
 		return this;
-	},
+	}
 
 	// @method setStyle(style: Path options): this
 	// Changes the appearance of a Path based on the options in the `Path options` object.
@@ -7608,38 +7636,38 @@ const Path = Layer.extend({
 			}
 		}
 		return this;
-	},
+	}
 
 	// @method bringToFront(): this
 	// Brings the layer to the top of all path layers.
 	bringToFront() {
 		this._renderer?._bringToFront(this);
 		return this;
-	},
+	}
 
 	// @method bringToBack(): this
 	// Brings the layer to the bottom of all path layers.
 	bringToBack() {
 		this._renderer?._bringToBack(this);
 		return this;
-	},
+	}
 
 	getElement() {
 		return this._path;
-	},
+	}
 
 	_reset() {
 		// defined in child classes
 		this._project();
 		this._update();
-	},
+	}
 
 	_clickTolerance() {
 		// used when doing hit detection for Canvas layers
 		return (this.options.stroke ? this.options.weight / 2 : 0) +
 		  (this._renderer.options.tolerance || 0);
 	}
-});
+}
 
 /*
  * @class CircleMarker
@@ -7650,23 +7678,25 @@ const Path = Layer.extend({
 
 // @constructor CircleMarker(latlng: LatLng, options?: CircleMarker options)
 // Instantiates a circle marker object given a geographical point, and an optional options object.
-const CircleMarker = Path.extend({
+class CircleMarker extends Path {
 
-	// @section
-	// @aka CircleMarker options
-	options: {
-		fill: true,
+	static {
+		// @section
+		// @aka CircleMarker options
+		this.setDefaultOptions({
+			fill: true,
 
-		// @option radius: Number = 10
-		// Radius of the circle marker, in pixels
-		radius: 10
-	},
+			// @option radius: Number = 10
+			// Radius of the circle marker, in pixels
+			radius: 10
+		});
+	}
 
 	initialize(latlng, options) {
 		setOptions(this, options);
 		this._latlng = new LatLng(latlng);
 		this._radius = this.options.radius;
-	},
+	}
 
 	// @method setLatLng(latLng: LatLng): this
 	// Sets the position of a circle marker to a new location.
@@ -7678,66 +7708,67 @@ const CircleMarker = Path.extend({
 		// @event move: Event
 		// Fired when the marker is moved via [`setLatLng`](#circlemarker-setlatlng). Old and new coordinates are included in event arguments as `oldLatLng`, `latlng`.
 		return this.fire('move', {oldLatLng, latlng: this._latlng});
-	},
+	}
 
 	// @method getLatLng(): LatLng
 	// Returns the current geographical position of the circle marker
 	getLatLng() {
 		return this._latlng;
-	},
+	}
 
 	// @method setRadius(radius: Number): this
 	// Sets the radius of a circle marker. Units are in pixels.
 	setRadius(radius) {
 		this.options.radius = this._radius = radius;
 		return this.redraw();
-	},
+	}
 
 	// @method getRadius(): Number
 	// Returns the current radius of the circle
 	getRadius() {
 		return this._radius;
-	},
+	}
 
 	setStyle(options) {
-		const radius = options?.radius ?? this._radius;
 		Path.prototype.setStyle.call(this, options);
-		this.setRadius(radius);
+		if (options?.radius !== undefined) {
+			this.setRadius(options.radius);
+		}
 		return this;
-	},
+	}
 
 	_project() {
 		this._point = this._map.latLngToLayerPoint(this._latlng);
 		this._updateBounds();
-	},
+	}
 
 	_updateBounds() {
 		const r = this._radius,
-		    r2 = this._radiusY ?? r,
-		    w = this._clickTolerance(),
-		    p = [r + w, r2 + w];
+		r2 = this._radiusY ?? r,
+		w = this._clickTolerance(),
+		p = [r + w, r2 + w];
 		this._pxBounds = new Bounds(this._point.subtract(p), this._point.add(p));
-	},
+	}
 
 	_update() {
 		if (this._map) {
 			this._updatePath();
 		}
-	},
+	}
 
 	_updatePath() {
 		this._renderer._updateCircle(this);
-	},
+	}
 
 	_empty() {
 		return this._radius && !this._renderer._bounds.intersects(this._pxBounds);
-	},
+	}
 
 	// Needed by the `Canvas` renderer for interactivity
 	_containsPoint(p) {
 		return p.distanceTo(this._point) <= this._radius + this._clickTolerance();
 	}
-});
+}
 
 /*
  * @class Circle
@@ -7757,7 +7788,7 @@ const CircleMarker = Path.extend({
 // @constructor Circle(latlng: LatLng, options?: Circle options)
 // Instantiates a circle object given a geographical point, and an options object
 // which contains the circle radius.
-const Circle = CircleMarker.extend({
+class Circle extends CircleMarker {
 
 	initialize(latlng, options) {
 		setOptions(this, options);
@@ -7769,20 +7800,20 @@ const Circle = CircleMarker.extend({
 		// @aka Circle options
 		// @option radius: Number; Radius of the circle, in meters.
 		this._mRadius = this.options.radius;
-	},
+	}
 
 	// @method setRadius(radius: Number): this
 	// Sets the radius of a circle. Units are in meters.
 	setRadius(radius) {
 		this._mRadius = radius;
 		return this.redraw();
-	},
+	}
 
 	// @method getRadius(): Number
 	// Returns the current radius of a circle. Units are in meters.
 	getRadius() {
 		return this._mRadius;
-	},
+	}
 
 	// @method getBounds(): LatLngBounds
 	// Returns the `LatLngBounds` of the path.
@@ -7792,26 +7823,32 @@ const Circle = CircleMarker.extend({
 		return new LatLngBounds(
 			this._map.layerPointToLatLng(this._point.subtract(half)),
 			this._map.layerPointToLatLng(this._point.add(half)));
-	},
+	}
 
-	setStyle: Path.prototype.setStyle,
+	setStyle(options) {
+		Path.prototype.setStyle.call(this, options);
+		if (options?.radius !== undefined) {
+			this.setRadius(options.radius);
+		}
+		return this;
+	}
 
 	_project() {
 
 		const lng = this._latlng.lng,
-		    lat = this._latlng.lat,
-		    map = this._map,
-		    crs = map.options.crs;
+		lat = this._latlng.lat,
+		map = this._map,
+		crs = map.options.crs;
 
 		if (crs.distance === Earth.distance) {
 			const d = Math.PI / 180,
-			      latR = (this._mRadius / Earth.R) / d,
-			      top = map.project([lat + latR, lng]),
-			      bottom = map.project([lat - latR, lng]),
-			      p = top.add(bottom).divideBy(2),
-			      lat2 = map.unproject(p).lat;
+			latR = (this._mRadius / Earth.R) / d,
+			top = map.project([lat + latR, lng]),
+			bottom = map.project([lat - latR, lng]),
+			p = top.add(bottom).divideBy(2),
+			lat2 = map.unproject(p).lat;
 			let lngR = Math.acos((Math.cos(latR * d) - Math.sin(lat * d) * Math.sin(lat2 * d)) /
-			            (Math.cos(lat * d) * Math.cos(lat2 * d))) / d;
+				        (Math.cos(lat * d) * Math.cos(lat2 * d))) / d;
 
 			if (isNaN(lngR) || lngR === 0) {
 				lngR = latR / Math.cos(Math.PI / 180 * lat); // Fallback for edge case, #2425
@@ -7830,7 +7867,7 @@ const Circle = CircleMarker.extend({
 
 		this._updateBounds();
 	}
-});
+}
 
 /*
  * @class Polyline
@@ -7874,48 +7911,51 @@ const Circle = CircleMarker.extend({
 // optionally an options object. You can create a `Polyline` object with
 // multiple separate lines (`MultiPolyline`) by passing an array of arrays
 // of geographic points.
-const Polyline = Path.extend({
+class Polyline extends Path {
 
-	// @section
-	// @aka Polyline options
-	options: {
-		// @option smoothFactor: Number = 1.0
-		// How much to simplify the polyline on each zoom level. More means
-		// better performance and smoother look, and less means more accurate representation.
-		smoothFactor: 1.0,
+	static {
+		// @section
+		// @aka Polyline options
+		this.setDefaultOptions({
+			// @option smoothFactor: Number = 1.0
+			// How much to simplify the polyline on each zoom level. More means
+			// better performance and smoother look, and less means more accurate representation.
+			smoothFactor: 1.0,
 
-		// @option noClip: Boolean = false
-		// Disable polyline clipping.
-		noClip: false
-	},
+			// @option noClip: Boolean = false
+			// Disable polyline clipping.
+			noClip: false
+		});
+	}
 
 	initialize(latlngs, options) {
 		setOptions(this, options);
 		this._setLatLngs(latlngs);
-	},
+	}
 
 	// @method getLatLngs(): LatLng[]
 	// Returns an array of the points in the path, or nested arrays of points in case of multi-polyline.
 	getLatLngs() {
 		return this._latlngs;
-	},
+	}
 
 	// @method setLatLngs(latlngs: LatLng[]): this
 	// Replaces all the points in the polyline with the given array of geographical points.
 	setLatLngs(latlngs) {
 		this._setLatLngs(latlngs);
 		return this.redraw();
-	},
+	}
 
 	// @method isEmpty(): Boolean
 	// Returns `true` if the Polyline has no LatLngs.
 	isEmpty() {
 		return !this._latlngs.length;
-	},
+	}
 
 	// @method closestLayerPoint(p: Point): Point
 	// Returns the point closest to `p` on the Polyline.
 	closestLayerPoint(p) {
+		p = new Point(p);
 		let minDistance = Infinity,
 		minPoint = null,
 		p1, p2;
@@ -7938,7 +7978,7 @@ const Polyline = Path.extend({
 			minPoint.distance = Math.sqrt(minDistance);
 		}
 		return minPoint;
-	},
+	}
 
 	// @method getCenter(): LatLng
 	// Returns the center ([centroid](https://en.wikipedia.org/wiki/Centroid)) of the polyline.
@@ -7948,13 +7988,13 @@ const Polyline = Path.extend({
 			throw new Error('Must add layer to map before using getCenter()');
 		}
 		return polylineCenter(this._defaultShape(), this._map.options.crs);
-	},
+	}
 
 	// @method getBounds(): LatLngBounds
 	// Returns the `LatLngBounds` of the path.
 	getBounds() {
 		return this._bounds;
-	},
+	}
 
 	// @method addLatLng(latlng: LatLng, latlngs?: LatLng[]): this
 	// Adds a given point to the polyline. By default, adds to the first ring of
@@ -7966,16 +8006,16 @@ const Polyline = Path.extend({
 		latlngs.push(latlng);
 		this._bounds.extend(latlng);
 		return this.redraw();
-	},
+	}
 
 	_setLatLngs(latlngs) {
 		this._bounds = new LatLngBounds();
 		this._latlngs = this._convertLatLngs(latlngs);
-	},
+	}
 
 	_defaultShape() {
 		return isFlat(this._latlngs) ? this._latlngs : this._latlngs[0];
-	},
+	}
 
 	// recursively convert latlngs input into actual LatLng instances; calculate bounds along the way
 	_convertLatLngs(latlngs) {
@@ -7992,7 +8032,7 @@ const Polyline = Path.extend({
 		}
 
 		return result;
-	},
+	}
 
 	_project() {
 		const pxBounds = new Bounds();
@@ -8003,7 +8043,7 @@ const Polyline = Path.extend({
 			this._rawPxBounds = pxBounds;
 			this._updateBounds();
 		}
-	},
+	}
 
 	_updateBounds() {
 		const w = this._clickTolerance(),
@@ -8017,7 +8057,7 @@ const Polyline = Path.extend({
 			this._rawPxBounds.min.subtract(p),
 			this._rawPxBounds.max.add(p)
 		]);
-	},
+	}
 
 	// recursively turns latlngs into a set of rings with projected coordinates
 	_projectLatlngs(latlngs, result, projectedBounds) {
@@ -8030,7 +8070,7 @@ const Polyline = Path.extend({
 		} else {
 			latlngs.forEach(latlng => this._projectLatlngs(latlng, result, projectedBounds));
 		}
-	},
+	}
 
 	// clip polyline by renderer bounds so that we have less to render for performance
 	_clipPoints() {
@@ -8067,7 +8107,7 @@ const Polyline = Path.extend({
 				}
 			}
 		}
-	},
+	}
 
 	// simplify each clipped part of the polyline for performance
 	_simplifyPoints() {
@@ -8077,7 +8117,7 @@ const Polyline = Path.extend({
 		for (let i = 0, len = parts.length; i < len; i++) {
 			parts[i] = simplify(parts[i], tolerance);
 		}
-	},
+	}
 
 	_update() {
 		if (!this._map) { return; }
@@ -8085,11 +8125,11 @@ const Polyline = Path.extend({
 		this._clipPoints();
 		this._simplifyPoints();
 		this._updatePath();
-	},
+	}
 
 	_updatePath() {
 		this._renderer._updatePoly(this);
-	},
+	}
 
 	// Needed by the `Canvas` renderer for interactivity
 	_containsPoint(p, closed) {
@@ -8112,7 +8152,7 @@ const Polyline = Path.extend({
 		}
 		return false;
 	}
-});
+}
 
 /*
  * @class Polygon
@@ -8160,15 +8200,17 @@ const Polyline = Path.extend({
  */
 
 // @constructor Polygon(latlngs: LatLng[], options?: Polyline options)
-const Polygon = Polyline.extend({
+class Polygon extends Polyline {
 
-	options: {
-		fill: true
-	},
+	static {
+		this.setDefaultOptions({
+			fill: true
+		});
+	}
 
 	isEmpty() {
 		return !this._latlngs.length || !this._latlngs[0].length;
-	},
+	}
 
 	// @method getCenter(): LatLng
 	// Returns the center ([centroid](http://en.wikipedia.org/wiki/Centroid)) of the Polygon.
@@ -8178,7 +8220,7 @@ const Polygon = Polyline.extend({
 			throw new Error('Must add layer to map before using getCenter()');
 		}
 		return polygonCenter(this._defaultShape(), this._map.options.crs);
-	},
+	}
 
 	_convertLatLngs(latlngs) {
 		const result = Polyline.prototype._convertLatLngs.call(this, latlngs),
@@ -8189,18 +8231,18 @@ const Polygon = Polyline.extend({
 			result.pop();
 		}
 		return result;
-	},
+	}
 
 	_setLatLngs(latlngs) {
 		Polyline.prototype._setLatLngs.call(this, latlngs);
 		if (isFlat(this._latlngs)) {
 			this._latlngs = [this._latlngs];
 		}
-	},
+	}
 
 	_defaultShape() {
 		return isFlat(this._latlngs[0]) ? this._latlngs[0] : this._latlngs[0][0];
-	},
+	}
 
 	_clipPoints() {
 		// polygons need a different clipping algorithm so we redefine that
@@ -8228,11 +8270,11 @@ const Polygon = Polyline.extend({
 				this._parts.push(clipped);
 			}
 		}
-	},
+	}
 
 	_updatePath() {
 		this._renderer._updatePoly(this, true);
-	},
+	}
 
 	// Needed by the `Canvas` renderer for interactivity
 	_containsPoint(p) {
@@ -8259,7 +8301,7 @@ const Polygon = Polyline.extend({
 		return inside || Polyline.prototype._containsPoint.call(this, p, true);
 	}
 
-});
+}
 
 /*
  * @class GeoJSON
@@ -8286,7 +8328,7 @@ const Polygon = Polyline.extend({
 // Creates a GeoJSON layer. Optionally accepts an object in
 // [GeoJSON format](https://tools.ietf.org/html/rfc7946) to display on the map
 // (you can alternatively add it later with `addData` method) and an `options` object.
-const GeoJSON = FeatureGroup.extend({
+class GeoJSON extends FeatureGroup {
 
 	/* @section
 	 * @aka GeoJSON options
@@ -8346,7 +8388,7 @@ const GeoJSON = FeatureGroup.extend({
 		if (geojson) {
 			this.addData(geojson);
 		}
-	},
+	}
 
 	// @method addData( <GeoJSON> data ): this
 	// Adds a GeoJSON object to the layer.
@@ -8367,11 +8409,11 @@ const GeoJSON = FeatureGroup.extend({
 
 		if (options.filter && !options.filter(geojson)) { return this; }
 
-		const layer = geometryToLayer(geojson, options);
+		const layer = GeoJSON.geometryToLayer(geojson, options);
 		if (!layer) {
 			return this;
 		}
-		layer.feature = asFeature(geojson);
+		layer.feature = GeoJSON.asFeature(geojson);
 
 		layer.defaultOptions = layer.options;
 		this.resetStyle(layer);
@@ -8381,7 +8423,7 @@ const GeoJSON = FeatureGroup.extend({
 		}
 
 		return this.addLayer(layer);
-	},
+	}
 
 	// @method resetStyle( <Path> layer? ): this
 	// Resets the given vector layer's style to the original GeoJSON style, useful for resetting style after hover events.
@@ -8394,13 +8436,13 @@ const GeoJSON = FeatureGroup.extend({
 		layer.options = Object.create(layer.defaultOptions);
 		this._setLayerStyle(layer, this.options.style);
 		return this;
-	},
+	}
 
 	// @method setStyle( <Function> style ): this
 	// Changes styles of GeoJSON vector layers with the given style function.
 	setStyle(style) {
 		return this.eachLayer(layer => this._setLayerStyle(layer, style));
-	},
+	}
 
 	_setLayerStyle(layer, style) {
 		if (layer.setStyle) {
@@ -8410,154 +8452,157 @@ const GeoJSON = FeatureGroup.extend({
 			layer.setStyle(style);
 		}
 	}
-});
 
-// @section
-// There are several static functions which can be called without instantiating GeoJSON:
+	// @section
+	// There are several static functions which can be called without instantiating GeoJSON:
 
-// @function geometryToLayer(featureData: Object, options?: GeoJSON options): Layer
-// Creates a `Layer` from a given GeoJSON feature. Can use a custom
-// [`pointToLayer`](#geojson-pointtolayer) and/or [`coordsToLatLng`](#geojson-coordstolatlng)
-// functions if provided as options.
-function geometryToLayer(geojson, options) {
+	// @function geometryToLayer(featureData: Object, options?: GeoJSON options): Layer
+	// Creates a `Layer` from a given GeoJSON feature. Can use a custom
+	// [`pointToLayer`](#geojson-pointtolayer) and/or [`coordsToLatLng`](#geojson-coordstolatlng)
+	// functions if provided as options.
+	static geometryToLayer(geojson, options) {
 
-	const geometry = geojson.type === 'Feature' ? geojson.geometry : geojson,
-	      coords = geometry?.coordinates,
-	      layers = [],
-	      pointToLayer = options?.pointToLayer,
-	      _coordsToLatLng = options?.coordsToLatLng ?? coordsToLatLng;
-	let latlng, latlngs;
+		const geometry = geojson.type === 'Feature' ? geojson.geometry : geojson,
+		coords = geometry?.coordinates,
+		layers = [],
+		pointToLayer = options?.pointToLayer,
+		_coordsToLatLng = options?.coordsToLatLng ?? GeoJSON.coordsToLatLng;
+		let latlng, latlngs;
 
-	if (!coords && !geometry) {
-		return null;
-	}
-
-	switch (geometry.type) {
-	case 'Point':
-		latlng = _coordsToLatLng(coords);
-		return _pointToLayer(pointToLayer, geojson, latlng, options);
-
-	case 'MultiPoint':
-		for (const coord of coords) {
-			latlng = _coordsToLatLng(coord);
-			layers.push(_pointToLayer(pointToLayer, geojson, latlng, options));
+		if (!coords && !geometry) {
+			return null;
 		}
-		return new FeatureGroup(layers);
 
-	case 'LineString':
-	case 'MultiLineString':
-		latlngs = coordsToLatLngs(coords, geometry.type === 'LineString' ? 0 : 1, _coordsToLatLng);
-		return new Polyline(latlngs, options);
+		switch (geometry.type) {
+		case 'Point':
+			latlng = _coordsToLatLng(coords);
+			return GeoJSON._pointToLayer(pointToLayer, geojson, latlng, options);
 
-	case 'Polygon':
-	case 'MultiPolygon':
-		latlngs = coordsToLatLngs(coords, geometry.type === 'Polygon' ? 1 : 2, _coordsToLatLng);
-		return new Polygon(latlngs, options);
-
-	case 'GeometryCollection':
-		for (const g of geometry.geometries) {
-			const geoLayer = geometryToLayer({
-				geometry: g,
-				type: 'Feature',
-				properties: geojson.properties
-			}, options);
-
-			if (geoLayer) {
-				layers.push(geoLayer);
+		case 'MultiPoint':
+			for (const coord of coords) {
+				latlng = _coordsToLatLng(coord);
+				layers.push(GeoJSON._pointToLayer(pointToLayer, geojson, latlng, options));
 			}
-		}
-		return new FeatureGroup(layers);
+			return new FeatureGroup(layers);
 
-	case 'FeatureCollection':
-		for (const f of geometry.features) {
-			const featureLayer = geometryToLayer(f, options);
+		case 'LineString':
+		case 'MultiLineString':
+			latlngs = GeoJSON.coordsToLatLngs(coords, geometry.type === 'LineString' ? 0 : 1, _coordsToLatLng);
+			return new Polyline(latlngs, options);
 
-			if (featureLayer) {
-				layers.push(featureLayer);
+		case 'Polygon':
+		case 'MultiPolygon':
+			latlngs = GeoJSON.coordsToLatLngs(coords, geometry.type === 'Polygon' ? 1 : 2, _coordsToLatLng);
+			return new Polygon(latlngs, options);
+
+		case 'GeometryCollection':
+			for (const g of geometry.geometries) {
+				const geoLayer = GeoJSON.geometryToLayer({
+					geometry: g,
+					type: 'Feature',
+					properties: geojson.properties
+				}, options);
+
+				if (geoLayer) {
+					layers.push(geoLayer);
+				}
 			}
+			return new FeatureGroup(layers);
+
+		case 'FeatureCollection':
+			for (const f of geometry.features) {
+				const featureLayer = GeoJSON.geometryToLayer(f, options);
+
+				if (featureLayer) {
+					layers.push(featureLayer);
+				}
+			}
+			return new FeatureGroup(layers);
+
+		default:
+			throw new Error('Invalid GeoJSON object.');
 		}
-		return new FeatureGroup(layers);
-
-	default:
-		throw new Error('Invalid GeoJSON object.');
-	}
-}
-
-function _pointToLayer(pointToLayerFn, geojson, latlng, options) {
-	return pointToLayerFn ?
-		pointToLayerFn(geojson, latlng) :
-		new Marker(latlng, options?.markersInheritOptions && options);
-}
-
-// @function coordsToLatLng(coords: Array): LatLng
-// Creates a `LatLng` object from an array of 2 numbers (longitude, latitude)
-// or 3 numbers (longitude, latitude, altitude) used in GeoJSON for points.
-function coordsToLatLng(coords) {
-	return new LatLng(coords[1], coords[0], coords[2]);
-}
-
-// @function coordsToLatLngs(coords: Array, levelsDeep?: Number, coordsToLatLng?: Function): Array
-// Creates a multidimensional array of `LatLng`s from a GeoJSON coordinates array.
-// `levelsDeep` specifies the nesting level (0 is for an array of points, 1 for an array of arrays of points, etc., 0 by default).
-// Can use a custom [`coordsToLatLng`](#geojson-coordstolatlng) function.
-function coordsToLatLngs(coords, levelsDeep, _coordsToLatLng) {
-	return coords.map(coord => (levelsDeep ?
-		coordsToLatLngs(coord, levelsDeep - 1, _coordsToLatLng) :
-		(_coordsToLatLng || coordsToLatLng)(coord)));
-}
-
-// @function latLngToCoords(latlng: LatLng, precision?: Number|false): Array
-// Reverse of [`coordsToLatLng`](#geojson-coordstolatlng)
-// Coordinates values are rounded with [`formatNum`](#util-formatnum) function.
-function latLngToCoords(latlng, precision) {
-	latlng = new LatLng(latlng);
-	return latlng.alt !== undefined ?
-		[formatNum(latlng.lng, precision), formatNum(latlng.lat, precision), formatNum(latlng.alt, precision)] :
-		[formatNum(latlng.lng, precision), formatNum(latlng.lat, precision)];
-}
-
-// @function latLngsToCoords(latlngs: Array, levelsDeep?: Number, close?: Boolean, precision?: Number|false): Array
-// Reverse of [`coordsToLatLngs`](#geojson-coordstolatlngs)
-// `close` determines whether the first point should be appended to the end of the array to close the feature, only used when `levelsDeep` is 0. False by default.
-// Coordinates values are rounded with [`formatNum`](#util-formatnum) function.
-function latLngsToCoords(latlngs, levelsDeep, close, precision) {
-	// Check for flat arrays required to ensure unbalanced arrays are correctly converted in recursion
-	const coords = latlngs.map(latlng => (levelsDeep ?
-		latLngsToCoords(latlng, isFlat(latlng) ? 0 : levelsDeep - 1, close, precision) :
-		latLngToCoords(latlng, precision)));
-
-	if (!levelsDeep && close && coords.length > 0) {
-		coords.push(coords[0].slice());
 	}
 
-	return coords;
-}
-
-function getFeature(layer, newGeometry) {
-	return layer.feature ?
-		{...layer.feature, geometry: newGeometry} :
-		asFeature(newGeometry);
-}
-
-// @function asFeature(geojson: Object): Object
-// Normalize GeoJSON geometries/features into GeoJSON features.
-function asFeature(geojson) {
-	if (geojson.type === 'Feature' || geojson.type === 'FeatureCollection') {
-		return geojson;
+	static _pointToLayer(pointToLayerFn, geojson, latlng, options) {
+		return pointToLayerFn ?
+			pointToLayerFn(geojson, latlng) :
+			new Marker(latlng, options?.markersInheritOptions && options);
 	}
 
-	return {
-		type: 'Feature',
-		properties: {},
-		geometry: geojson
-	};
+	// @function coordsToLatLng(coords: Array): LatLng
+	// Creates a `LatLng` object from an array of 2 numbers (longitude, latitude)
+	// or 3 numbers (longitude, latitude, altitude) used in GeoJSON for points.
+	static coordsToLatLng(coords) {
+		return new LatLng(coords[1], coords[0], coords[2]);
+	}
+
+	// @function coordsToLatLngs(coords: Array, levelsDeep?: Number, coordsToLatLng?: Function): Array
+	// Creates a multidimensional array of `LatLng`s from a GeoJSON coordinates array.
+	// `levelsDeep` specifies the nesting level (0 is for an array of points, 1 for an array of arrays of points, etc., 0 by default).
+	// Can use a custom [`coordsToLatLng`](#geojson-coordstolatlng) function.
+	static coordsToLatLngs(coords, levelsDeep, _coordsToLatLng) {
+		return coords.map(coord => (levelsDeep ?
+			GeoJSON.coordsToLatLngs(coord, levelsDeep - 1, _coordsToLatLng) :
+			(_coordsToLatLng || GeoJSON.coordsToLatLng)(coord)));
+	}
+
+	// @function latLngToCoords(latlng: LatLng, precision?: Number|false): Array
+	// Reverse of [`coordsToLatLng`](#geojson-coordstolatlng)
+	// Coordinates values are rounded with [`formatNum`](#util-formatnum) function.
+	static latLngToCoords(latlng, precision) {
+		latlng = new LatLng(latlng);
+		return latlng.alt !== undefined ?
+			[formatNum(latlng.lng, precision), formatNum(latlng.lat, precision), formatNum(latlng.alt, precision)] :
+			[formatNum(latlng.lng, precision), formatNum(latlng.lat, precision)];
+	}
+
+	// @function latLngsToCoords(latlngs: Array, levelsDeep?: Number, close?: Boolean, precision?: Number|false): Array
+	// Reverse of [`coordsToLatLngs`](#geojson-coordstolatlngs)
+	// `close` determines whether the first point should be appended to the end of the array to close the feature, only used when `levelsDeep` is 0. False by default.
+	// Coordinates values are rounded with [`formatNum`](#util-formatnum) function.
+	static latLngsToCoords(latlngs, levelsDeep, close, precision) {
+		// Check for flat arrays required to ensure unbalanced arrays are correctly converted in recursion
+		const coords = latlngs.map(latlng => (levelsDeep ?
+			GeoJSON.latLngsToCoords(latlng, isFlat(latlng) ? 0 : levelsDeep - 1, close, precision) :
+			GeoJSON.latLngToCoords(latlng, precision)));
+
+		if (!levelsDeep && close && coords.length > 0) {
+			coords.push(coords[0].slice());
+		}
+
+		return coords;
+	}
+
+	// @function getFeature(layer: Layer, newGeometry: Object): Object
+	// Returns GeoJSON geometries/features of layer with new GeoJSON geometry.
+	static getFeature(layer, newGeometry) {
+		return layer.feature ?
+			{...layer.feature, geometry: newGeometry} :
+			GeoJSON.asFeature(newGeometry);
+	}
+
+	// @function asFeature(geojson: Object): Object
+	// Normalize GeoJSON geometries/features into GeoJSON features.
+	static asFeature(geojson) {
+		if (geojson.type === 'Feature' || geojson.type === 'FeatureCollection') {
+			return geojson;
+		}
+
+		return {
+			type: 'Feature',
+			properties: {},
+			geometry: geojson
+		};
+	}
+
 }
 
 const PointToGeoJSON = {
 	toGeoJSON(precision) {
-		return getFeature(this, {
+		return GeoJSON.getFeature(this, {
 			type: 'Point',
-			coordinates: latLngToCoords(this.getLatLng(), precision)
+			coordinates: GeoJSON.latLngToCoords(this.getLatLng(), precision)
 		});
 	}
 };
@@ -8585,9 +8630,9 @@ Polyline.include({
 	toGeoJSON(precision) {
 		const multi = !isFlat(this._latlngs);
 
-		const coords = latLngsToCoords(this._latlngs, multi ? 1 : 0, false, precision);
+		const coords = GeoJSON.latLngsToCoords(this._latlngs, multi ? 1 : 0, false, precision);
 
-		return getFeature(this, {
+		return GeoJSON.getFeature(this, {
 			type: `${multi ? 'Multi' : ''}LineString`,
 			coordinates: coords
 		});
@@ -8601,15 +8646,15 @@ Polyline.include({
 Polygon.include({
 	toGeoJSON(precision) {
 		const holes = !isFlat(this._latlngs),
-		    multi = holes && !isFlat(this._latlngs[0]);
+		multi = holes && !isFlat(this._latlngs[0]);
 
-		let coords = latLngsToCoords(this._latlngs, multi ? 2 : holes ? 1 : 0, true, precision);
+		let coords = GeoJSON.latLngsToCoords(this._latlngs, multi ? 2 : holes ? 1 : 0, true, precision);
 
 		if (!holes) {
 			coords = [coords];
 		}
 
-		return getFeature(this, {
+		return GeoJSON.getFeature(this, {
 			type: `${multi ? 'Multi' : ''}Polygon`,
 			coordinates: coords
 		});
@@ -8626,7 +8671,7 @@ LayerGroup.include({
 			coords.push(layer.toGeoJSON(precision).geometry.coordinates);
 		});
 
-		return getFeature(this, {
+		return GeoJSON.getFeature(this, {
 			type: 'MultiPoint',
 			coordinates: coords
 		});
@@ -8644,7 +8689,7 @@ LayerGroup.include({
 		}
 
 		const isGeometryCollection = type === 'GeometryCollection',
-		    jsons = [];
+		jsons = [];
 
 		this.eachLayer((layer) => {
 			if (layer.toGeoJSON) {
@@ -8652,7 +8697,7 @@ LayerGroup.include({
 				if (isGeometryCollection) {
 					jsons.push(json.geometry);
 				} else {
-					const feature = asFeature(json);
+					const feature = GeoJSON.asFeature(json);
 					// Squash nested feature collections
 					if (feature.type === 'FeatureCollection') {
 						jsons.push.apply(jsons, feature.features);
@@ -8664,7 +8709,7 @@ LayerGroup.include({
 		});
 
 		if (isGeometryCollection) {
-			return getFeature(this, {
+			return GeoJSON.getFeature(this, {
 				geometries: jsons,
 				type: 'GeometryCollection'
 			});
@@ -8688,26 +8733,29 @@ LayerGroup.include({
  * that rely on one single HTML element
  */
 
-const BlanketOverlay = Layer.extend({
-	// @section
-	// @aka BlanketOverlay options
-	options: {
-		// @option padding: Number = 0.1
-		// How much to extend the clip area around the map view (relative to its size)
-		// e.g. 0.1 would be 10% of map view in each direction
-		padding: 0.1,
+class BlanketOverlay extends Layer {
 
-		// @option continuous: Boolean = false
-		// When `false`, the blanket will update its position only when the
-		// map state settles (*after* a pan/zoom animation). When `true`,
-		// it will update when the map state changes (*during* pan/zoom
-		// animations)
-		continuous: false,
-	},
+	static {
+		// @section
+		// @aka BlanketOverlay options
+		this.setDefaultOptions({
+			// @option padding: Number = 0.1
+			// How much to extend the clip area around the map view (relative to its size)
+			// e.g. 0.1 would be 10% of map view in each direction
+			padding: 0.1,
+
+			// @option continuous: Boolean = false
+			// When `false`, the blanket will update its position only when the
+			// map state settles (*after* a pan/zoom animation). When `true`,
+			// it will update when the map state changes (*during* pan/zoom
+			// animations)
+			continuous: false,
+		});
+	}
 
 	initialize(options) {
 		setOptions(this, options);
-	},
+	}
 
 	onAdd() {
 		if (!this._container) {
@@ -8720,19 +8768,19 @@ const BlanketOverlay = Layer.extend({
 		this.getPane().appendChild(this._container);
 		this._resizeContainer();
 		this._onMoveEnd();
-	},
+	}
 
 	onRemove() {
 		this._destroyContainer();
-	},
+	}
 
 	getEvents() {
 		const events = {
 			viewreset: this._reset,
 			zoom: this._onZoom,
 			moveend: this._onMoveEnd,
-			zoomend: this._onZoomEnd,
 			resize: this._resizeContainer,
+			zoomend: this._onZoomEnd
 		};
 		if (this._zoomAnimated) {
 			events.zoomanim = this._onAnimZoom;
@@ -8741,31 +8789,32 @@ const BlanketOverlay = Layer.extend({
 			events.move = this._onMoveEnd;
 		}
 		return events;
-	},
+	}
 
 	_onAnimZoom(ev) {
 		this._updateTransform(ev.center, ev.zoom);
-	},
+	}
 
 	_onZoom() {
 		this._updateTransform(this._map.getCenter(), this._map.getZoom());
-	},
+	}
 
 	_updateTransform(center, zoom) {
 		const scale = this._map.getZoomScale(zoom, this._zoom),
-		    viewHalf = this._map.getSize().multiplyBy(0.5 + this.options.padding),
-		    currentCenterPoint = this._map.project(this._center, zoom),
-		    topLeftOffset = viewHalf.multiplyBy(-scale).add(currentCenterPoint)
-		        .subtract(this._map._getNewPixelOrigin(center, zoom));
+		viewHalf = this._map.getSize().multiplyBy(0.5 + this.options.padding),
+		currentCenterPoint = this._map.project(this._center, zoom),
+		topLeftOffset = viewHalf.multiplyBy(-scale)._add(currentCenterPoint)
+			._subtract(this._map._getNewPixelOrigin(center, zoom))
+			._round();
 
 		setTransform(this._container, topLeftOffset, scale);
-	},
+	}
 
 	_onMoveEnd(ev) {
 		// Update pixel bounds of renderer container (for positioning/sizing/clipping later)
 		const p = this.options.padding,
-		    size = this._map.getSize(),
-		    min = this._map.containerPointToLayerPoint(size.multiplyBy(-p)).round();
+		size = this._map.getSize(),
+		min = this._map.containerPointToLayerPoint(size.multiplyBy(-p)).round();
 
 		this._bounds = new Bounds(min, min.add(size.multiplyBy(1 + p * 2)).round());
 
@@ -8774,13 +8823,13 @@ const BlanketOverlay = Layer.extend({
 		this._updateTransform(this._center, this._zoom);
 
 		this._onSettled(ev);
-	},
+	}
 
 	_reset() {
 		this._onSettled();
 		this._updateTransform(this._center, this._zoom);
 		this._onViewReset();
-	},
+	}
 
 	/*
 	 * @section Subclass interface
@@ -8818,23 +8867,23 @@ const BlanketOverlay = Layer.extend({
 	 */
 	_initContainer() {
 		this._container = create$1('div');
-	},
+	}
 	_destroyContainer() {
 		off(this._container);
 		this._container.remove();
 		delete this._container;
-	},
+	}
 	_resizeContainer() {
 		const p = this.options.padding,
-		    size = this._map.getSize().multiplyBy(1 + p * 2).round();
+		size = this._map.getSize().multiplyBy(1 + p * 2).round();
 		this._container.style.width = `${size.x}px`;
 		this._container.style.height = `${size.y}px`;
 		return size;
-	},
-	_onZoomEnd: falseFn,
-	_onViewReset: falseFn,
-	_onSettled: falseFn,
-});
+	}
+	_onZoomEnd() {}
+	_onViewReset() {}
+	_onSettled() {}
+}
 
 /*
  * @class ImageOverlay
@@ -8854,55 +8903,57 @@ const BlanketOverlay = Layer.extend({
 // @constructor ImageOverlay(imageUrl: String, bounds: LatLngBounds, options?: ImageOverlay options)
 // Instantiates an image overlay object given the URL of the image and the
 // geographical bounds it is tied to.
-const ImageOverlay = Layer.extend({
+class ImageOverlay extends Layer {
 
-	// @section
-	// @aka ImageOverlay options
-	options: {
-		// @option opacity: Number = 1.0
-		// The opacity of the image overlay.
-		opacity: 1,
+	static {
+		// @section
+		// @aka ImageOverlay options
+		this.setDefaultOptions({
+			// @option opacity: Number = 1.0
+			// The opacity of the image overlay.
+			opacity: 1,
 
-		// @option alt: String = ''
-		// Text for the `alt` attribute of the image (useful for accessibility).
-		alt: '',
+			// @option alt: String = ''
+			// Text for the `alt` attribute of the image (useful for accessibility).
+			alt: '',
 
-		// @option interactive: Boolean = false
-		// If `true`, the image overlay will emit [pointer events](#interactive-layer) when clicked or hovered.
-		interactive: false,
+			// @option interactive: Boolean = false
+			// If `true`, the image overlay will emit [pointer events](#interactive-layer) when clicked or hovered.
+			interactive: false,
 
-		// @option crossOrigin: Boolean|String = false
-		// Whether the crossOrigin attribute will be added to the image.
-		// If a String is provided, the image will have its crossOrigin attribute set to the String provided. This is needed if you want to access image pixel data.
-		// Refer to [CORS Settings](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for valid String values.
-		crossOrigin: false,
+			// @option crossOrigin: Boolean|String = false
+			// Whether the crossOrigin attribute will be added to the image.
+			// If a String is provided, the image will have its crossOrigin attribute set to the String provided. This is needed if you want to access image pixel data.
+			// Refer to [CORS Settings](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for valid String values.
+			crossOrigin: false,
 
-		// @option errorOverlayUrl: String = ''
-		// URL to the overlay image to show in place of the overlay that failed to load.
-		errorOverlayUrl: '',
+			// @option errorOverlayUrl: String = ''
+			// URL to the overlay image to show in place of the overlay that failed to load.
+			errorOverlayUrl: '',
 
-		// @option zIndex: Number = 1
-		// The explicit [zIndex](https://developer.mozilla.org/docs/Web/CSS/CSS_Positioning/Understanding_z_index) of the overlay layer.
-		zIndex: 1,
+			// @option zIndex: Number = 1
+			// The explicit [zIndex](https://developer.mozilla.org/docs/Web/CSS/CSS_Positioning/Understanding_z_index) of the overlay layer.
+			zIndex: 1,
 
-		// @option className: String = ''
-		// A custom class name to assign to the image. Empty by default.
-		className: '',
+			// @option className: String = ''
+			// A custom class name to assign to the image. Empty by default.
+			className: '',
 
-		// @option decoding: String = 'auto'
-		// Tells the browser whether to decode the image in a synchronous fashion,
-		// as per the [`decoding` HTML attribute](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decoding).
-		// If the image overlay is flickering when being added/removed, set
-		// this option to `'sync'`.
-		decoding: 'auto'
-	},
+			// @option decoding: String = 'auto'
+			// Tells the browser whether to decode the image in a synchronous fashion,
+			// as per the [`decoding` HTML attribute](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decoding).
+			// If the image overlay is flickering when being added/removed, set
+			// this option to `'sync'`.
+			decoding: 'auto'
+		});
+	}
 
 	initialize(url, bounds, options) { // (String, LatLngBounds, Object)
 		this._url = url;
 		this._bounds = new LatLngBounds(bounds);
 
 		setOptions(this, options);
-	},
+	}
 
 	onAdd() {
 		if (!this._image) {
@@ -8920,14 +8971,14 @@ const ImageOverlay = Layer.extend({
 
 		this.getPane().appendChild(this._image);
 		this._reset();
-	},
+	}
 
 	onRemove() {
 		this._image.remove();
 		if (this.options.interactive) {
 			this.removeInteractiveTarget(this._image);
 		}
-	},
+	}
 
 	// @method setOpacity(opacity: Number): this
 	// Sets the opacity of the overlay.
@@ -8938,14 +8989,14 @@ const ImageOverlay = Layer.extend({
 			this._updateOpacity();
 		}
 		return this;
-	},
+	}
 
 	setStyle(styleOpts) {
 		if (styleOpts.opacity) {
 			this.setOpacity(styleOpts.opacity);
 		}
 		return this;
-	},
+	}
 
 	// @method bringToFront(): this
 	// Brings the layer to the top of all overlays.
@@ -8954,7 +9005,7 @@ const ImageOverlay = Layer.extend({
 			toFront(this._image);
 		}
 		return this;
-	},
+	}
 
 	// @method bringToBack(): this
 	// Brings the layer to the bottom of all overlays.
@@ -8963,7 +9014,7 @@ const ImageOverlay = Layer.extend({
 			toBack(this._image);
 		}
 		return this;
-	},
+	}
 
 	// @method setUrl(url: String): this
 	// Changes the URL of the image.
@@ -8974,7 +9025,7 @@ const ImageOverlay = Layer.extend({
 			this._image.src = url;
 		}
 		return this;
-	},
+	}
 
 	// @method setBounds(bounds: LatLngBounds): this
 	// Update the bounds that this ImageOverlay covers
@@ -8985,7 +9036,7 @@ const ImageOverlay = Layer.extend({
 			this._reset();
 		}
 		return this;
-	},
+	}
 
 	getEvents() {
 		const events = {
@@ -8998,7 +9049,7 @@ const ImageOverlay = Layer.extend({
 		}
 
 		return events;
-	},
+	}
 
 	// @method setZIndex(value: Number): this
 	// Changes the [zIndex](#imageoverlay-zindex) of the image overlay.
@@ -9006,20 +9057,20 @@ const ImageOverlay = Layer.extend({
 		this.options.zIndex = value;
 		this._updateZIndex();
 		return this;
-	},
+	}
 
 	// @method getBounds(): LatLngBounds
 	// Get the bounds that this ImageOverlay covers
 	getBounds() {
 		return this._bounds;
-	},
+	}
 
 	// @method getElement(): HTMLElement
 	// Returns the instance of [`HTMLImageElement`](https://developer.mozilla.org/docs/Web/API/HTMLImageElement)
 	// used by this overlay.
 	getElement() {
 		return this._image;
-	},
+	}
 
 	_initImage() {
 		const wasElementSupplied = this._url.tagName === 'IMG';
@@ -9054,37 +9105,37 @@ const ImageOverlay = Layer.extend({
 
 		img.src = this._url;
 		img.alt = this.options.alt;
-	},
+	}
 
 	_animateZoom(e) {
 		const scale = this._map.getZoomScale(e.zoom),
-		    offset = this._map._latLngBoundsToNewLayerBounds(this._bounds, e.zoom, e.center).min;
+		offset = this._map._latLngBoundsToNewLayerBounds(this._bounds, e.zoom, e.center).min;
 
 		setTransform(this._image, offset, scale);
-	},
+	}
 
 	_reset() {
 		const image = this._image,
-		    bounds = new Bounds(
-		        this._map.latLngToLayerPoint(this._bounds.getNorthWest()),
-		        this._map.latLngToLayerPoint(this._bounds.getSouthEast())),
-		    size = bounds.getSize();
+		bounds = new Bounds(
+			this._map.latLngToLayerPoint(this._bounds.getNorthWest()),
+			this._map.latLngToLayerPoint(this._bounds.getSouthEast())),
+		size = bounds.getSize();
 
 		setPosition(image, bounds.min);
 
 		image.style.width  = `${size.x}px`;
 		image.style.height = `${size.y}px`;
-	},
+	}
 
 	_updateOpacity() {
 		this._image.style.opacity = this.options.opacity;
-	},
+	}
 
 	_updateZIndex() {
 		if (this._image && this.options.zIndex !== undefined && this.options.zIndex !== null) {
 			this._image.style.zIndex = this.options.zIndex;
 		}
-	},
+	}
 
 	_overlayOnError() {
 		// @event error: Event
@@ -9096,14 +9147,14 @@ const ImageOverlay = Layer.extend({
 			this._url = errorUrl;
 			this._image.src = errorUrl;
 		}
-	},
+	}
 
 	// @method getCenter(): LatLng
 	// Returns the center of the ImageOverlay.
 	getCenter() {
 		return this._bounds.getCenter();
 	}
-});
+}
 
 /*
  * @class VideoOverlay
@@ -9126,36 +9177,38 @@ const ImageOverlay = Layer.extend({
 // @constructor VideoOverlay(video: String|Array|HTMLVideoElement, bounds: LatLngBounds, options?: VideoOverlay options)
 // Instantiates an image overlay object given the URL of the video (or array of URLs, or even a video element) and the
 // geographical bounds it is tied to.
-const VideoOverlay = ImageOverlay.extend({
+class VideoOverlay extends ImageOverlay {
 
-	// @section
-	// @aka VideoOverlay options
-	options: {
-		// @option autoplay: Boolean = true
-		// Whether the video starts playing automatically when loaded.
-		// On some browsers autoplay will only work with `muted: true`
-		autoplay: true,
+	static {
+		// @section
+		// @aka VideoOverlay options
+		this.setDefaultOptions({
+			// @option autoplay: Boolean = true
+			// Whether the video starts playing automatically when loaded.
+			// On some browsers autoplay will only work with `muted: true`
+			autoplay: true,
 
-		// @option loop: Boolean = false
-		// Whether the browser will offer controls to allow the user to control video playback, including volume, seeking, and pause/resume playback.
-		controls: false,
+			// @option loop: Boolean = false
+			// Whether the browser will offer controls to allow the user to control video playback, including volume, seeking, and pause/resume playback.
+			controls: false,
 
-		// @option loop: Boolean = true
-		// Whether the video will loop back to the beginning when played.
-		loop: true,
+			// @option loop: Boolean = true
+			// Whether the video will loop back to the beginning when played.
+			loop: true,
 
-		// @option keepAspectRatio: Boolean = true
-		// Whether the video will save aspect ratio after the projection.
-		keepAspectRatio: true,
+			// @option keepAspectRatio: Boolean = true
+			// Whether the video will save aspect ratio after the projection.
+			keepAspectRatio: true,
 
-		// @option muted: Boolean = false
-		// Whether the video starts on mute when loaded.
-		muted: false,
+			// @option muted: Boolean = false
+			// Whether the video starts on mute when loaded.
+			muted: false,
 
-		// @option playsInline: Boolean = true
-		// Mobile browsers will play the video right where it is instead of open it up in fullscreen mode.
-		playsInline: true
-	},
+			// @option playsInline: Boolean = true
+			// Mobile browsers will play the video right where it is instead of open it up in fullscreen mode.
+			playsInline: true
+		});
+	}
 
 	_initImage() {
 		const wasElementSupplied = this._url.tagName === 'VIDEO';
@@ -9203,7 +9256,7 @@ const VideoOverlay = ImageOverlay.extend({
 	// @method getElement(): HTMLVideoElement
 	// Returns the instance of [`HTMLVideoElement`](https://developer.mozilla.org/docs/Web/API/HTMLVideoElement)
 	// used by this overlay.
-});
+}
 
 /*
  * @class SVGOverlay
@@ -9228,7 +9281,7 @@ const VideoOverlay = ImageOverlay.extend({
 // @constructor SVGOverlay(svg: String|SVGElement, bounds: LatLngBounds, options?: SVGOverlay options)
 // Instantiates an image overlay object given an SVG element and the geographical bounds it is tied to.
 // A viewBox attribute is required on the SVG element to zoom in and out properly.
-const SVGOverlay = ImageOverlay.extend({
+class SVGOverlay extends ImageOverlay {
 	_initImage() {
 		const el = this._image = this._url;
 
@@ -9243,7 +9296,7 @@ const SVGOverlay = ImageOverlay.extend({
 	// @method getElement(): SVGElement
 	// Returns the instance of [`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
 	// used by this overlay.
-});
+}
 
 /*
  * @class DivOverlay
@@ -9252,32 +9305,34 @@ const SVGOverlay = ImageOverlay.extend({
  */
 
 // @namespace DivOverlay
-const DivOverlay = Layer.extend({
+class DivOverlay extends Layer {
 
-	// @section
-	// @aka DivOverlay options
-	options: {
-		// @option interactive: Boolean = false
-		// If true, the popup/tooltip will listen to the pointer events.
-		interactive: false,
+	static {
+		// @section
+		// @aka DivOverlay options
+		this.setDefaultOptions({
+			// @option interactive: Boolean = false
+			// If true, the popup/tooltip will listen to the pointer events.
+			interactive: false,
 
-		// @option offset: Point = Point(0, 0)
-		// The offset of the overlay position.
-		offset: [0, 0],
+			// @option offset: Point = Point(0, 0)
+			// The offset of the overlay position.
+			offset: [0, 0],
 
-		// @option className: String = ''
-		// A custom CSS class name to assign to the overlay.
-		className: '',
+			// @option className: String = ''
+			// A custom CSS class name to assign to the overlay.
+			className: '',
 
-		// @option pane: String = undefined
-		// `Map pane` where the overlay will be added.
-		pane: undefined,
+			// @option pane: String = undefined
+			// `Map pane` where the overlay will be added.
+			pane: undefined,
 
-		// @option content: String|HTMLElement|Function = ''
-		// Sets the HTML content of the overlay while initializing. If a function is passed the source layer will be
-		// passed to the function. The function should return a `String` or `HTMLElement` to be used in the overlay.
-		content: ''
-	},
+			// @option content: String|HTMLElement|Function = ''
+			// Sets the HTML content of the overlay while initializing. If a function is passed the source layer will be
+			// passed to the function. The function should return a `String` or `HTMLElement` to be used in the overlay.
+			content: ''
+		});
+	}
 
 	initialize(options, source) {
 		if (options instanceof LatLng || Array.isArray(options)) {
@@ -9290,7 +9345,7 @@ const DivOverlay = Layer.extend({
 		if (this.options.content) {
 			this._content = this.options.content;
 		}
-	},
+	}
 
 	// @method openOn(map: Map): this
 	// Adds the overlay to the map.
@@ -9301,7 +9356,7 @@ const DivOverlay = Layer.extend({
 			map.addLayer(this);
 		}
 		return this;
-	},
+	}
 
 	// @method close(): this
 	// Closes the overlay.
@@ -9310,7 +9365,7 @@ const DivOverlay = Layer.extend({
 	close() {
 		this._map?.removeLayer(this);
 		return this;
-	},
+	}
 
 	// @method toggle(layer?: Layer): this
 	// Opens or closes the overlay bound to layer depending on its current state.
@@ -9331,7 +9386,7 @@ const DivOverlay = Layer.extend({
 			this.openOn(layer._map);
 		}
 		return this;
-	},
+	}
 
 	onAdd(map) {
 		this._zoomAnimated = map._zoomAnimated;
@@ -9358,7 +9413,7 @@ const DivOverlay = Layer.extend({
 			this._container.classList.add('leaflet-interactive');
 			this.addInteractiveTarget(this._container);
 		}
-	},
+	}
 
 	onRemove(map) {
 		if (map._fadeAnimated) {
@@ -9372,14 +9427,14 @@ const DivOverlay = Layer.extend({
 			this._container.classList.remove('leaflet-interactive');
 			this.removeInteractiveTarget(this._container);
 		}
-	},
+	}
 
 	// @namespace DivOverlay
 	// @method getLatLng: LatLng
 	// Returns the geographical point of the overlay.
 	getLatLng() {
 		return this._latlng;
-	},
+	}
 
 	// @method setLatLng(latlng: LatLng): this
 	// Sets the geographical point where the overlay will open.
@@ -9390,13 +9445,13 @@ const DivOverlay = Layer.extend({
 			this._adjustPan();
 		}
 		return this;
-	},
+	}
 
-	// @method getContent: String|HTMLElement
+	// @method getContent: String|HTMLElement|Function)
 	// Returns the content of the overlay.
 	getContent() {
 		return this._content;
-	},
+	}
 
 	// @method setContent(htmlContent: String|HTMLElement|Function): this
 	// Sets the HTML content of the overlay. If a function is passed the source layer will be passed to the function.
@@ -9405,13 +9460,13 @@ const DivOverlay = Layer.extend({
 		this._content = content;
 		this.update();
 		return this;
-	},
+	}
 
-	// @method getElement: String|HTMLElement
+	// @method getElement: HTMLElement
 	// Returns the HTML container of the overlay.
 	getElement() {
 		return this._container;
-	},
+	}
 
 	// @method update: null
 	// Updates the overlay content, layout and position. Useful for updating the overlay after something inside changed, e.g. image loaded.
@@ -9427,7 +9482,7 @@ const DivOverlay = Layer.extend({
 		this._container.style.visibility = '';
 
 		this._adjustPan();
-	},
+	}
 
 	getEvents() {
 		const events = {
@@ -9439,13 +9494,13 @@ const DivOverlay = Layer.extend({
 			events.zoomanim = this._animateZoom;
 		}
 		return events;
-	},
+	}
 
 	// @method isOpen: Boolean
 	// Returns `true` when the overlay is visible on the map.
 	isOpen() {
 		return !!this._map && this._map.hasLayer(this);
-	},
+	}
 
 	// @method bringToFront: this
 	// Brings this overlay in front of other overlays (in the same map pane).
@@ -9454,7 +9509,7 @@ const DivOverlay = Layer.extend({
 			toFront(this._container);
 		}
 		return this;
-	},
+	}
 
 	// @method bringToBack: this
 	// Brings this overlay to the back of other overlays (in the same map pane).
@@ -9463,7 +9518,7 @@ const DivOverlay = Layer.extend({
 			toBack(this._container);
 		}
 		return this;
-	},
+	}
 
 	// prepare bound overlay to open: update latlng pos / content source (for FeatureGroup)
 	_prepareOpen(latlng) {
@@ -9503,7 +9558,7 @@ const DivOverlay = Layer.extend({
 		}
 
 		return true;
-	},
+	}
 
 	_updateContent() {
 		if (!this._content) { return; }
@@ -9525,13 +9580,13 @@ const DivOverlay = Layer.extend({
 		// @event contentupdate: Event
 		// Fired when the content of the overlay is updated
 		this.fire('contentupdate');
-	},
+	}
 
 	_updatePosition() {
 		if (!this._map) { return; }
 
 		const pos = this._map.latLngToLayerPoint(this._latlng),
-		      anchor = this._getAnchor();
+		anchor = this._getAnchor();
 		let offset = new Point(this.options.offset);
 
 		if (this._zoomAnimated) {
@@ -9541,18 +9596,18 @@ const DivOverlay = Layer.extend({
 		}
 
 		const bottom = this._containerBottom = -offset.y,
-		    left = this._containerLeft = -Math.round(this._containerWidth / 2) + offset.x;
+		left = this._containerLeft = -Math.round(this._containerWidth / 2) + offset.x;
 
 		// bottom position the overlay in case the height of the overlay changes (images loading etc)
 		this._container.style.bottom = `${bottom}px`;
 		this._container.style.left = `${left}px`;
-	},
+	}
 
 	_getAnchor() {
 		return [0, 0];
 	}
 
-});
+}
 
 Map$1.include({
 	_initOverlay(OverlayClass, content, latlng, options) {
@@ -9620,89 +9675,91 @@ Layer.include({
 // @alternative
 // @constructor Popup(latlng: LatLng, options?: Popup options)
 // Instantiates a `Popup` object given `latlng` where the popup will open and an optional `options` object that describes its appearance and location.
-const Popup = DivOverlay.extend({
+class Popup extends DivOverlay {
 
-	// @section
-	// @aka Popup options
-	options: {
-		// @option pane: String = 'popupPane'
-		// `Map pane` where the popup will be added.
-		pane: 'popupPane',
+	static {
+		// @section
+		// @aka Popup options
+		this.setDefaultOptions({
+			// @option pane: String = 'popupPane'
+			// `Map pane` where the popup will be added.
+			pane: 'popupPane',
 
-		// @option offset: Point = Point(0, 7)
-		// The offset of the popup position.
-		offset: [0, 7],
+			// @option offset: Point = Point(0, 7)
+			// The offset of the popup position.
+			offset: [0, 7],
 
-		// @option maxWidth: Number = 300
-		// Max width of the popup, in pixels.
-		maxWidth: 300,
+			// @option maxWidth: Number = 300
+			// Max width of the popup, in pixels.
+			maxWidth: 300,
 
-		// @option minWidth: Number = 100
-		// Min width of the popup, in pixels.
-		minWidth: 100,
+			// @option minWidth: Number = 50
+			// Min width of the popup, in pixels.
+			minWidth: 50,
 
-		// @option maxHeight: Number = null
-		// If set, creates a scrollable container of the given height
-		// inside a popup if its content exceeds it.
-		// The scrollable container can be styled using the
-		// `leaflet-popup-scrolled` CSS class selector.
-		maxHeight: null,
+			// @option maxHeight: Number = null
+			// If set, creates a scrollable container of the given height
+			// inside a popup if its content exceeds it.
+			// The scrollable container can be styled using the
+			// `leaflet-popup-scrolled` CSS class selector.
+			maxHeight: null,
 
-		// @option autoPan: Boolean = true
-		// Set it to `false` if you don't want the map to do panning animation
-		// to fit the opened popup.
-		autoPan: true,
+			// @option autoPan: Boolean = true
+			// Set it to `false` if you don't want the map to do panning animation
+			// to fit the opened popup.
+			autoPan: true,
 
-		// @option autoPanPaddingTopLeft: Point = null
-		// The margin between the popup and the top left corner of the map
-		// view after autopanning was performed.
-		autoPanPaddingTopLeft: null,
+			// @option autoPanPaddingTopLeft: Point = null
+			// The margin between the popup and the top left corner of the map
+			// view after autopanning was performed.
+			autoPanPaddingTopLeft: null,
 
-		// @option autoPanPaddingBottomRight: Point = null
-		// The margin between the popup and the bottom right corner of the map
-		// view after autopanning was performed.
-		autoPanPaddingBottomRight: null,
+			// @option autoPanPaddingBottomRight: Point = null
+			// The margin between the popup and the bottom right corner of the map
+			// view after autopanning was performed.
+			autoPanPaddingBottomRight: null,
 
-		// @option autoPanPadding: Point = Point(5, 5)
-		// Equivalent of setting both top left and bottom right autopan padding to the same value.
-		autoPanPadding: [5, 5],
+			// @option autoPanPadding: Point = Point(5, 5)
+			// Equivalent of setting both top left and bottom right autopan padding to the same value.
+			autoPanPadding: [5, 5],
 
-		// @option keepInView: Boolean = false
-		// Set it to `true` if you want to prevent users from panning the popup
-		// off of the screen while it is open.
-		keepInView: false,
+			// @option keepInView: Boolean = false
+			// Set it to `true` if you want to prevent users from panning the popup
+			// off of the screen while it is open.
+			keepInView: false,
 
-		// @option closeButton: Boolean = true
-		// Controls the presence of a close button in the popup.
-		closeButton: true,
+			// @option closeButton: Boolean = true
+			// Controls the presence of a close button in the popup.
+			closeButton: true,
 
-		// @option closeButtonLabel: String = 'Close popup'
-		// Specifies the 'aria-label' attribute of the close button.
-		closeButtonLabel: 'Close popup',
+			// @option closeButtonLabel: String = 'Close popup'
+			// Specifies the 'aria-label' attribute of the close button.
+			closeButtonLabel: 'Close popup',
 
-		// @option autoClose: Boolean = true
-		// Set it to `false` if you want to override the default behavior of
-		// the popup closing when another popup is opened.
-		autoClose: true,
+			// @option autoClose: Boolean = true
+			// Set it to `false` if you want to override the default behavior of
+			// the popup closing when another popup is opened.
+			autoClose: true,
 
-		// @option closeOnEscapeKey: Boolean = true
-		// Set it to `false` if you want to override the default behavior of
-		// the ESC key for closing of the popup.
-		closeOnEscapeKey: true,
+			// @option closeOnEscapeKey: Boolean = true
+			// Set it to `false` if you want to override the default behavior of
+			// the ESC key for closing of the popup.
+			closeOnEscapeKey: true,
 
-		// @option closeOnClick: Boolean = *
-		// Set it if you want to override the default behavior of the popup closing when user clicks
-		// on the map. Defaults to the map's [`closePopupOnClick`](#map-closepopuponclick) option.
+			// @option closeOnClick: Boolean = *
+			// Set it if you want to override the default behavior of the popup closing when user clicks
+			// on the map. Defaults to the map's [`closePopupOnClick`](#map-closepopuponclick) option.
 
-		// @option className: String = ''
-		// A custom CSS class name to assign to the popup.
-		className: '',
+			// @option className: String = ''
+			// A custom CSS class name to assign to the popup.
+			className: '',
 
-		// @option trackResize: Boolean = true
-		// Whether the popup shall react to changes in the size of its contents
-		// (e.g. when an image inside the popup loads) and reposition itself.
-		trackResize: true,
-	},
+			// @option trackResize: Boolean = true
+			// Whether the popup shall react to changes in the size of its contents
+			// (e.g. when an image inside the popup loads) and reposition itself.
+			trackResize: true,
+		});
+	}
 
 	// @namespace Popup
 	// @method openOn(map: Map): this
@@ -9717,7 +9774,7 @@ const Popup = DivOverlay.extend({
 		map._popup = this;
 
 		return DivOverlay.prototype.openOn.call(this, map);
-	},
+	}
 
 	onAdd(map) {
 		DivOverlay.prototype.onAdd.call(this, map);
@@ -9740,7 +9797,7 @@ const Popup = DivOverlay.extend({
 				this._source.on('preclick', stopPropagation);
 			}
 		}
-	},
+	}
 
 	onRemove(map) {
 		DivOverlay.prototype.onRemove.call(this, map);
@@ -9761,7 +9818,7 @@ const Popup = DivOverlay.extend({
 				this._source.off('preclick', stopPropagation);
 			}
 		}
-	},
+	}
 
 	getEvents() {
 		const events = DivOverlay.prototype.getEvents.call(this);
@@ -9775,11 +9832,11 @@ const Popup = DivOverlay.extend({
 		}
 
 		return events;
-	},
+	}
 
 	_initLayout() {
 		const prefix = 'leaflet-popup',
-		    container = this._container = create$1('div', `${prefix} ${this.options.className || ''} leaflet-zoom-animated`);
+		container = this._container = create$1('div', `${prefix} ${this.options.className || ''} leaflet-zoom-animated`);
 
 		const wrapper = this._wrapper = create$1('div', `${prefix}-content-wrapper`, container);
 		this._contentNode = create$1('div', `${prefix}-content`, wrapper);
@@ -9819,24 +9876,18 @@ const Popup = DivOverlay.extend({
 
 			this._resizeObserver.observe(this._contentNode);
 		}
-	},
+	}
 
 	_updateLayout() {
 		const container = this._contentNode,
-		    style = container.style;
-
-		style.width = '';
-		style.whiteSpace = 'nowrap';
+		style = container.style;
 
 		style.maxWidth = `${this.options.maxWidth}px`;
 		style.minWidth = `${this.options.minWidth}px`;
-		style.whiteSpace = '';
-
-		style.height = '';
 
 		const height = this._containerHeight ?? container.offsetHeight,
-		    maxHeight = this.options.maxHeight,
-		    scrolledClass = 'leaflet-popup-scrolled';
+		maxHeight = this.options.maxHeight,
+		scrolledClass = 'leaflet-popup-scrolled';
 
 		if (maxHeight && height > maxHeight) {
 			style.height = `${maxHeight}px`;
@@ -9847,13 +9898,13 @@ const Popup = DivOverlay.extend({
 
 		this._containerWidth = this._container.offsetWidth;
 		this._containerHeight = this._container.offsetHeight;
-	},
+	}
 
 	_animateZoom(e) {
 		const pos = this._map._latLngToNewLayerPoint(this._latlng, e.zoom, e.center),
-		    anchor = this._getAnchor();
+		anchor = this._getAnchor();
 		setPosition(this._container, pos.add(anchor));
-	},
+	}
 
 	_adjustPan() {
 		if (!this.options.autoPan) { return; }
@@ -9867,20 +9918,20 @@ const Popup = DivOverlay.extend({
 		}
 
 		const map = this._map,
-		    marginBottom = parseInt(getComputedStyle(this._container).marginBottom, 10) || 0,
-		    containerHeight = this._containerHeight + marginBottom,
-		    containerWidth = this._containerWidth,
-		    layerPos = new Point(this._containerLeft, -containerHeight - this._containerBottom);
+		marginBottom = parseInt(getComputedStyle(this._container).marginBottom, 10) || 0,
+		containerHeight = this._containerHeight + marginBottom,
+		containerWidth = this._containerWidth,
+		layerPos = new Point(this._containerLeft, -containerHeight - this._containerBottom);
 
 		layerPos._add(getPosition(this._container));
 
 		const containerPos = map.layerPointToContainerPoint(layerPos),
-		      padding = new Point(this.options.autoPanPadding),
-		      paddingTL = new Point(this.options.autoPanPaddingTopLeft ?? padding),
-		      paddingBR = new Point(this.options.autoPanPaddingBottomRight ?? padding),
-		      size = map.getSize();
+		padding = new Point(this.options.autoPanPadding),
+		paddingTL = new Point(this.options.autoPanPaddingTopLeft ?? padding),
+		paddingBR = new Point(this.options.autoPanPaddingBottomRight ?? padding),
+		size = map.getSize();
 		let dx = 0,
-		    dy = 0;
+		dy = 0;
 
 		if (containerPos.x + containerWidth + paddingBR.x > size.x) { // right
 			dx = containerPos.x + containerWidth - size.x + paddingBR.x;
@@ -9906,17 +9957,17 @@ const Popup = DivOverlay.extend({
 			}
 
 			map
-			    .fire('autopanstart')
-			    .panBy([dx, dy]);
+				.fire('autopanstart')
+				.panBy([dx, dy]);
 		}
-	},
+	}
 
 	_getAnchor() {
 		// Where should we anchor the popup on the source layer?
 		return new Point(this._source?._getPopupAnchor ? this._source._getPopupAnchor() : [0, 0]);
 	}
 
-});
+}
 
 
 /* @namespace Map
@@ -9939,7 +9990,7 @@ Map$1.include({
 	// Creates a popup with the specified content and options and opens it in the given point on a map.
 	openPopup(popup, latlng, options) {
 		this._initOverlay(Popup, popup, latlng, options)
-		  .openOn(this);
+			.openOn(this);
 
 		return this;
 	},
@@ -10131,38 +10182,40 @@ Layer.include({
 // @alternative
 // @constructor Tooltip(latlng: LatLng, options?: Tooltip options)
 // Instantiates a `Tooltip` object given `latlng` where the tooltip will open and an optional `options` object that describes its appearance and location.
-const Tooltip = DivOverlay.extend({
+class Tooltip extends DivOverlay {
 
-	// @section
-	// @aka Tooltip options
-	options: {
-		// @option pane: String = 'tooltipPane'
-		// `Map pane` where the tooltip will be added.
-		pane: 'tooltipPane',
+	static {
+		// @section
+		// @aka Tooltip options
+		this.setDefaultOptions({
+			// @option pane: String = 'tooltipPane'
+			// `Map pane` where the tooltip will be added.
+			pane: 'tooltipPane',
 
-		// @option offset: Point = Point(0, 0)
-		// Optional offset of the tooltip position.
-		offset: [0, 0],
+			// @option offset: Point = Point(0, 0)
+			// Optional offset of the tooltip position.
+			offset: [0, 0],
 
-		// @option direction: String = 'auto'
-		// Direction where to open the tooltip. Possible values are: `right`, `left`,
-		// `top`, `bottom`, `center`, `auto`.
-		// `auto` will dynamically switch between `right` and `left` according to the tooltip
-		// position on the map.
-		direction: 'auto',
+			// @option direction: String = 'auto'
+			// Direction where to open the tooltip. Possible values are: `right`, `left`,
+			// `top`, `bottom`, `center`, `auto`.
+			// `auto` will dynamically switch between `right` and `left` according to the tooltip
+			// position on the map.
+			direction: 'auto',
 
-		// @option permanent: Boolean = false
-		// Whether to open the tooltip permanently or only on pointerover.
-		permanent: false,
+			// @option permanent: Boolean = false
+			// Whether to open the tooltip permanently or only on pointerover.
+			permanent: false,
 
-		// @option sticky: Boolean = false
-		// If true, the tooltip will follow the pointer instead of being fixed at the feature center.
-		sticky: false,
+			// @option sticky: Boolean = false
+			// If true, the tooltip will follow the pointer instead of being fixed at the feature center.
+			sticky: false,
 
-		// @option opacity: Number = 0.9
-		// Tooltip container opacity.
-		opacity: 0.9
-	},
+			// @option opacity: Number = 0.9
+			// Tooltip container opacity.
+			opacity: 0.9
+		});
+	}
 
 	onAdd(map) {
 		DivOverlay.prototype.onAdd.call(this, map);
@@ -10183,7 +10236,7 @@ const Tooltip = DivOverlay.extend({
 			// Fired when a tooltip bound to this layer is opened.
 			this._source.fire('tooltipopen', {tooltip: this}, true);
 		}
-	},
+	}
 
 	onRemove(map) {
 		DivOverlay.prototype.onRemove.call(this, map);
@@ -10203,7 +10256,7 @@ const Tooltip = DivOverlay.extend({
 			// Fired when a tooltip bound to this layer is closed.
 			this._source.fire('tooltipclose', {tooltip: this}, true);
 		}
-	},
+	}
 
 	getEvents() {
 		const events = DivOverlay.prototype.getEvents.call(this);
@@ -10213,32 +10266,32 @@ const Tooltip = DivOverlay.extend({
 		}
 
 		return events;
-	},
+	}
 
 	_initLayout() {
 		const prefix = 'leaflet-tooltip',
-		    className = `${prefix} ${this.options.className || ''} leaflet-zoom-${this._zoomAnimated ? 'animated' : 'hide'}`;
+		className = `${prefix} ${this.options.className || ''} leaflet-zoom-${this._zoomAnimated ? 'animated' : 'hide'}`;
 
 		this._contentNode = this._container = create$1('div', className);
 
 		this._container.setAttribute('role', 'tooltip');
 		this._container.setAttribute('id', `leaflet-tooltip-${stamp(this)}`);
-	},
+	}
 
-	_updateLayout() {},
+	_updateLayout() {}
 
-	_adjustPan() {},
+	_adjustPan() {}
 
 	_setPosition(pos) {
 		let subX, subY, direction = this.options.direction;
 		const map = this._map,
-		      container = this._container,
-		      centerPoint = map.latLngToContainerPoint(map.getCenter()),
-		      tooltipPoint = map.layerPointToContainerPoint(pos),
-		      tooltipWidth = container.offsetWidth,
-		      tooltipHeight = container.offsetHeight,
-		      offset = new Point(this.options.offset),
-		      anchor = this._getAnchor();
+		container = this._container,
+		centerPoint = map.latLngToContainerPoint(map.getCenter()),
+		tooltipPoint = map.layerPointToContainerPoint(pos),
+		tooltipWidth = container.offsetWidth,
+		tooltipHeight = container.offsetHeight,
+		offset = new Point(this.options.offset),
+		anchor = this._getAnchor();
 
 		if (direction === 'top') {
 			subX = tooltipWidth / 2;
@@ -10275,12 +10328,12 @@ const Tooltip = DivOverlay.extend({
 		);
 		container.classList.add(`leaflet-tooltip-${direction}`);
 		setPosition(container, pos);
-	},
+	}
 
 	_updatePosition() {
 		const pos = this._map.latLngToLayerPoint(this._latlng);
 		this._setPosition(pos);
-	},
+	}
 
 	setOpacity(opacity) {
 		this.options.opacity = opacity;
@@ -10288,19 +10341,19 @@ const Tooltip = DivOverlay.extend({
 		if (this._container) {
 			this._container.style.opacity = opacity;
 		}
-	},
+	}
 
 	_animateZoom(e) {
 		const pos = this._map._latLngToNewLayerPoint(this._latlng, e.zoom, e.center);
 		this._setPosition(pos);
-	},
+	}
 
 	_getAnchor() {
 		// Where should we anchor the tooltip on the source layer?
 		return new Point(this._source?._getTooltipAnchor && !this.options.sticky ? this._source._getTooltipAnchor() : [0, 0]);
 	}
 
-});
+}
 
 // @namespace Map
 // @section Methods for Layers and Controls
@@ -10313,7 +10366,7 @@ Map$1.include({
 	// Creates a tooltip with the specified content and options and open it.
 	openTooltip(tooltip, latlng, options) {
 		this._initOverlay(Tooltip, tooltip, latlng, options)
-		  .openOn(this);
+			.openOn(this);
 
 		return this;
 	},
@@ -10548,30 +10601,33 @@ Layer.include({
 
 // @constructor DivIcon(options: DivIcon options)
 // Creates a `DivIcon` instance with the given options.
-const DivIcon = Icon.extend({
-	options: {
-		// @section
-		// @aka DivIcon options
-		iconSize: [12, 12], // also can be set through CSS
+class DivIcon extends Icon {
 
-		// iconAnchor: (Point),
-		// popupAnchor: (Point),
+	static {
+		this.setDefaultOptions({
+			// @section
+			// @aka DivIcon options
+			iconSize: [12, 12], // also can be set through CSS
 
-		// @option html: String|HTMLElement = ''
-		// Custom HTML code to put inside the div element, empty by default. Alternatively,
-		// an instance of `HTMLElement`.
-		html: false,
+			// iconAnchor: (Point),
+			// popupAnchor: (Point),
 
-		// @option bgPos: Point = [0, 0]
-		// Optional relative position of the background, in pixels
-		bgPos: null,
+			// @option html: String|HTMLElement = ''
+			// Custom HTML code to put inside the div element, empty by default. Alternatively,
+			// an instance of `HTMLElement`.
+			html: false,
 
-		className: 'leaflet-div-icon'
-	},
+			// @option bgPos: Point = [0, 0]
+			// Optional relative position of the background, in pixels
+			bgPos: null,
+
+			className: 'leaflet-div-icon'
+		});
+	}
 
 	createIcon(oldIcon) {
 		const div = (oldIcon && oldIcon.tagName === 'DIV') ? oldIcon : document.createElement('div'),
-		    options = this.options;
+		options = this.options;
 
 		if (options.html instanceof Element) {
 			div.replaceChildren();
@@ -10587,12 +10643,12 @@ const DivIcon = Icon.extend({
 		this._setIconStyles(div, 'icon');
 
 		return div;
-	},
+	}
 
 	createShadow() {
 		return null;
 	}
-});
+}
 
 Icon.Default = IconDefault;
 
@@ -10610,8 +10666,8 @@ Icon.Default = IconDefault;
  * To create a custom layer, extend GridLayer and implement the `createTile()` method, which will be passed a `Point` object with the `x`, `y`, and `z` (zoom level) coordinates to draw your tile.
  *
  * ```js
- * const CanvasLayer = GridLayer.extend({
- *     createTile: function(coords){
+ * class CanvasLayer extends GridLayer {
+ *     createTile(coords) {
  *         // create a <canvas> element for drawing
  *         const tile = DomUtil.create('canvas', 'leaflet-tile');
  *
@@ -10626,7 +10682,7 @@ Icon.Default = IconDefault;
  *         // return the tile so it can be rendered on screen
  *         return tile;
  *     }
- * });
+ * }
  * ```
  *
  * @section Asynchronous usage
@@ -10635,8 +10691,8 @@ Icon.Default = IconDefault;
  * Tile creation can also be asynchronous, this is useful when using a third-party drawing library. Once the tile is finished drawing it can be passed to the `done()` callback.
  *
  * ```js
- * const CanvasLayer = GridLayer.extend({
- *     createTile: function(coords, done){
+ * class CanvasLayer extends GridLayer {
+ *     createTile(coords, done) {
  *         const error;
  *
  *         // create a <canvas> element for drawing
@@ -10654,7 +10710,7 @@ Icon.Default = IconDefault;
  *
  *         return tile;
  *     }
- * });
+ * }
  * ```
  *
  * @section
@@ -10663,86 +10719,88 @@ Icon.Default = IconDefault;
 
 // @constructor GridLayer(options?: GridLayer options)
 // Creates a new instance of GridLayer with the supplied options.
-const GridLayer = Layer.extend({
+class GridLayer extends Layer {
 
+	static {
 	// @section
 	// @aka GridLayer options
-	options: {
-		// @option tileSize: Number|Point = 256
-		// Width and height of tiles in the grid. Use a number if width and height are equal, or `Point(width, height)` otherwise.
-		tileSize: 256,
+		this.setDefaultOptions({
+			// @option tileSize: Number|Point = 256
+			// Width and height of tiles in the grid. Use a number if width and height are equal, or `Point(width, height)` otherwise.
+			tileSize: 256,
 
-		// @option opacity: Number = 1.0
-		// Opacity of the tiles. Can be used in the `createTile()` function.
-		opacity: 1,
+			// @option opacity: Number = 1.0
+			// Opacity of the tiles. Can be used in the `createTile()` function.
+			opacity: 1,
 
-		// @option updateWhenIdle: Boolean = (depends)
-		// Load new tiles only when panning ends.
-		// `true` by default on mobile browsers, in order to avoid too many requests and keep smooth navigation.
-		// `false` otherwise in order to display new tiles _during_ panning, since it is easy to pan outside the
-		// [`keepBuffer`](#gridlayer-keepbuffer) option in desktop browsers.
-		updateWhenIdle: Browser.mobile,
+			// @option updateWhenIdle: Boolean = (depends)
+			// Load new tiles only when panning ends.
+			// `true` by default on mobile browsers, in order to avoid too many requests and keep smooth navigation.
+			// `false` otherwise in order to display new tiles _during_ panning, since it is easy to pan outside the
+			// [`keepBuffer`](#gridlayer-keepbuffer) option in desktop browsers.
+			updateWhenIdle: Browser.mobile,
 
-		// @option updateWhenZooming: Boolean = true
-		// By default, a smooth zoom animation (during a [pinch zoom](#map-pinchzoom) or a [`flyTo()`](#map-flyto)) will update grid layers every integer zoom level. Setting this option to `false` will update the grid layer only when the smooth animation ends.
-		updateWhenZooming: true,
+			// @option updateWhenZooming: Boolean = true
+			// By default, a smooth zoom animation (during a [pinch zoom](#map-pinchzoom) or a [`flyTo()`](#map-flyto)) will update grid layers every integer zoom level. Setting this option to `false` will update the grid layer only when the smooth animation ends.
+			updateWhenZooming: true,
 
-		// @option updateInterval: Number = 200
-		// Tiles will not update more than once every `updateInterval` milliseconds when panning.
-		updateInterval: 200,
+			// @option updateInterval: Number = 200
+			// Tiles will not update more than once every `updateInterval` milliseconds when panning.
+			updateInterval: 200,
 
-		// @option zIndex: Number = 1
-		// The explicit zIndex of the tile layer.
-		zIndex: 1,
+			// @option zIndex: Number = 1
+			// The explicit zIndex of the tile layer.
+			zIndex: 1,
 
-		// @option bounds: LatLngBounds = undefined
-		// If set, tiles will only be loaded inside the set `LatLngBounds`.
-		bounds: null,
+			// @option bounds: LatLngBounds = undefined
+			// If set, tiles will only be loaded inside the set `LatLngBounds`.
+			bounds: null,
 
-		// @option minZoom: Number = 0
-		// The minimum zoom level down to which this layer will be displayed (inclusive).
-		minZoom: 0,
+			// @option minZoom: Number = 0
+			// The minimum zoom level down to which this layer will be displayed (inclusive).
+			minZoom: 0,
 
-		// @option maxZoom: Number = undefined
-		// The maximum zoom level up to which this layer will be displayed (inclusive).
-		maxZoom: undefined,
+			// @option maxZoom: Number = undefined
+			// The maximum zoom level up to which this layer will be displayed (inclusive).
+			maxZoom: undefined,
 
-		// @option maxNativeZoom: Number = undefined
-		// Maximum zoom number the tile source has available. If it is specified,
-		// the tiles on all zoom levels higher than `maxNativeZoom` will be loaded
-		// from `maxNativeZoom` level and auto-scaled.
-		maxNativeZoom: undefined,
+			// @option maxNativeZoom: Number = undefined
+			// Maximum zoom number the tile source has available. If it is specified,
+			// the tiles on all zoom levels higher than `maxNativeZoom` will be loaded
+			// from `maxNativeZoom` level and auto-scaled.
+			maxNativeZoom: undefined,
 
-		// @option minNativeZoom: Number = undefined
-		// Minimum zoom number the tile source has available. If it is specified,
-		// the tiles on all zoom levels lower than `minNativeZoom` will be loaded
-		// from `minNativeZoom` level and auto-scaled.
-		minNativeZoom: undefined,
+			// @option minNativeZoom: Number = undefined
+			// Minimum zoom number the tile source has available. If it is specified,
+			// the tiles on all zoom levels lower than `minNativeZoom` will be loaded
+			// from `minNativeZoom` level and auto-scaled.
+			minNativeZoom: undefined,
 
-		// @option noWrap: Boolean = false
-		// Whether the layer is wrapped around the antimeridian. If `true`, the
-		// GridLayer will only be displayed once at low zoom levels. Has no
-		// effect when the [map CRS](#map-crs) doesn't wrap around. Can be used
-		// in combination with [`bounds`](#gridlayer-bounds) to prevent requesting
-		// tiles outside the CRS limits.
-		noWrap: false,
+			// @option noWrap: Boolean = false
+			// Whether the layer is wrapped around the antimeridian. If `true`, the
+			// GridLayer will only be displayed once at low zoom levels. Has no
+			// effect when the [map CRS](#map-crs) doesn't wrap around. Can be used
+			// in combination with [`bounds`](#gridlayer-bounds) to prevent requesting
+			// tiles outside the CRS limits.
+			noWrap: false,
 
-		// @option pane: String = 'tilePane'
-		// `Map pane` where the grid layer will be added.
-		pane: 'tilePane',
+			// @option pane: String = 'tilePane'
+			// `Map pane` where the grid layer will be added.
+			pane: 'tilePane',
 
-		// @option className: String = ''
-		// A custom class name to assign to the tile layer. Empty by default.
-		className: '',
+			// @option className: String = ''
+			// A custom class name to assign to the tile layer. Empty by default.
+			className: '',
 
-		// @option keepBuffer: Number = 2
-		// When panning the map, keep this many rows and columns of tiles before unloading them.
-		keepBuffer: 2
-	},
+			// @option keepBuffer: Number = 2
+			// When panning the map, keep this many rows and columns of tiles before unloading them.
+			keepBuffer: 2
+		});
+	}
 
 	initialize(options) {
 		setOptions(this, options);
-	},
+	}
 
 	onAdd() {
 		this._initContainer();
@@ -10751,11 +10809,11 @@ const GridLayer = Layer.extend({
 		this._tiles = {};
 
 		this._resetView(); // implicit _update() call
-	},
+	}
 
 	beforeAdd(map) {
 		map._addZoomLimit(this);
-	},
+	}
 
 	onRemove(map) {
 		this._removeAllTiles();
@@ -10764,7 +10822,7 @@ const GridLayer = Layer.extend({
 		this._container = null;
 		this._tileZoom = undefined;
 		clearTimeout(this._pruneTimeout);
-	},
+	}
 
 	// @method bringToFront: this
 	// Brings the tile layer to the top of all tile layers.
@@ -10774,7 +10832,7 @@ const GridLayer = Layer.extend({
 			this._setAutoZIndex(Math.max);
 		}
 		return this;
-	},
+	}
 
 	// @method bringToBack: this
 	// Brings the tile layer to the bottom of all tile layers.
@@ -10784,13 +10842,13 @@ const GridLayer = Layer.extend({
 			this._setAutoZIndex(Math.min);
 		}
 		return this;
-	},
+	}
 
 	// @method getContainer: HTMLElement
 	// Returns the HTML element that contains the tiles for this layer.
 	getContainer() {
 		return this._container;
-	},
+	}
 
 	// @method setOpacity(opacity: Number): this
 	// Changes the [opacity](#gridlayer-opacity) of the grid layer.
@@ -10798,7 +10856,7 @@ const GridLayer = Layer.extend({
 		this.options.opacity = opacity;
 		this._updateOpacity();
 		return this;
-	},
+	}
 
 	// @method setZIndex(zIndex: Number): this
 	// Changes the [zIndex](#gridlayer-zindex) of the grid layer.
@@ -10807,13 +10865,13 @@ const GridLayer = Layer.extend({
 		this._updateZIndex();
 
 		return this;
-	},
+	}
 
 	// @method isLoading: Boolean
 	// Returns `true` if any tile in the grid layer has not finished loading.
 	isLoading() {
 		return this._loading;
-	},
+	}
 
 	// @method redraw: this
 	// Causes the layer to clear all the tiles and request them again.
@@ -10828,7 +10886,7 @@ const GridLayer = Layer.extend({
 			this._update();
 		}
 		return this;
-	},
+	}
 
 	getEvents() {
 		const events = {
@@ -10852,7 +10910,7 @@ const GridLayer = Layer.extend({
 		}
 
 		return events;
-	},
+	}
 
 	// @section Extension methods
 	// Layers extending `GridLayer` shall reimplement the following method.
@@ -10862,7 +10920,7 @@ const GridLayer = Layer.extend({
 	// is specified, it must be called when the tile has finished loading and drawing.
 	createTile() {
 		return document.createElement('div');
-	},
+	}
 
 	// @section
 	// @method getTileSize: Point
@@ -10870,13 +10928,13 @@ const GridLayer = Layer.extend({
 	getTileSize() {
 		const s = this.options.tileSize;
 		return s instanceof Point ? s : new Point(s, s);
-	},
+	}
 
 	_updateZIndex() {
 		if (this._container && this.options.zIndex !== undefined && this.options.zIndex !== null) {
 			this._container.style.zIndex = this.options.zIndex;
 		}
-	},
+	}
 
 	_setAutoZIndex(compare) {
 		// go through all other layers of the same pane, set zIndex to max + 1 (front) or min - 1 (back)
@@ -10896,7 +10954,7 @@ const GridLayer = Layer.extend({
 			this.options.zIndex = edgeZIndex + compare(-1, 1);
 			this._updateZIndex();
 		}
-	},
+	}
 
 	_updateOpacity() {
 		if (!this._map) { return; }
@@ -10931,9 +10989,9 @@ const GridLayer = Layer.extend({
 			cancelAnimationFrame(this._fadeFrame);
 			this._fadeFrame = requestAnimationFrame(this._updateOpacity.bind(this));
 		}
-	},
+	}
 
-	_onOpaqueTile: falseFn,
+	_onOpaqueTile() {}
 
 	_initContainer() {
 		if (this._container) { return; }
@@ -10946,7 +11004,7 @@ const GridLayer = Layer.extend({
 		}
 
 		this.getPane().appendChild(this._container);
-	},
+	}
 
 	_updateLevels() {
 
@@ -10991,13 +11049,13 @@ const GridLayer = Layer.extend({
 		this._level = level;
 
 		return level;
-	},
+	}
 
-	_onUpdateLevel: falseFn,
+	_onUpdateLevel() {}
 
-	_onRemoveLevel: falseFn,
+	_onRemoveLevel() {}
 
-	_onCreateLevel: falseFn,
+	_onCreateLevel() {}
 
 	_pruneTiles() {
 		if (!this._map) {
@@ -11029,7 +11087,7 @@ const GridLayer = Layer.extend({
 				this._removeTile(key);
 			}
 		}
-	},
+	}
 
 	_removeTilesAtZoom(zoom) {
 		for (const [key, tile] of Object.entries(this._tiles)) {
@@ -11037,13 +11095,13 @@ const GridLayer = Layer.extend({
 				this._removeTile(key);
 			}
 		}
-	},
+	}
 
 	_removeAllTiles() {
 		for (const key of Object.keys(this._tiles)) {
 			this._removeTile(key);
 		}
-	},
+	}
 
 	_invalidateAll() {
 		for (const z of Object.keys(this._levels)) {
@@ -11054,7 +11112,7 @@ const GridLayer = Layer.extend({
 		this._removeAllTiles();
 
 		this._tileZoom = undefined;
-	},
+	}
 
 	_retainParent(x, y, z, minZoom) {
 		const x2 = Math.floor(x / 2),
@@ -11079,7 +11137,7 @@ const GridLayer = Layer.extend({
 		}
 
 		return false;
-	},
+	}
 
 	_retainChildren(x, y, z, maxZoom) {
 
@@ -11105,16 +11163,16 @@ const GridLayer = Layer.extend({
 				}
 			}
 		}
-	},
+	}
 
 	_resetView(e) {
 		const animating = e && (e.pinch || e.flyTo);
 		this._setView(this._map.getCenter(), this._map.getZoom(), animating, animating);
-	},
+	}
 
 	_animateZoom(e) {
 		this._setView(e.center, e.zoom, true, e.noUpdate);
-	},
+	}
 
 	_clampZoom(zoom) {
 		const options = this.options;
@@ -11128,7 +11186,7 @@ const GridLayer = Layer.extend({
 		}
 
 		return zoom;
-	},
+	}
 
 	_setView(center, zoom, noPrune, noUpdate) {
 		let tileZoom = Math.round(zoom);
@@ -11166,13 +11224,13 @@ const GridLayer = Layer.extend({
 		}
 
 		this._setZoomTransforms(center, zoom);
-	},
+	}
 
 	_setZoomTransforms(center, zoom) {
 		for (const level of Object.values(this._levels)) {
 			this._setZoomTransform(level, center, zoom);
 		}
-	},
+	}
 
 	_setZoomTransform(level, center, zoom) {
 		const scale = this._map.getZoomScale(zoom, level.zoom),
@@ -11180,7 +11238,7 @@ const GridLayer = Layer.extend({
 			.subtract(this._map._getNewPixelOrigin(center, zoom)).round();
 
 		setTransform(level.el, translate, scale);
-	},
+	}
 
 	_resetGrid() {
 		const map = this._map,
@@ -11201,13 +11259,13 @@ const GridLayer = Layer.extend({
 			Math.floor(map.project([crs.wrapLat[0], 0], tileZoom).y / tileSize.x),
 			Math.ceil(map.project([crs.wrapLat[1], 0], tileZoom).y / tileSize.y)
 		];
-	},
+	}
 
 	_onMoveEnd() {
 		if (!this._map || this._map._animatingZoom) { return; }
 
 		this._update();
-	},
+	}
 
 	_getTiledPixelBounds(center) {
 		const map = this._map,
@@ -11217,7 +11275,7 @@ const GridLayer = Layer.extend({
 		halfSize = map.getSize().divideBy(scale * 2);
 
 		return new Bounds(pixelCenter.subtract(halfSize), pixelCenter.add(halfSize));
-	},
+	}
 
 	// Private method to load tiles in the grid's active zoom level according to map bounds
 	_update(center) {
@@ -11291,7 +11349,7 @@ const GridLayer = Layer.extend({
 
 			this._level.el.appendChild(fragment);
 		}
-	},
+	}
 
 	_isValidTile(coords) {
 		const crs = this._map.options.crs;
@@ -11308,11 +11366,11 @@ const GridLayer = Layer.extend({
 		// don't load tile if it doesn't intersect the bounds in options
 		const tileBounds = this._tileCoordsToBounds(coords);
 		return new LatLngBounds(this.options.bounds).overlaps(tileBounds);
-	},
+	}
 
 	_keyToBounds(key) {
 		return this._tileCoordsToBounds(this._keyToTileCoords(key));
-	},
+	}
 
 	_tileCoordsToNwSe(coords) {
 		const map = this._map,
@@ -11322,7 +11380,7 @@ const GridLayer = Layer.extend({
 		nw = map.unproject(nwPoint, coords.z),
 		se = map.unproject(sePoint, coords.z);
 		return [nw, se];
-	},
+	}
 
 	// converts tile coordinates to its geographical bounds
 	_tileCoordsToBounds(coords) {
@@ -11333,11 +11391,11 @@ const GridLayer = Layer.extend({
 			bounds = this._map.wrapLatLngBounds(bounds);
 		}
 		return bounds;
-	},
+	}
 	// converts tile coordinates to key for the tile cache
 	_tileCoordsToKey(coords) {
 		return `${coords.x}:${coords.y}:${coords.z}`;
-	},
+	}
 
 	// converts tile cache key to coordinates
 	_keyToTileCoords(key) {
@@ -11345,7 +11403,7 @@ const GridLayer = Layer.extend({
 		coords = new Point(+k[0], +k[1]);
 		coords.z = +k[2];
 		return coords;
-	},
+	}
 
 	_removeTile(key) {
 		const tile = this._tiles[key];
@@ -11361,7 +11419,7 @@ const GridLayer = Layer.extend({
 			tile: tile.el,
 			coords: this._keyToTileCoords(key)
 		});
-	},
+	}
 
 	_initTile(tile) {
 		tile.classList.add('leaflet-tile');
@@ -11372,7 +11430,7 @@ const GridLayer = Layer.extend({
 
 		tile.onselectstart = falseFn;
 		tile.onpointermove = falseFn;
-	},
+	}
 
 	_addTile(coords, container) {
 		const tilePos = this._getTilePos(coords),
@@ -11405,7 +11463,7 @@ const GridLayer = Layer.extend({
 			tile,
 			coords
 		});
-	},
+	}
 
 	_tileReady(coords, err, tile) {
 		if (err) {
@@ -11458,11 +11516,11 @@ const GridLayer = Layer.extend({
 				this._pruneTimeout = setTimeout(this._pruneTiles.bind(this), 250);
 			}
 		}
-	},
+	}
 
 	_getTilePos(coords) {
 		return coords.scaleBy(this.getTileSize()).subtract(this._level.origin);
-	},
+	}
 
 	_wrapCoords(coords) {
 		const newCoords = new Point(
@@ -11470,19 +11528,19 @@ const GridLayer = Layer.extend({
 			this._wrapY ? wrapNum(coords.y, this._wrapY) : coords.y);
 		newCoords.z = coords.z;
 		return newCoords;
-	},
+	}
 
 	_pxBoundsToTileRange(bounds) {
 		const tileSize = this.getTileSize();
 		return new Bounds(
 			bounds.min.unscaleBy(tileSize).floor(),
 			bounds.max.unscaleBy(tileSize).ceil().subtract([1, 1]));
-	},
+	}
 
 	_noTilesToLoad() {
 		return Object.values(this._tiles).every(t => t.loaded);
 	}
-});
+}
 
 /*
  * @class TileLayer
@@ -11515,57 +11573,59 @@ const GridLayer = Layer.extend({
 
 // @constructor TileLayer(urlTemplate: String, options?: TileLayer options)
 // Instantiates a tile layer object given a `URL template` and optionally an options object.
-const TileLayer = GridLayer.extend({
+class TileLayer extends GridLayer {
 
-	// @section
-	// @aka TileLayer options
-	options: {
-		// @option minZoom: Number = 0
-		// The minimum zoom level down to which this layer will be displayed (inclusive).
-		minZoom: 0,
+	static {
+		// @section
+		// @aka TileLayer options
+		this.setDefaultOptions({
+			// @option minZoom: Number = 0
+			// The minimum zoom level down to which this layer will be displayed (inclusive).
+			minZoom: 0,
 
-		// @option maxZoom: Number = 18
-		// The maximum zoom level up to which this layer will be displayed (inclusive).
-		maxZoom: 18,
+			// @option maxZoom: Number = 18
+			// The maximum zoom level up to which this layer will be displayed (inclusive).
+			maxZoom: 18,
 
-		// @option subdomains: String|String[] = 'abc'
-		// Subdomains of the tile service. Can be passed in the form of one string (where each letter is a subdomain name) or an array of strings.
-		subdomains: 'abc',
+			// @option subdomains: String|String[] = 'abc'
+			// Subdomains of the tile service. Can be passed in the form of one string (where each letter is a subdomain name) or an array of strings.
+			subdomains: 'abc',
 
-		// @option errorTileUrl: String = ''
-		// URL to the tile image to show in place of the tile that failed to load.
-		errorTileUrl: '',
+			// @option errorTileUrl: String = ''
+			// URL to the tile image to show in place of the tile that failed to load.
+			errorTileUrl: '',
 
-		// @option zoomOffset: Number = 0
-		// The zoom number used in tile URLs will be offset with this value.
-		zoomOffset: 0,
+			// @option zoomOffset: Number = 0
+			// The zoom number used in tile URLs will be offset with this value.
+			zoomOffset: 0,
 
-		// @option tms: Boolean = false
-		// If `true`, inverses Y axis numbering for tiles (turn this on for [TMS](https://en.wikipedia.org/wiki/Tile_Map_Service) services).
-		tms: false,
+			// @option tms: Boolean = false
+			// If `true`, inverses Y axis numbering for tiles (turn this on for [TMS](https://en.wikipedia.org/wiki/Tile_Map_Service) services).
+			tms: false,
 
-		// @option zoomReverse: Boolean = false
-		// If set to true, the zoom number used in tile URLs will be reversed (`maxZoom - zoom` instead of `zoom`)
-		zoomReverse: false,
+			// @option zoomReverse: Boolean = false
+			// If set to true, the zoom number used in tile URLs will be reversed (`maxZoom - zoom` instead of `zoom`)
+			zoomReverse: false,
 
-		// @option detectRetina: Boolean = false
-		// If `true` and user is on a retina display, it will request four tiles of half the specified size and a bigger zoom level in place of one to utilize the high resolution.
-		detectRetina: false,
+			// @option detectRetina: Boolean = false
+			// If `true` and user is on a retina display, it will request four tiles of half the specified size and a bigger zoom level in place of one to utilize the high resolution.
+			detectRetina: false,
 
-		// @option crossOrigin: Boolean|String = false
-		// Whether the crossOrigin attribute will be added to the tiles.
-		// If a String is provided, all tiles will have their crossOrigin attribute set to the String provided. This is needed if you want to access tile pixel data.
-		// Refer to [CORS Settings](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for valid String values.
-		crossOrigin: false,
+			// @option crossOrigin: Boolean|String = false
+			// Whether the crossOrigin attribute will be added to the tiles.
+			// If a String is provided, all tiles will have their crossOrigin attribute set to the String provided. This is needed if you want to access tile pixel data.
+			// Refer to [CORS Settings](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for valid String values.
+			crossOrigin: false,
 
-		// @option referrerPolicy: Boolean|String = false
-		// Whether the referrerPolicy attribute will be added to the tiles.
-		// If a String is provided, all tiles will have their referrerPolicy attribute set to the String provided.
-		// This may be needed if your map's rendering context has a strict default but your tile provider expects a valid referrer
-		// (e.g. to validate an API token).
-		// Refer to [HTMLImageElement.referrerPolicy](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/referrerPolicy) for valid String values.
-		referrerPolicy: false
-	},
+			// @option referrerPolicy: Boolean|String = false
+			// Whether the referrerPolicy attribute will be added to the tiles.
+			// If a String is provided, all tiles will have their referrerPolicy attribute set to the String provided.
+			// This may be needed if your map's rendering context has a strict default but your tile provider expects a valid referrer
+			// (e.g. to validate an API token).
+			// Refer to [HTMLImageElement.referrerPolicy](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/referrerPolicy) for valid String values.
+			referrerPolicy: false
+		});
+	}
 
 	initialize(url, options) {
 
@@ -11611,7 +11671,7 @@ const TileLayer = GridLayer.extend({
 		}
 
 		this.on('tileunload', this._onTileRemove);
-	},
+	}
 
 	// @method setUrl(url: String, noRedraw?: Boolean): this
 	// Updates the layer's URL template and redraws it (unless `noRedraw` is set to `true`).
@@ -11628,7 +11688,7 @@ const TileLayer = GridLayer.extend({
 			this.redraw();
 		}
 		return this;
-	},
+	}
 
 	// @method createTile(coords: Object, done?: Function): HTMLElement
 	// Called only internally, overrides GridLayer's [`createTile()`](#gridlayer-createtile)
@@ -11659,7 +11719,7 @@ const TileLayer = GridLayer.extend({
 		tile.src = this.getTileUrl(coords);
 
 		return tile;
-	},
+	}
 
 	// @section Extension methods
 	// @uninheritable
@@ -11668,14 +11728,14 @@ const TileLayer = GridLayer.extend({
 	// Called only internally, returns the URL for a tile given its coordinates.
 	// Classes extending `TileLayer` can override this function to provide custom tile URL naming schemes.
 	getTileUrl(coords) {
-		const data = {
-			...this.options,
+		const data = Object.create(this.options);
+		Object.assign(data, {
 			r: Browser.retina ? '@2x' : '',
 			s: this._getSubdomain(coords),
 			x: coords.x,
 			y: coords.y,
 			z: this._getZoomForUrl()
-		};
+		});
 		if (this._map && !this._map.options.crs.infinite) {
 			const invertedY = this._globalTileRange.max.y - coords.y;
 			if (this.options.tms) {
@@ -11685,11 +11745,11 @@ const TileLayer = GridLayer.extend({
 		}
 
 		return template(this._url, data);
-	},
+	}
 
 	_tileOnLoad(done, tile) {
 		done(null, tile);
-	},
+	}
 
 	_tileOnError(done, tile, e) {
 		const errorUrl = this.options.errorTileUrl;
@@ -11697,11 +11757,11 @@ const TileLayer = GridLayer.extend({
 			tile.src = errorUrl;
 		}
 		done(e, tile);
-	},
+	}
 
 	_onTileRemove(e) {
 		e.tile.onload = null;
-	},
+	}
 
 	_getZoomForUrl() {
 		let zoom = this._tileZoom;
@@ -11714,12 +11774,12 @@ const TileLayer = GridLayer.extend({
 		}
 
 		return zoom + zoomOffset;
-	},
+	}
 
 	_getSubdomain(tilePoint) {
 		const index = Math.abs(tilePoint.x + tilePoint.y) % this.options.subdomains.length;
 		return this.options.subdomains[index];
-	},
+	}
 
 	// stops loading all tiles in the background layer
 	_abortLoading() {
@@ -11745,7 +11805,7 @@ const TileLayer = GridLayer.extend({
 				}
 			}
 		}
-	},
+	}
 
 	_removeTile(key) {
 		const tile = this._tiles[key];
@@ -11755,7 +11815,7 @@ const TileLayer = GridLayer.extend({
 		tile.el.setAttribute('src', emptyImageUrl);
 
 		return GridLayer.prototype._removeTile.call(this, key);
-	},
+	}
 
 	_tileReady(coords, err, tile) {
 		if (!this._map || (tile && tile.getAttribute('src') === emptyImageUrl)) {
@@ -11763,12 +11823,12 @@ const TileLayer = GridLayer.extend({
 		}
 
 		return GridLayer.prototype._tileReady.call(this, coords, err, tile);
-	},
+	}
 
 	_clampZoom(zoom) {
 		return Math.round(GridLayer.prototype._clampZoom.call(this, zoom));
 	}
-});
+}
 
 /*
  * @class TileLayer.WMS
@@ -11789,48 +11849,50 @@ const TileLayer = GridLayer.extend({
 
 // @constructor TileLayer.WMS(baseUrl: String, options: TileLayer.WMS options)
 // Instantiates a WMS tile layer object given a base URL of the WMS service and a WMS parameters/options object.
-const TileLayerWMS = TileLayer.extend({
+class TileLayerWMS extends TileLayer {
 
-	// @section
-	// @aka TileLayer.WMS options
-	// If any custom options not documented here are used, they will be sent to the
-	// WMS server as extra parameters in each request URL. This can be useful for
-	// [non-standard vendor WMS parameters](https://docs.geoserver.org/stable/en/user/services/wms/vendor.html).
-	defaultWmsParams: {
-		service: 'WMS',
-		request: 'GetMap',
+	static {
+		// @section
+		// @aka TileLayer.WMS options
+		// If any custom options not documented here are used, they will be sent to the
+		// WMS server as extra parameters in each request URL. This can be useful for
+		// [non-standard vendor WMS parameters](https://docs.geoserver.org/stable/en/user/services/wms/vendor.html).
+		this.prototype.defaultWmsParams = {
+			service: 'WMS',
+			request: 'GetMap',
 
-		// @option layers: String = ''
-		// **(required)** Comma-separated list of WMS layers to show.
-		layers: '',
+			// @option layers: String = ''
+			// **(required)** Comma-separated list of WMS layers to show.
+			layers: '',
 
-		// @option styles: String = ''
-		// Comma-separated list of WMS styles.
-		styles: '',
+			// @option styles: String = ''
+			// Comma-separated list of WMS styles.
+			styles: '',
 
-		// @option format: String = 'image/jpeg'
-		// WMS image format (use `'image/png'` for layers with transparency).
-		format: 'image/jpeg',
+			// @option format: String = 'image/jpeg'
+			// WMS image format (use `'image/png'` for layers with transparency).
+			format: 'image/jpeg',
 
-		// @option transparent: Boolean = false
-		// If `true`, the WMS service will return images with transparency.
-		transparent: false,
+			// @option transparent: Boolean = false
+			// If `true`, the WMS service will return images with transparency.
+			transparent: false,
 
-		// @option version: String = '1.1.1'
-		// Version of the WMS service to use
-		version: '1.1.1'
-	},
+			// @option version: String = '1.1.1'
+			// Version of the WMS service to use
+			version: '1.1.1'
+		};
 
-	options: {
-		// @option crs: CRS = null
-		// Coordinate Reference System to use for the WMS requests, defaults to
-		// map CRS. Don't change this if you're not sure what it means.
-		crs: null,
+		this.setDefaultOptions({
+			// @option crs: CRS = null
+			// Coordinate Reference System to use for the WMS requests, defaults to
+			// map CRS. Don't change this if you're not sure what it means.
+			crs: null,
 
-		// @option uppercase: Boolean = false
-		// If `true`, WMS request parameter keys will be uppercase.
-		uppercase: false
-	},
+			// @option uppercase: Boolean = false
+			// If `true`, WMS request parameter keys will be uppercase.
+			uppercase: false
+		});
+	}
 
 	initialize(url, options) {
 
@@ -11853,7 +11915,7 @@ const TileLayerWMS = TileLayer.extend({
 		wmsParams.height = tileSize.y * realRetina;
 
 		this.wmsParams = wmsParams;
-	},
+	}
 
 	onAdd(map) {
 
@@ -11864,24 +11926,24 @@ const TileLayerWMS = TileLayer.extend({
 		this.wmsParams[projectionKey] = this._crs.code;
 
 		TileLayer.prototype.onAdd.call(this, map);
-	},
+	}
 
 	getTileUrl(coords) {
 
 		const tileBounds = this._tileCoordsToNwSe(coords),
-		    crs = this._crs,
-		    bounds = new Bounds(crs.project(tileBounds[0]), crs.project(tileBounds[1])),
-		    min = bounds.min,
-		    max = bounds.max,
-		    bbox = (this._wmsVersion >= 1.3 && this._crs === EPSG4326 ?
-		    [min.y, min.x, max.y, max.x] :
-		    [min.x, min.y, max.x, max.y]).join(',');
+		crs = this._crs,
+		bounds = new Bounds(crs.project(tileBounds[0]), crs.project(tileBounds[1])),
+		min = bounds.min,
+		max = bounds.max,
+		bbox = (this._wmsVersion >= 1.3 && this._crs === EPSG4326 ?
+			[min.y, min.x, max.y, max.x] :
+			[min.x, min.y, max.x, max.y]).join(',');
 		const url = new URL(TileLayer.prototype.getTileUrl.call(this, coords));
 		for (const [k, v] of Object.entries({...this.wmsParams, bbox})) {
 			url.searchParams.append(this.options.uppercase ? k.toUpperCase() : k, v);
 		}
 		return url.toString();
-	},
+	}
 
 	// @method setParams(params: Object, noRedraw?: Boolean): this
 	// Merges an object with the new parameters and re-requests tiles on the current screen (unless `noRedraw` was set to true).
@@ -11895,7 +11957,7 @@ const TileLayerWMS = TileLayer.extend({
 
 		return this;
 	}
-});
+}
 
 TileLayer.WMS = TileLayerWMS;
 
@@ -11921,23 +11983,23 @@ TileLayer.WMS = TileLayerWMS;
  * its map has moved
  */
 
-const Renderer = BlanketOverlay.extend({
+class Renderer extends BlanketOverlay {
 
 	initialize(options) {
 		setOptions(this, {...options, continuous: false});
 		stamp(this);
 		this._layers ??= {};
-	},
+	}
 
 	onAdd(map) {
-		BlanketOverlay.prototype.onAdd.call(this, map);
+		super.onAdd(map);
 		this.on('update', this._updatePaths, this);
-	},
+	}
 
 	onRemove() {
-		BlanketOverlay.prototype.onRemove.call(this);
+		super.onRemove();
 		this.off('update', this._updatePaths, this);
-	},
+	}
 
 	_onZoomEnd() {
 		// When a zoom ends, the "origin pixel" changes. Internal coordinates
@@ -11946,29 +12008,29 @@ const Renderer = BlanketOverlay.extend({
 		for (const layer of Object.values(this._layers)) {
 			layer._project();
 		}
-	},
+	}
 
 	_updatePaths() {
 		for (const layer of Object.values(this._layers)) {
 			layer._update();
 		}
-	},
+	}
 
 	_onViewReset() {
 		for (const layer of Object.values(this._layers)) {
 			layer._reset();
 		}
-	},
+	}
 
 	_onSettled() {
 		this._update();
-	},
+	}
 
 	// Subclasses are responsible of implementing `_update()`. It should fire
 	// the 'update' event whenever appropriate (before/after rendering).
-	_update: falseFn,
+	_update() {}
 
-});
+}
 
 /*
  * @class Canvas
@@ -11999,26 +12061,28 @@ const Renderer = BlanketOverlay.extend({
 
 // @constructor Canvas(options?: Renderer options)
 // Creates a Canvas renderer with the given options.
-const Canvas = Renderer.extend({
+class Canvas extends Renderer {
 
-	// @section
-	// @aka Canvas options
-	options: {
-		// @option tolerance: Number = 0
-		// How much to extend the click tolerance around a path/object on the map.
-		tolerance: 0
-	},
+	static {
+		// @section
+		// @aka Canvas options
+		this.setDefaultOptions({
+			// @option tolerance: Number = 0
+			// How much to extend the click tolerance around a path/object on the map.
+			tolerance: 0
+		});
+	}
 
 	getEvents() {
 		const events = Renderer.prototype.getEvents.call(this);
 		events.viewprereset = this._onViewPreReset;
 		return events;
-	},
+	}
 
 	_onViewPreReset() {
 		// Set a flag so that a viewprereset+moveend+viewreset only updates&redraws once
 		this._postponeUpdatePaths = true;
-	},
+	}
 
 	onAdd(map) {
 		Renderer.prototype.onAdd.call(this, map);
@@ -12026,13 +12090,13 @@ const Canvas = Renderer.extend({
 		// Redraw vectors since canvas is cleared upon removal,
 		// in case of removing the renderer itself from the map.
 		this._draw();
-	},
+	}
 
 	onRemove() {
 		Renderer.prototype.onRemove.call(this);
 
 		clearTimeout(this._pointerHoverThrottleTimeout);
-	},
+	}
 
 	_initContainer() {
 		const container = this._container = document.createElement('canvas');
@@ -12043,14 +12107,14 @@ const Canvas = Renderer.extend({
 		container['_leaflet_disable_events'] = true;
 
 		this._ctx = container.getContext('2d');
-	},
+	}
 
 	_destroyContainer() {
 		cancelAnimationFrame(this._redrawRequest);
 		this._redrawRequest = null;
 		delete this._ctx;
 		Renderer.prototype._destroyContainer.call(this);
-	},
+	}
 
 	_resizeContainer() {
 		const size = Renderer.prototype._resizeContainer.call(this);
@@ -12059,7 +12123,7 @@ const Canvas = Renderer.extend({
 		// set canvas size (also clearing it); use double size on retina
 		this._container.width = m * size.x;
 		this._container.height = m * size.y;
-	},
+	}
 
 	_updatePaths() {
 		if (this._postponeUpdatePaths) { return; }
@@ -12069,7 +12133,7 @@ const Canvas = Renderer.extend({
 			layer._update();
 		}
 		this._redraw();
-	},
+	}
 
 	_update() {
 		if (this._map._animatingZoom && this._bounds) { return; }
@@ -12085,7 +12149,7 @@ const Canvas = Renderer.extend({
 
 		// Tell paths to redraw themselves
 		this.fire('update');
-	},
+	}
 
 	_reset() {
 		Renderer.prototype._reset.call(this);
@@ -12094,7 +12158,7 @@ const Canvas = Renderer.extend({
 			this._postponeUpdatePaths = false;
 			this._updatePaths();
 		}
-	},
+	}
 
 	_initPath(layer) {
 		this._updateDashArray(layer);
@@ -12108,11 +12172,11 @@ const Canvas = Renderer.extend({
 		if (this._drawLast) { this._drawLast.next = order; }
 		this._drawLast = order;
 		this._drawFirst ??= this._drawLast;
-	},
+	}
 
 	_addPath(layer) {
 		this._requestRedraw(layer);
-	},
+	}
 
 	_removePath(layer) {
 		const order = layer._order;
@@ -12135,7 +12199,7 @@ const Canvas = Renderer.extend({
 		delete this._layers[stamp(layer)];
 
 		this._requestRedraw(layer);
-	},
+	}
 
 	_updatePath(layer) {
 		// Redraw the union of the layer's old pixel
@@ -12146,12 +12210,12 @@ const Canvas = Renderer.extend({
 		// The redraw will extend the redraw bounds
 		// with the new pixel bounds.
 		this._requestRedraw(layer);
-	},
+	}
 
 	_updateStyle(layer) {
 		this._updateDashArray(layer);
 		this._requestRedraw(layer);
-	},
+	}
 
 	_updateDashArray(layer) {
 		if (typeof layer.options.dashArray === 'string') {
@@ -12161,14 +12225,14 @@ const Canvas = Renderer.extend({
 		} else {
 			layer.options._dashArray = layer.options.dashArray;
 		}
-	},
+	}
 
 	_requestRedraw(layer) {
 		if (!this._map) { return; }
 
 		this._extendRedrawBounds(layer);
 		this._redrawRequest ??= requestAnimationFrame(this._redraw.bind(this));
-	},
+	}
 
 	_extendRedrawBounds(layer) {
 		if (layer._pxBounds) {
@@ -12177,7 +12241,7 @@ const Canvas = Renderer.extend({
 			this._redrawBounds.extend(layer._pxBounds.min.subtract([padding, padding]));
 			this._redrawBounds.extend(layer._pxBounds.max.add([padding, padding]));
 		}
-	},
+	}
 
 	_redraw() {
 		this._redrawRequest = null;
@@ -12191,7 +12255,7 @@ const Canvas = Renderer.extend({
 		this._draw(); // draw layers
 
 		this._redrawBounds = null;
-	},
+	}
 
 	_clear() {
 		const bounds = this._redrawBounds;
@@ -12204,7 +12268,7 @@ const Canvas = Renderer.extend({
 			this._ctx.clearRect(0, 0, this._container.width, this._container.height);
 			this._ctx.restore();
 		}
-	},
+	}
 
 	_draw() {
 		let layer;
@@ -12229,7 +12293,7 @@ const Canvas = Renderer.extend({
 		this._drawing = false;
 
 		this._ctx.restore();  // Restore state before clipping.
-	},
+	}
 
 	_updatePoly(layer, closed) {
 		if (!this._drawing) { return; }
@@ -12242,7 +12306,7 @@ const Canvas = Renderer.extend({
 		ctx.beginPath();
 
 		parts.forEach((p0) => {
-			 p0.forEach((p, j) => {
+			p0.forEach((p, j) => {
 				ctx[j ? 'lineTo' : 'moveTo'](p.x, p.y);
 			});
 			if (closed) {
@@ -12253,7 +12317,7 @@ const Canvas = Renderer.extend({
 		this._fillStroke(ctx, layer);
 
 		// TODO optimization: 1 fill/stroke for all features with equal style instead of 1 for each feature
-	},
+	}
 
 	_updateCircle(layer) {
 
@@ -12277,7 +12341,7 @@ const Canvas = Renderer.extend({
 		}
 
 		this._fillStroke(ctx, layer);
-	},
+	}
 
 	_fillStroke(ctx, layer) {
 		const options = layer.options;
@@ -12300,7 +12364,7 @@ const Canvas = Renderer.extend({
 			ctx.lineJoin = options.lineJoin;
 			ctx.stroke();
 		}
-	},
+	}
 
 	// Canvas obviously doesn't have pointer events for individual drawn objects,
 	// so we emulate that by calculating what's under the pointer on pointermove/click manually
@@ -12318,14 +12382,14 @@ const Canvas = Renderer.extend({
 			}
 		}
 		this._fireEvent(clickedLayer ? [clickedLayer] : false, e);
-	},
+	}
 
 	_onPointerMove(e) {
 		if (!this._map || this._map.dragging.moving() || this._map._animatingZoom) { return; }
 
 		const point = this._map.pointerEventToLayerPoint(e);
 		this._handlePointerHover(e, point);
-	},
+	}
 
 
 	_handlePointerOut(e) {
@@ -12337,7 +12401,7 @@ const Canvas = Renderer.extend({
 			this._hoveredLayer = null;
 			this._pointerHoverThrottled = false;
 		}
-	},
+	}
 
 	_handlePointerHover(e, point) {
 		if (this._pointerHoverThrottled) {
@@ -12369,11 +12433,11 @@ const Canvas = Renderer.extend({
 		this._pointerHoverThrottleTimeout = setTimeout((() => {
 			this._pointerHoverThrottled = false;
 		}), 32);
-	},
+	}
 
 	_fireEvent(layers, e, type) {
 		this._map._fireDOMEvent(e, type || e.type, layers);
-	},
+	}
 
 	_bringToFront(layer) {
 		const order = layer._order;
@@ -12404,7 +12468,7 @@ const Canvas = Renderer.extend({
 		this._drawLast = order;
 
 		this._requestRedraw(layer);
-	},
+	}
 
 	_bringToBack(layer) {
 		const order = layer._order;
@@ -12436,7 +12500,7 @@ const Canvas = Renderer.extend({
 
 		this._requestRedraw(layer);
 	}
-});
+}
 
 // @namespace SVG; @section
 // There are several static functions which can be called without instantiating SVG:
@@ -12495,7 +12559,7 @@ const create = svgCreate;
 // @namespace SVG
 // @constructor SVG(options?: Renderer options)
 // Creates a SVG renderer with the given options.
-const SVG = Renderer.extend({
+class SVG extends Renderer {
 
 	_initContainer() {
 		this._container = create('svg');
@@ -12505,13 +12569,13 @@ const SVG = Renderer.extend({
 
 		this._rootGroup = create('g');
 		this._container.appendChild(this._rootGroup);
-	},
+	}
 
 	_destroyContainer() {
 		Renderer.prototype._destroyContainer.call(this);
 		delete this._rootGroup;
 		delete this._svgSize;
-	},
+	}
 
 	_resizeContainer() {
 		const size = Renderer.prototype._resizeContainer.call(this);
@@ -12522,20 +12586,26 @@ const SVG = Renderer.extend({
 			this._container.setAttribute('width', size.x);
 			this._container.setAttribute('height', size.y);
 		}
-	},
+
+		// Reset the <SVG>'s viewBox as per _update, but skip redrawing paths.
+		// This keeps paths visually aligned when resizing.
+		const b = this._bounds;
+		if (b) {
+			this._container.setAttribute('viewBox', [b.min.x, b.min.y, size.x, size.y].join(' '));
+		}
+	}
 
 	_update() {
 		if (this._map._animatingZoom && this._bounds) { return; }
 
 		const b = this._bounds,
-		    size = b.getSize(),
-		    container = this._container;
+		size = b.getSize();
 
 		// movement: update container viewBox so that we don't have to change coordinates of individual layers
-		container.setAttribute('viewBox', [b.min.x, b.min.y, size.x, size.y].join(' '));
+		this._container.setAttribute('viewBox', [b.min.x, b.min.y, size.x, size.y].join(' '));
 
 		this.fire('update');
-	},
+	}
 
 	// methods below are called by vector layers implementations
 
@@ -12555,28 +12625,28 @@ const SVG = Renderer.extend({
 
 		this._updateStyle(layer);
 		this._layers[stamp(layer)] = layer;
-	},
+	}
 
 	_addPath(layer) {
 		if (!this._rootGroup) { this._initContainer(); }
 		this._rootGroup.appendChild(layer._path);
 		layer.addInteractiveTarget(layer._path);
-	},
+	}
 
 	_removePath(layer) {
 		layer._path.remove();
 		layer.removeInteractiveTarget(layer._path);
 		delete this._layers[stamp(layer)];
-	},
+	}
 
 	_updatePath(layer) {
 		layer._project();
 		layer._update();
-	},
+	}
 
 	_updateStyle(layer) {
 		const path = layer._path,
-		    options = layer.options;
+		options = layer.options;
 
 		if (!path) { return; }
 
@@ -12609,17 +12679,17 @@ const SVG = Renderer.extend({
 		} else {
 			path.setAttribute('fill', 'none');
 		}
-	},
+	}
 
 	_updatePoly(layer, closed) {
 		this._setPath(layer, pointsToPath(layer._parts, closed));
-	},
+	}
 
 	_updateCircle(layer) {
 		const p = layer._point,
-		    r = Math.max(Math.round(layer._radius), 1),
-		    r2 = Math.max(Math.round(layer._radiusY), 1) || r,
-		    arc = `a${r},${r2} 0 1,0 `;
+		r = Math.max(Math.round(layer._radius), 1),
+		r2 = Math.max(Math.round(layer._radiusY), 1) || r,
+		arc = `a${r},${r2} 0 1,0 `;
 
 		// drawing a circle with two half-arcs
 		const d = layer._empty() ? 'M0 0' :
@@ -12628,21 +12698,21 @@ const SVG = Renderer.extend({
 				arc}${-r * 2},0 `;
 
 		this._setPath(layer, d);
-	},
+	}
 
 	_setPath(layer, path) {
 		layer._path.setAttribute('d', path);
-	},
+	}
 
 	// SVG does not have the concept of zIndex so we resort to changing the DOM order of elements
 	_bringToFront(layer) {
 		toFront(layer._path);
-	},
+	}
 
 	_bringToBack(layer) {
 		toBack(layer._path);
 	}
-});
+}
 
 Map$1.include({
 	// @namespace Map; @method getRenderer(layer: Path): Renderer
@@ -12713,16 +12783,16 @@ Map$1.include({
  */
 
 // @constructor Rectangle(latLngBounds: LatLngBounds, options?: Polyline options)
-const Rectangle = Polygon.extend({
+class Rectangle extends Polygon {
 	initialize(latLngBounds, options) {
 		Polygon.prototype.initialize.call(this, this._boundsToLatLngs(latLngBounds), options);
-	},
+	}
 
 	// @method setBounds(latLngBounds: LatLngBounds): this
 	// Redraws the rectangle with the passed bounds.
 	setBounds(latLngBounds) {
 		return this.setLatLngs(this._boundsToLatLngs(latLngBounds));
-	},
+	}
 
 	_boundsToLatLngs(latLngBounds) {
 		latLngBounds = new LatLngBounds(latLngBounds);
@@ -12733,18 +12803,10 @@ const Rectangle = Polygon.extend({
 			latLngBounds.getSouthEast()
 		];
 	}
-});
+}
 
 SVG.create = create;
 SVG.pointsToPath = pointsToPath;
-
-GeoJSON.geometryToLayer = geometryToLayer;
-GeoJSON.coordsToLatLng = coordsToLatLng;
-GeoJSON.coordsToLatLngs = coordsToLatLngs;
-GeoJSON.latLngToCoords = latLngToCoords;
-GeoJSON.latLngsToCoords = latLngsToCoords;
-GeoJSON.getFeature = getFeature;
-GeoJSON.asFeature = asFeature;
 
 /*
  * Handler.BoxZoom is used to add shift-drag zoom interaction to the map
@@ -12760,43 +12822,43 @@ Map$1.mergeOptions({
 	boxZoom: true
 });
 
-const BoxZoom = Handler.extend({
+class BoxZoom extends Handler {
 	initialize(map) {
 		this._map = map;
 		this._container = map._container;
 		this._pane = map._panes.overlayPane;
 		this._resetStateTimeout = 0;
 		map.on('unload', this._destroy, this);
-	},
+	}
 
 	addHooks() {
 		on(this._container, 'pointerdown', this._onPointerDown, this);
-	},
+	}
 
 	removeHooks() {
 		off(this._container, 'pointerdown', this._onPointerDown, this);
-	},
+	}
 
 	moved() {
 		return this._moved;
-	},
+	}
 
 	_destroy() {
 		this._pane.remove();
 		delete this._pane;
-	},
+	}
 
 	_resetState() {
 		this._resetStateTimeout = 0;
 		this._moved = false;
-	},
+	}
 
 	_clearDeferredResetState() {
 		if (this._resetStateTimeout !== 0) {
 			clearTimeout(this._resetStateTimeout);
 			this._resetStateTimeout = 0;
 		}
-	},
+	}
 
 	_onPointerDown(e) {
 		if (!e.shiftKey || (e.button !== 0)) { return false; }
@@ -12817,7 +12879,7 @@ const BoxZoom = Handler.extend({
 			pointerup: this._onPointerUp,
 			keydown: this._onKeyDown
 		}, this);
-	},
+	}
 
 	_onPointerMove(e) {
 		if (!this._moved) {
@@ -12832,13 +12894,13 @@ const BoxZoom = Handler.extend({
 		this._point = this._map.pointerEventToContainerPoint(e);
 
 		const bounds = new Bounds(this._point, this._startPoint),
-		    size = bounds.getSize();
+		size = bounds.getSize();
 
 		setPosition(this._box, bounds.min);
 
 		this._box.style.width  = `${size.x}px`;
 		this._box.style.height = `${size.y}px`;
-	},
+	}
 
 	_finish() {
 		if (this._moved) {
@@ -12855,7 +12917,7 @@ const BoxZoom = Handler.extend({
 			pointerup: this._onPointerUp,
 			keydown: this._onKeyDown
 		}, this);
-	},
+	}
 
 	_onPointerUp(e) {
 		if (e.button !== 0) { return; }
@@ -12875,7 +12937,7 @@ const BoxZoom = Handler.extend({
 		this._map
 			.fitBounds(bounds)
 			.fire('boxzoomend', {boxZoomBounds: bounds});
-	},
+	}
 
 	_onKeyDown(e) {
 		if (e.code === 'Escape') {
@@ -12884,7 +12946,7 @@ const BoxZoom = Handler.extend({
 			this._resetState();
 		}
 	}
-});
+}
 
 // @section Handlers
 // @property boxZoom: Handler
@@ -12907,20 +12969,20 @@ Map$1.mergeOptions({
 	doubleClickZoom: true
 });
 
-const DoubleClickZoom = Handler.extend({
+class DoubleClickZoom extends Handler {
 	addHooks() {
 		this._map.on('dblclick', this._onDoubleClick, this);
-	},
+	}
 
 	removeHooks() {
 		this._map.off('dblclick', this._onDoubleClick, this);
-	},
+	}
 
 	_onDoubleClick(e) {
 		const map = this._map,
-		    oldZoom = map.getZoom(),
-		    delta = map.options.zoomDelta,
-		    zoom = e.originalEvent.shiftKey ? oldZoom - delta : oldZoom + delta;
+		oldZoom = map.getZoom(),
+		delta = map.options.zoomDelta,
+		zoom = e.originalEvent.shiftKey ? oldZoom - delta : oldZoom + delta;
 
 		if (map.options.doubleClickZoom === 'center') {
 			map.setZoom(zoom);
@@ -12928,7 +12990,7 @@ const DoubleClickZoom = Handler.extend({
 			map.setZoomAround(e.containerPoint, zoom);
 		}
 	}
-});
+}
 
 // @section Handlers
 //
@@ -12990,7 +13052,7 @@ Map$1.mergeOptions({
 	maxBoundsViscosity: 0.0
 });
 
-const Drag = Handler.extend({
+class Drag extends Handler {
 	addHooks() {
 		if (!this._draggable) {
 			const map = this._map;
@@ -13015,20 +13077,20 @@ const Drag = Handler.extend({
 		this._draggable.enable();
 		this._positions = [];
 		this._times = [];
-	},
+	}
 
 	removeHooks() {
 		this._map._container.classList.remove('leaflet-grab', 'leaflet-touch-drag');
 		this._draggable.disable();
-	},
+	}
 
 	moved() {
 		return this._draggable?._moved;
-	},
+	}
 
 	moving() {
 		return this._draggable?._moving;
-	},
+	}
 
 	_onDragStart() {
 		const map = this._map;
@@ -13048,19 +13110,19 @@ const Drag = Handler.extend({
 		}
 
 		map
-		    .fire('movestart')
-		    .fire('dragstart');
+			.fire('movestart')
+			.fire('dragstart');
 
 		if (map.options.inertia) {
 			this._positions = [];
 			this._times = [];
 		}
-	},
+	}
 
 	_onDrag(e) {
 		if (this._map.options.inertia) {
 			const time = this._lastTime = +new Date(),
-			    pos = this._lastPos = this._draggable._absPos || this._draggable._newPos;
+			pos = this._lastPos = this._draggable._absPos || this._draggable._newPos;
 
 			this._positions.push(pos);
 			this._times.push(time);
@@ -13069,28 +13131,28 @@ const Drag = Handler.extend({
 		}
 
 		this._map
-		    .fire('move', e)
-		    .fire('drag', e);
-	},
+			.fire('move', e)
+			.fire('drag', e);
+	}
 
 	_prunePositions(time) {
 		while (this._positions.length > 1 && time - this._times[0] > 50) {
 			this._positions.shift();
 			this._times.shift();
 		}
-	},
+	}
 
 	_onZoomEnd() {
 		const pxCenter = this._map.getSize().divideBy(2),
-		    pxWorldCenter = this._map.latLngToLayerPoint([0, 0]);
+		pxWorldCenter = this._map.latLngToLayerPoint([0, 0]);
 
 		this._initialWorldOffset = pxWorldCenter.subtract(pxCenter).x;
 		this._worldWidth = this._map.getPixelWorldBounds().getSize().x;
-	},
+	}
 
 	_viscousLimit(value, threshold) {
 		return value - (value - threshold) * this._viscosity;
-	},
+	}
 
 	_onPreDragLimit() {
 		if (!this._viscosity || !this._offsetLimit) { return; }
@@ -13104,27 +13166,27 @@ const Drag = Handler.extend({
 		if (offset.y > limit.max.y) { offset.y = this._viscousLimit(offset.y, limit.max.y); }
 
 		this._draggable._newPos = this._draggable._startPos.add(offset);
-	},
+	}
 
 	_onPreDragWrap() {
 		// TODO refactor to be able to adjust map pane position after zoom
 		const worldWidth = this._worldWidth,
-		    halfWidth = Math.round(worldWidth / 2),
-		    dx = this._initialWorldOffset,
-		    x = this._draggable._newPos.x,
-		    newX1 = (x - halfWidth + dx) % worldWidth + halfWidth - dx,
-		    newX2 = (x + halfWidth + dx) % worldWidth - halfWidth - dx,
-		    newX = Math.abs(newX1 + dx) < Math.abs(newX2 + dx) ? newX1 : newX2;
+		halfWidth = Math.round(worldWidth / 2),
+		dx = this._initialWorldOffset,
+		x = this._draggable._newPos.x,
+		newX1 = (x - halfWidth + dx) % worldWidth + halfWidth - dx,
+		newX2 = (x + halfWidth + dx) % worldWidth - halfWidth - dx,
+		newX = Math.abs(newX1 + dx) < Math.abs(newX2 + dx) ? newX1 : newX2;
 
 		this._draggable._absPos = this._draggable._newPos.clone();
 		this._draggable._newPos.x = newX;
-	},
+	}
 
 	_onDragEnd(e) {
 		const map = this._map,
-		    options = map.options,
+		options = map.options,
 
-		    noInertia = !options.inertia || e.noInertia || this._times.length < 2;
+		noInertia = !options.inertia || e.noInertia || this._times.length < 2;
 
 		map.fire('dragend', e);
 
@@ -13135,16 +13197,16 @@ const Drag = Handler.extend({
 			this._prunePositions(+new Date());
 
 			const direction = this._lastPos.subtract(this._positions[0]),
-			      duration = (this._lastTime - this._times[0]) / 1000,
-			      ease = options.easeLinearity,
+			duration = (this._lastTime - this._times[0]) / 1000,
+			ease = options.easeLinearity,
 
-			      speedVector = direction.multiplyBy(ease / duration),
-			      speed = speedVector.distanceTo([0, 0]),
+			speedVector = direction.multiplyBy(ease / duration),
+			speed = speedVector.distanceTo([0, 0]),
 
-			      limitedSpeed = Math.min(options.inertiaMaxSpeed, speed),
-			      limitedSpeedVector = speedVector.multiplyBy(limitedSpeed / speed),
+			limitedSpeed = Math.min(options.inertiaMaxSpeed, speed),
+			limitedSpeedVector = speedVector.multiplyBy(limitedSpeed / speed),
 
-			      decelerationDuration = limitedSpeed / (options.inertiaDeceleration * ease);
+			decelerationDuration = limitedSpeed / (options.inertiaDeceleration * ease);
 			let offset = limitedSpeedVector.multiplyBy(-decelerationDuration / 2).round();
 
 			if (!offset.x && !offset.y) {
@@ -13164,7 +13226,7 @@ const Drag = Handler.extend({
 			}
 		}
 	}
-});
+}
 
 // @section Handlers
 // @property dragging: Handler
@@ -13188,23 +13250,23 @@ Map$1.mergeOptions({
 	keyboardPanDelta: 80
 });
 
-const Keyboard = Handler.extend({
+class Keyboard extends Handler {
 
-	keyCodes: {
+	static keyCodes = {
 		left:    ['ArrowLeft'],
 		right:   ['ArrowRight'],
 		down:    ['ArrowDown'],
 		up:      ['ArrowUp'],
 		zoomIn:  ['Equal', 'NumpadAdd', 'BracketRight'],
 		zoomOut: ['Minus', 'NumpadSubtract', 'Digit6', 'Slash']
-	},
+	};
 
 	initialize(map) {
 		this._map = map;
 
 		this._setPanDelta(map.options.keyboardPanDelta);
 		this._setZoomDelta(map.options.zoomDelta);
-	},
+	}
 
 	addHooks() {
 		const container = this._map._container;
@@ -13215,7 +13277,7 @@ const Keyboard = Handler.extend({
 		}
 
 		// add aria-attribute for keyboard shortcuts to the container
-		container.ariaKeyShortcuts = Object.values(this.keyCodes).flat().join(' ');
+		container.ariaKeyShortcuts = Object.values(Keyboard.keyCodes).flat().join(' ');
 
 		on(container, {
 			focus: this._onFocus,
@@ -13227,7 +13289,7 @@ const Keyboard = Handler.extend({
 			focus: this._addHooks,
 			blur: this._removeHooks
 		}, this);
-	},
+	}
 
 	removeHooks() {
 		this._removeHooks();
@@ -13242,7 +13304,7 @@ const Keyboard = Handler.extend({
 			focus: this._addHooks,
 			blur: this._removeHooks
 		}, this);
-	},
+	}
 
 	//  acquire/lose focus #594, #1228, #1540
 	_onPointerDown() {
@@ -13256,21 +13318,21 @@ const Keyboard = Handler.extend({
 		this._map._container.focus();
 
 		window.scrollTo(left, top);
-	},
+	}
 
 	_onFocus() {
 		this._focused = true;
 		this._map.fire('focus');
-	},
+	}
 
 	_onBlur() {
 		this._focused = false;
 		this._map.fire('blur');
-	},
+	}
 
 	_setPanDelta(panDelta) {
 		const keys = this._panKeys = {},
-		codes = this.keyCodes;
+		codes = Keyboard.keyCodes;
 
 		for (const code of codes.left) {
 			keys[code] = [-1 * panDelta, 0];
@@ -13284,11 +13346,11 @@ const Keyboard = Handler.extend({
 		for (const code of codes.up) {
 			keys[code] = [0, -1 * panDelta];
 		}
-	},
+	}
 
 	_setZoomDelta(zoomDelta) {
 		const keys = this._zoomKeys = {},
-		codes = this.keyCodes;
+		codes = Keyboard.keyCodes;
 
 		for (const code of codes.zoomIn) {
 			keys[code] = zoomDelta;
@@ -13296,15 +13358,15 @@ const Keyboard = Handler.extend({
 		for (const code of codes.zoomOut) {
 			keys[code] = -zoomDelta;
 		}
-	},
+	}
 
 	_addHooks() {
 		on(document, 'keydown', this._onKeyDown, this);
-	},
+	}
 
 	_removeHooks() {
 		off(document, 'keydown', this._onKeyDown, this);
-	},
+	}
 
 	_onKeyDown(e) {
 		if (e.altKey || e.ctrlKey || e.metaKey) { return; }
@@ -13343,7 +13405,7 @@ const Keyboard = Handler.extend({
 
 		stop(e);
 	}
-});
+}
 
 // @section Handlers
 // @section Handlers
@@ -13365,7 +13427,7 @@ Map$1.mergeOptions({
 	scrollWheelZoom: true,
 
 	// @option wheelDebounceTime: Number = 40
-	// Limits the rate at which a wheel can fire (in milliseconds). By default
+	// Limits the rate at which a wheel can fire (in milliseconds). By default, the
 	// user can't zoom via wheel more often than once per 40 ms.
 	wheelDebounceTime: 40,
 
@@ -13376,17 +13438,17 @@ Map$1.mergeOptions({
 	wheelPxPerZoomLevel: 60
 });
 
-const ScrollWheelZoom = Handler.extend({
+class ScrollWheelZoom extends Handler {
 	addHooks() {
 		on(this._map._container, 'wheel', this._onWheelScroll, this);
 
 		this._delta = 0;
-	},
+	}
 
 	removeHooks() {
 		off(this._map._container, 'wheel', this._onWheelScroll, this);
 		clearTimeout(this._timer);
-	},
+	}
 
 	_onWheelScroll(e) {
 		const delta = getWheelDelta(e);
@@ -13406,20 +13468,20 @@ const ScrollWheelZoom = Handler.extend({
 		this._timer = setTimeout(this._performZoom.bind(this), left);
 
 		stop(e);
-	},
+	}
 
 	_performZoom() {
 		const map = this._map,
-		    zoom = map.getZoom(),
-		    snap = this._map.options.zoomSnap ?? 0;
+		zoom = map.getZoom(),
+		snap = this._map.options.zoomSnap ?? 0;
 
 		map._stop(); // stop panning and fly animations if any
 
 		// map the delta with a sigmoid function to -4..4 range leaning on -1..1
 		const d2 = this._delta / (this._map.options.wheelPxPerZoomLevel * 4),
-		    d3 = 4 * Math.log(2 / (1 + Math.exp(-Math.abs(d2)))) / Math.LN2,
-		    d4 = snap ? Math.ceil(d3 / snap) * snap : d3,
-		    delta = map._limitZoom(zoom + (this._delta > 0 ? d4 : -d4)) - zoom;
+		d3 = 4 * Math.log(2 / (1 + Math.exp(-Math.abs(d2)))) / Math.LN2,
+		d4 = snap ? Math.ceil(d3 / snap) * snap : d3,
+		delta = map._limitZoom(zoom + (this._delta > 0 ? d4 : -d4)) - zoom;
 
 		this._delta = 0;
 		this._startTime = null;
@@ -13432,7 +13494,7 @@ const ScrollWheelZoom = Handler.extend({
 			map.setZoomAround(this._lastMousePos, zoom + delta);
 		}
 	}
-});
+}
 
 // @section Handlers
 // @property scrollWheelZoom: Handler
@@ -13452,7 +13514,7 @@ Map$1.mergeOptions({
 	// @section Touch interaction options
 	// @option tapHold: Boolean
 	// Enables simulation of `contextmenu` event, default is `true` for mobile Safari.
-	tapHold: Browser.touchNative && Browser.safari && Browser.mobile,
+	tapHold: Browser.safari && Browser.mobile,
 
 	// @option tapTolerance: Number = 15
 	// The max number of pixels a user can shift his finger during touch
@@ -13460,15 +13522,15 @@ Map$1.mergeOptions({
 	tapTolerance: 15
 });
 
-const TapHold = Handler.extend({
+class TapHold extends Handler {
 	addHooks() {
 		on(this._map._container, 'pointerdown', this._onDown, this);
-	},
+	}
 
 	removeHooks() {
 		off(this._map._container, 'pointerdown', this._onDown, this);
 		clearTimeout(this._holdTimeout);
-	},
+	}
 
 	_onDown(e) {
 		clearTimeout(this._holdTimeout);
@@ -13488,26 +13550,26 @@ const TapHold = Handler.extend({
 
 		on(document, 'pointerup pointercancel contextmenu', this._cancel, this);
 		on(document, 'pointermove', this._onMove, this);
-	},
+	}
 
-	_cancelClickPrevent: function _cancelClickPrevent() {
+	_cancelClickPrevent = function _cancelClickPrevent() {
 		off(document, 'pointerup', preventDefault);
 		off(document, 'pointerup pointercancel', _cancelClickPrevent);
-	},
+	};
 
 	_cancel() {
 		clearTimeout(this._holdTimeout);
 		off(document, 'pointerup pointercancel contextmenu', this._cancel, this);
 		off(document, 'pointermove', this._onMove, this);
-	},
+	}
 
 	_onMove(e) {
 		this._newPos = new Point(e.clientX, e.clientY);
-	},
+	}
 
 	_isTapValid() {
 		return this._newPos.distanceTo(this._startPos) <= this._map.options.tapTolerance;
-	},
+	}
 
 	_simulateEvent(type, e) {
 		const simulatedEvent = new MouseEvent(type, {
@@ -13527,7 +13589,7 @@ const TapHold = Handler.extend({
 
 		e.target.dispatchEvent(simulatedEvent);
 	}
-});
+}
 
 // @section Handlers
 // @property tapHold: Handler
@@ -13547,7 +13609,7 @@ Map$1.mergeOptions({
 	// passed `'center'`, it will zoom to the center of the view regardless of
 	// where the touch events (fingers) were. Enabled for touch-capable web
 	// browsers.
-	pinchZoom: Browser.touch,
+	pinchZoom: true,
 
 	// @option bounceAtZoomLimits: Boolean = true
 	// Set it to false if you don't want the map to zoom beyond min/max zoom
@@ -13555,16 +13617,16 @@ Map$1.mergeOptions({
 	bounceAtZoomLimits: true
 });
 
-const PinchZoom = Handler.extend({
+class PinchZoom extends Handler {
 	addHooks() {
 		this._map._container.classList.add('leaflet-touch-zoom');
 		on(this._map._container, 'pointerdown', this._onPointerStart, this);
-	},
+	}
 
 	removeHooks() {
 		this._map._container.classList.remove('leaflet-touch-zoom');
 		off(this._map._container, 'pointerdown', this._onPointerStart, this);
-	},
+	}
 
 	_onPointerStart(e) {
 		const map = this._map;
@@ -13593,7 +13655,7 @@ const PinchZoom = Handler.extend({
 		on(document, 'pointerup pointercancel', this._onPointerEnd, this);
 
 		preventDefault(e);
-	},
+	}
 
 	_onPointerMove(e) {
 		const pointers = getPointers();
@@ -13633,7 +13695,7 @@ const PinchZoom = Handler.extend({
 		this._animRequest = requestAnimationFrame(moveFn.bind(this));
 
 		preventDefault(e);
-	},
+	}
 
 	_onPointerEnd() {
 		if (!this._moved || !this._zooming) {
@@ -13654,7 +13716,7 @@ const PinchZoom = Handler.extend({
 			this._map._resetView(this._center, this._map._limitZoom(this._zoom));
 		}
 	}
-});
+}
 
 // @section Handlers
 // @property pinchZoom: Handler
@@ -13687,7 +13749,7 @@ Map$1.PinchZoom = PinchZoom;
 Map$1.TouchZoom = PinchZoom; // backward compatibility
 
 // !!! NEXT LINE IS AUTO-GENERATED VIA `NPM VERSION` !!!
-const version = '2.0.0-alpha';
+const version = '2.0.0-alpha.1';
 
 var L = {
 	__proto__: null,
@@ -13716,6 +13778,7 @@ var L = {
 	LatLngBounds: LatLngBounds,
 	Layer: Layer,
 	LayerGroup: LayerGroup,
+	LeafletMap: LeafletMap,
 	LineUtil: LineUtil,
 	Map: Map$1,
 	Marker: Marker,
@@ -13755,5 +13818,5 @@ function getGlobalObject() {
 	throw new Error('Unable to locate global object.');
 }
 
-export { BlanketOverlay, Bounds, Browser, CRS, Canvas, Circle, CircleMarker, Class, Control, DivIcon, DivOverlay, DomEvent, DomUtil, Draggable, Evented, FeatureGroup, GeoJSON, GridLayer, Handler, Icon, ImageOverlay, LatLng, LatLngBounds, Layer, LayerGroup, LineUtil, Map$1 as Map, Marker, Path, Point, PolyUtil, Polygon, Polyline, Popup, PosAnimation, index as Projection, Rectangle, Renderer, SVG, SVGOverlay, TileLayer, Tooltip, Transformation, Util, VideoOverlay, L as default, version };
+export { BlanketOverlay, Bounds, Browser, CRS, Canvas, Circle, CircleMarker, Class, Control, DivIcon, DivOverlay, DomEvent, DomUtil, Draggable, Evented, FeatureGroup, GeoJSON, GridLayer, Handler, Icon, ImageOverlay, LatLng, LatLngBounds, Layer, LayerGroup, LeafletMap, LineUtil, Map$1 as Map, Marker, Path, Point, PolyUtil, Polygon, Polyline, Popup, PosAnimation, index as Projection, Rectangle, Renderer, SVG, SVGOverlay, TileLayer, Tooltip, Transformation, Util, VideoOverlay, L as default, version };
 //# sourceMappingURL=leaflet-src.js.map
