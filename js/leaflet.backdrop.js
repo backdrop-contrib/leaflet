@@ -8,7 +8,7 @@
   // Zoomswitch method cribbed liberally from:
   // http://www.makina-corpus.org/blog/leaflet-zoom-switcher
   L.TileLayerZoomSwitch = L.TileLayer.extend({
-    //includes: L.Evented.prototype,// @todo A breaker with L v2, but what is this good for, anyway?
+    includes: L.Evented.prototype,
     options: {
       // switchZoomUnder: when zoom < switchZoomUnder, then switch to switchLayer
       switchZoomUnder: -1,

@@ -1,5 +1,5 @@
 /* @preserve
- * Leaflet 2.0.0-alpha.1+main.14eaf6f3, a JS library for interactive maps. https://leafletjs.com
+ * Leaflet 2.0.0-alpha.1+main.7208684, a JS library for interactive maps. https://leafletjs.com
  * (c) 2010-2025 Volodymyr Agafonkin, (c) 2010-2011 CloudMade
  */
 
@@ -255,11 +255,6 @@ class Class {
 
 		// call all constructor hooks
 		this.callInitHooks();
-	}
-
-	initialize(/* ...args */) {
-		// Override this method in subclasses to implement custom initialization logic.
-		// This method is called automatically when a new instance of the class is created.
 	}
 
 	callInitHooks() {

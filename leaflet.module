@@ -30,7 +30,7 @@ function leaflet_library_info() {
   // Vanilla Leaflet, no 3rd party plugins besides polyfill.
   $libraries['leaflet.global'] = array(
     'title' => t('Leaflet JavaScript Library'),
-    'version' => '2.0.0-alpha+main.14eaf6f3',
+    'version' => '2.0.0-alpha.1+main.7208684',
     'website' => 'https://leafletjs.com/',
     'js' => array(
       $library_path . 'leaflet/leaflet-global.js' => array(
