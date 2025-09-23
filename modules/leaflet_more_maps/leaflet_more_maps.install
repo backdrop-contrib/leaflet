@@ -16,3 +16,12 @@ function leaflet_more_maps_update_1000() {
   update_variable_del('google_satellite_version');
   update_variable_del('leaflet_more_maps_custom_maps');
 }
+
+/**
+ * Update google_satellite_version config value.
+ */
+function leaflet_more_maps_update_1001() {
+  $config = config('leaflet_more_maps.settings');
+  $config->set('google_satellite_version', '1001');
+  $config->save();
+}
