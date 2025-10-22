@@ -17,6 +17,6 @@
   // Needed by fullscreen, zoomslider, viewcenter:
   window.applyFactoryMethodsPolyfill();
   // Needed by Control.coordinates:
-  window.applyDomEventPolyfill()
+  window.applyDomEventPolyfill();
 
 })();

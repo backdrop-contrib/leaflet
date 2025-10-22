@@ -1,5 +1,5 @@
 /* @preserve
- * Leaflet 2.0.0-alpha.1+main.7208684, a JS library for interactive maps. https://leafletjs.com
+ * Leaflet 2.0.0-alpha.1+main.aa7dea21, a JS library for interactive maps. https://leafletjs.com
  * (c) 2010-2025 Volodymyr Agafonkin, (c) 2010-2011 CloudMade
  */
 
@@ -372,8 +372,15 @@ class Evented extends Class {
 		return this;
 	}
 
+	static __REMOVED_EVENTS = ['mousedown', 'mouseup', 'mouseover', 'mouseout', 'mousemove'];
+
 	// attach listener (without syntactic sugar now)
 	_on(type, fn, context, _once) {
+		// To be removed in leaflet 3
+		if (Evented.__REMOVED_EVENTS.includes(type)) {
+			console.error(`The event ${type} has been removed. Use the PointerEvent variant instead.`);
+		}
+
 		if (typeof fn !== 'function') {
 			console.warn(`wrong listener type: ${typeof fn}`);
 			return;
@@ -2399,11 +2406,7 @@ function disableClickPropagation(el) {
 // with page reload when a `<form>` is submitted).
 // Use it inside listener functions.
 function preventDefault(e) {
-	if (e.preventDefault) {
-		e.preventDefault();
-	} else {
-		e.returnValue = false;
-	}
+	e.preventDefault?.();
 	return this;
 }
 
@@ -3685,7 +3688,7 @@ let Map$1 = class Map extends Evented {
 		return this.containerPointToLayerPoint(this.pointerEventToContainerPoint(e));
 	}
 
-	// @method pointerEventToLayerPoint(ev: PointerEvent): LatLng
+	// @method pointerEventToLatLng(ev: PointerEvent): LatLng
 	// Given a PointerEvent object, returns geographical coordinate where the
 	// event took place.
 	pointerEventToLatLng(e) { // (PointerEvent)
@@ -4043,7 +4046,7 @@ let Map$1 = class Map extends Evented {
 		if (!targets.length) { return; }
 
 		if (type === 'contextmenu') {
-			preventDefault(e);
+			e.preventDefault();
 		}
 
 		const target = targets[0];
@@ -4649,7 +4652,7 @@ class Layers extends Control {
 	}
 
 	addTo(map) {
-		Control.prototype.addTo.call(this, map);
+		super.addTo(map);
 		// Trigger expand after Layers Control has been inserted into DOM so that is now has an actual height.
 		return this._expandIfNotCollapsed();
 	}
@@ -4761,7 +4764,7 @@ class Layers extends Control {
 			},
 			// Certain screen readers intercept the key event and instead send a click event
 			click(e) {
-				preventDefault(e);
+				e.preventDefault();
 				this._expandSafely();
 			}
 		}, this);
@@ -5555,7 +5558,7 @@ class Draggable extends Evented {
 		offset.y /= this._parentScale.y;
 
 		if (e.cancelable) {
-			preventDefault(e);
+			e.preventDefault();
 		}
 
 		if (!this._moved) {
@@ -6592,17 +6595,6 @@ class LayerGroup extends Layer {
 		return this.eachLayer(this.removeLayer, this);
 	}
 
-	// @method invoke(methodName: String, …): this
-	// Calls `methodName` on every layer contained in this group, passing any
-	// additional parameters. Has no effect if the layers contained do not
-	// implement `methodName`.
-	invoke(methodName, ...args) {
-		for (const layer of Object.values(this._layers)) {
-			layer[methodName]?.apply(layer, args);
-		}
-		return this;
-	}
-
 	onAdd(map) {
 		this.eachLayer(map.addLayer, map);
 	}
@@ -6640,7 +6632,7 @@ class LayerGroup extends Layer {
 	// @method setZIndex(zIndex: Number): this
 	// Calls `setZIndex` on every layer contained in this group, passing the z-index.
 	setZIndex(zIndex) {
-		return this.invoke('setZIndex', zIndex);
+		return this.eachLayer(l => l.setZIndex?.(zIndex));
 	}
 
 	// @method getLayerId(layer: Layer): Number
@@ -6682,7 +6674,7 @@ class FeatureGroup extends LayerGroup {
 
 		layer.addEventParent(this);
 
-		LayerGroup.prototype.addLayer.call(this, layer);
+		super.addLayer(layer);
 
 		// @event layeradd: LayerEvent
 		// Fired when a layer is added to this `FeatureGroup`
@@ -6699,7 +6691,7 @@ class FeatureGroup extends LayerGroup {
 
 		layer.removeEventParent(this);
 
-		LayerGroup.prototype.removeLayer.call(this, layer);
+		super.removeLayer(layer);
 
 		// @event layerremove: LayerEvent
 		// Fired when a layer is removed from this `FeatureGroup`
@@ -6709,19 +6701,19 @@ class FeatureGroup extends LayerGroup {
 	// @method setStyle(style: Path options): this
 	// Sets the given path options to each layer of the group that has a `setStyle` method.
 	setStyle(style) {
-		return this.invoke('setStyle', style);
+		return this.eachLayer(l => l.setStyle?.(style));
 	}
 
 	// @method bringToFront(): this
 	// Brings the layer group to the top of all other layers
 	bringToFront() {
-		return this.invoke('bringToFront');
+		return this.eachLayer(l => l.bringToFront?.());
 	}
 
 	// @method bringToBack(): this
 	// Brings the layer group to the back of all other layers
 	bringToBack() {
-		return this.invoke('bringToBack');
+		return this.eachLayer(l => l.bringToBack?.());
 	}
 
 	// @method getBounds(): LatLngBounds
@@ -6929,7 +6921,7 @@ class IconDefault extends Icon {
 			IconDefault.imagePath = this._detectIconPath();
 		}
 
-		const url = Icon.prototype._getIconUrl.call(this, name);
+		const url = super._getIconUrl(name);
 		if (!url) {
 			return null;
 		}
@@ -7725,7 +7717,7 @@ class CircleMarker extends Path {
 	}
 
 	setStyle(options) {
-		Path.prototype.setStyle.call(this, options);
+		super.setStyle(options);
 		if (options?.radius !== undefined) {
 			this.setRadius(options.radius);
 		}
@@ -8218,7 +8210,7 @@ class Polygon extends Polyline {
 	}
 
 	_convertLatLngs(latlngs) {
-		const result = Polyline.prototype._convertLatLngs.call(this, latlngs),
+		const result = super._convertLatLngs(latlngs),
 		len = result.length;
 
 		// remove last point if it equals first one
@@ -8229,7 +8221,7 @@ class Polygon extends Polyline {
 	}
 
 	_setLatLngs(latlngs) {
-		Polyline.prototype._setLatLngs.call(this, latlngs);
+		super._setLatLngs(latlngs);
 		if (isFlat(this._latlngs)) {
 			this._latlngs = [this._latlngs];
 		}
@@ -8293,7 +8285,7 @@ class Polygon extends Polyline {
 		}
 
 		// also check if it's on polygon stroke
-		return inside || Polyline.prototype._containsPoint.call(this, p, true);
+		return inside || super._containsPoint(p, true);
 	}
 
 }
@@ -9183,7 +9175,7 @@ class VideoOverlay extends ImageOverlay {
 			// On some browsers autoplay will only work with `muted: true`
 			autoplay: true,
 
-			// @option loop: Boolean = false
+			// @option controls: Boolean = false
 			// Whether the browser will offer controls to allow the user to control video playback, including volume, seeking, and pause/resume playback.
 			controls: false,
 
@@ -9768,11 +9760,11 @@ class Popup extends DivOverlay {
 		}
 		map._popup = this;
 
-		return DivOverlay.prototype.openOn.call(this, map);
+		return super.openOn(map);
 	}
 
 	onAdd(map) {
-		DivOverlay.prototype.onAdd.call(this, map);
+		super.onAdd(map);
 
 		// @namespace Map
 		// @section Popup events
@@ -9795,7 +9787,7 @@ class Popup extends DivOverlay {
 	}
 
 	onRemove(map) {
-		DivOverlay.prototype.onRemove.call(this, map);
+		super.onRemove(map);
 
 		// @namespace Map
 		// @section Popup events
@@ -9816,7 +9808,7 @@ class Popup extends DivOverlay {
 	}
 
 	getEvents() {
-		const events = DivOverlay.prototype.getEvents.call(this);
+		const events = super.getEvents();
 
 		if (this.options.closeOnClick ?? this._map.options.closePopupOnClick) {
 			events.preclick = this.close;
@@ -9852,7 +9844,7 @@ class Popup extends DivOverlay {
 			closeButton.innerHTML = '<span aria-hidden="true">&#215;</span>';
 
 			on(closeButton, 'click', (ev) => {
-				preventDefault(ev);
+				ev.preventDefault();
 				this.close();
 			});
 		}
@@ -10213,7 +10205,7 @@ class Tooltip extends DivOverlay {
 	}
 
 	onAdd(map) {
-		DivOverlay.prototype.onAdd.call(this, map);
+		super.onAdd(map);
 		this.setOpacity(this.options.opacity);
 
 		// @namespace Map
@@ -10234,7 +10226,7 @@ class Tooltip extends DivOverlay {
 	}
 
 	onRemove(map) {
-		DivOverlay.prototype.onRemove.call(this, map);
+		super.onRemove(map);
 
 		// @namespace Map
 		// @section Tooltip events
@@ -10254,7 +10246,7 @@ class Tooltip extends DivOverlay {
 	}
 
 	getEvents() {
-		const events = DivOverlay.prototype.getEvents.call(this);
+		const events = super.getEvents();
 
 		if (!this.options.permanent) {
 			events.preclick = this.close;
@@ -11809,7 +11801,7 @@ class TileLayer extends GridLayer {
 		// Cancels any pending http requests associated with the tile
 		tile.el.setAttribute('src', emptyImageUrl);
 
-		return GridLayer.prototype._removeTile.call(this, key);
+		return super._removeTile(key);
 	}
 
 	_tileReady(coords, err, tile) {
@@ -11817,11 +11809,11 @@ class TileLayer extends GridLayer {
 			return;
 		}
 
-		return GridLayer.prototype._tileReady.call(this, coords, err, tile);
+		return super._tileReady(coords, err, tile);
 	}
 
 	_clampZoom(zoom) {
-		return Math.round(GridLayer.prototype._clampZoom.call(this, zoom));
+		return Math.round(super._clampZoom(zoom));
 	}
 }
 
@@ -11920,7 +11912,7 @@ class TileLayerWMS extends TileLayer {
 		const projectionKey = this._wmsVersion >= 1.3 ? 'crs' : 'srs';
 		this.wmsParams[projectionKey] = this._crs.code;
 
-		TileLayer.prototype.onAdd.call(this, map);
+		super.onAdd(map);
 	}
 
 	getTileUrl(coords) {
@@ -11933,7 +11925,7 @@ class TileLayerWMS extends TileLayer {
 		bbox = (this._wmsVersion >= 1.3 && this._crs === EPSG4326 ?
 			[min.y, min.x, max.y, max.x] :
 			[min.x, min.y, max.x, max.y]).join(',');
-		const url = new URL(TileLayer.prototype.getTileUrl.call(this, coords));
+		const url = new URL(super.getTileUrl(coords));
 		for (const [k, v] of Object.entries({...this.wmsParams, bbox})) {
 			url.searchParams.append(this.options.uppercase ? k.toUpperCase() : k, v);
 		}
@@ -12069,7 +12061,7 @@ class Canvas extends Renderer {
 	}
 
 	getEvents() {
-		const events = Renderer.prototype.getEvents.call(this);
+		const events = super.getEvents();
 		events.viewprereset = this._onViewPreReset;
 		return events;
 	}
@@ -12080,7 +12072,7 @@ class Canvas extends Renderer {
 	}
 
 	onAdd(map) {
-		Renderer.prototype.onAdd.call(this, map);
+		super.onAdd(map);
 
 		// Redraw vectors since canvas is cleared upon removal,
 		// in case of removing the renderer itself from the map.
@@ -12088,7 +12080,7 @@ class Canvas extends Renderer {
 	}
 
 	onRemove() {
-		Renderer.prototype.onRemove.call(this);
+		super.onRemove();
 
 		clearTimeout(this._pointerHoverThrottleTimeout);
 	}
@@ -12108,11 +12100,11 @@ class Canvas extends Renderer {
 		cancelAnimationFrame(this._redrawRequest);
 		this._redrawRequest = null;
 		delete this._ctx;
-		Renderer.prototype._destroyContainer.call(this);
+		super._destroyContainer();
 	}
 
 	_resizeContainer() {
-		const size = Renderer.prototype._resizeContainer.call(this);
+		const size = super._resizeContainer();
 		const m = this._ctxScale = window.devicePixelRatio;
 
 		// set canvas size (also clearing it); use double size on retina
@@ -12147,7 +12139,7 @@ class Canvas extends Renderer {
 	}
 
 	_reset() {
-		Renderer.prototype._reset.call(this);
+		super._reset();
 
 		if (this._postponeUpdatePaths) {
 			this._postponeUpdatePaths = false;
@@ -12567,13 +12559,13 @@ class SVG extends Renderer {
 	}
 
 	_destroyContainer() {
-		Renderer.prototype._destroyContainer.call(this);
+		super._destroyContainer();
 		delete this._rootGroup;
 		delete this._svgSize;
 	}
 
 	_resizeContainer() {
-		const size = Renderer.prototype._resizeContainer.call(this);
+		const size = super._resizeContainer();
 
 		// set size of svg-container if changed
 		if (!this._svgSize || !this._svgSize.equals(size)) {
@@ -12780,7 +12772,7 @@ Map$1.include({
 // @constructor Rectangle(latLngBounds: LatLngBounds, options?: Polyline options)
 class Rectangle extends Polygon {
 	initialize(latLngBounds, options) {
-		Polygon.prototype.initialize.call(this, this._boundsToLatLngs(latLngBounds), options);
+		super.initialize(this._boundsToLatLngs(latLngBounds), options);
 	}
 
 	// @method setBounds(latLngBounds: LatLngBounds): this
@@ -13649,7 +13641,7 @@ class PinchZoom extends Handler {
 		on(document, 'pointermove', this._onPointerMove, this);
 		on(document, 'pointerup pointercancel', this._onPointerEnd, this);
 
-		preventDefault(e);
+		e.preventDefault();
 	}
 
 	_onPointerMove(e) {
@@ -13689,7 +13681,7 @@ class PinchZoom extends Handler {
 		const moveFn = map._move.bind(map, this._center, this._zoom, {pinch: true, round: false}, undefined);
 		this._animRequest = requestAnimationFrame(moveFn.bind(this));
 
-		preventDefault(e);
+		e.preventDefault();
 	}
 
 	_onPointerEnd() {
@@ -13723,6 +13715,7 @@ Map$1.addInitHook(function () {
 	this.touchZoom = this.pinchZoom;
 
 	if (this.options.touchZoom !== undefined) {
+		// To be removed in leaflet 3
 		console.warn('Map: touchZoom option is deprecated and will be removed in future versions. Use pinchZoom instead.');
 		this.options.pinchZoom = this.options.touchZoom;
 		delete this.options.touchZoom;
