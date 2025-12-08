@@ -1,5 +1,5 @@
 /* @preserve
- * Leaflet 2.0.0-alpha.1+main.397358c8, a JS library for interactive maps. https://leafletjs.com
+ * Leaflet 2.0.0-alpha.1+main.e226f77a, a JS library for interactive maps. https://leafletjs.com
  * (c) 2010-2025 Volodymyr Agafonkin, (c) 2010-2011 CloudMade
  */
 
@@ -2612,7 +2612,7 @@ class PosAnimation extends Evented {
 }
 
 /*
- * @class Map
+ * @class LeafletMap
  * @inherits Evented
  *
  * The central class of the API — it is used to create a map on a page and manipulate it.
@@ -2621,7 +2621,7 @@ class PosAnimation extends Evented {
  *
  * ```js
  * // initialize the map on the "map" div with a given center and zoom
- * const map = new Map('map', {
+ * const map = new LeafletMap('map', {
  * 	center: [51.505, -0.09],
  * 	zoom: 13
  * });
@@ -2630,16 +2630,6 @@ class PosAnimation extends Evented {
  */
 
 // @section
-// @constructor Map(id: String, options?: Map options)
-// Instantiates a map object given the DOM ID of a `<div>` element
-// and optionally an object literal with `Map options`.
-//
-// @alternative
-// @constructor Map(el: HTMLElement, options?: Map options)
-// Instantiates a map object given an instance of a `<div>` HTML element
-// and optionally an object literal with `Map options`.
-//
-// @alternative
 // @constructor LeafletMap(id: String, options?: LeafletMap options)
 // Instantiates a map object given the DOM ID of a `<div>` element
 // and optionally an object literal with `LeafletMap options`.
@@ -2648,7 +2638,17 @@ class PosAnimation extends Evented {
 // @constructor LeafletMap(el: HTMLElement, options?: LeafletMap options)
 // Instantiates a map object given an instance of a `<div>` HTML element
 // and optionally an object literal with `LeafletMap options`.
-let Map$1 = class Map extends Evented {
+//
+// @alternative
+// @constructor Map(id: String, options?: Map options)
+// Instantiates a map object given the DOM ID of a `<div>` element
+// and optionally an object literal with `Map options`.
+//
+// @alternative
+// @constructor Map(el: HTMLElement, options?: Map options)
+// Instantiates a map object given an instance of a `<div>` HTML element
+// and optionally an object literal with `Map options`.
+class LeafletMap extends Evented {
 
 	static {
 		this.setDefaultOptions({
@@ -4065,7 +4065,7 @@ let Map$1 = class Map extends Evented {
 		for (const t of targets) {
 			t.fire(type, data, true);
 			if (data.originalEvent._stopped ||
-				(t.options.bubblingPointerEvents === false && Map._pointerEvents.includes(type))) { return; }
+				(t.options.bubblingPointerEvents === false && LeafletMap._pointerEvents.includes(type))) { return; }
 		}
 	}
 
@@ -4364,9 +4364,9 @@ let Map$1 = class Map extends Evented {
 
 		this._moveEnd(true);
 	}
-};
+}
 
-const LeafletMap = Map$1;
+const Map$1 = LeafletMap;
 
 /*
  * @class Control
@@ -4487,7 +4487,7 @@ class Control extends Class {
  * Optional method. Should contain all clean up code that removes the listeners previously added in [`onAdd`](#control-onadd). Called on [`control.remove()`](#control-remove).
  */
 
-/* @namespace Map
+/* @namespace LeafletMap
  * @section Methods for Layers and Controls
  */
 Map$1.include({
@@ -4845,7 +4845,7 @@ class Layers extends Control {
 
 		const obj = this._getLayer(stamp(e.target));
 
-		// @namespace Map
+		// @namespace LeafletMap
 		// @section Layer events
 		// @event baselayerchange: LayersControlEvent
 		// Fired when the base layer is changed through the [layers control](#control-layers).
@@ -5092,7 +5092,7 @@ class Zoom extends Control {
 	}
 }
 
-// @namespace Map
+// @namespace LeafletMap
 // @section Control options
 // @option zoomControl: Boolean = true
 // Whether a [zoom control](#control-zoom) is added to the map by default.
@@ -5361,7 +5361,7 @@ class Attribution extends Control {
 	}
 }
 
-// @namespace Map
+// @namespace LeafletMap
 // @section Control options
 // @option attributionControl: Boolean = true
 // Whether a [attribution control](#control-attribution) is added to the map by default.
@@ -6386,7 +6386,7 @@ class Layer extends Evented {
  */
 
 
-/* @namespace Map
+/* @namespace LeafletMap
  * @section Layer events
  *
  * @event layeradd: LayerEvent
@@ -6904,9 +6904,9 @@ class IconDefault extends Icon {
 
 	static {
 		this.setDefaultOptions({
-			iconUrl:       'marker-icon.png',
-			iconRetinaUrl: 'marker-icon-2x.png',
-			shadowUrl:     'marker-shadow.png',
+			iconUrl:       'marker-icon.svg',
+			iconRetinaUrl: 'marker-icon.svg',
+			shadowUrl:     'marker-shadow.svg',
 			iconSize:    [25, 41],
 			iconAnchor:  [12, 41],
 			popupAnchor: [1, -34],
@@ -6939,7 +6939,7 @@ class IconDefault extends Icon {
 			return match && match[idx];
 		};
 		path = strip(path, /^url\((['"])?(.+)\1\)$/, 2);
-		return path && strip(path, /^(.*)marker-icon\.png$/, 1);
+		return path && strip(path, /^(.*)marker-icon\.svg$/, 1);
 	}
 
 	_detectIconPath() {
@@ -9766,7 +9766,7 @@ class Popup extends DivOverlay {
 	onAdd(map) {
 		super.onAdd(map);
 
-		// @namespace Map
+		// @namespace LeafletMap
 		// @section Popup events
 		// @event popupopen: PopupEvent
 		// Fired when a popup is opened in the map
@@ -9789,7 +9789,7 @@ class Popup extends DivOverlay {
 	onRemove(map) {
 		super.onRemove(map);
 
-		// @namespace Map
+		// @namespace LeafletMap
 		// @section Popup events
 		// @event popupclose: PopupEvent
 		// Fired when a popup in the map is closed
@@ -9933,7 +9933,7 @@ class Popup extends DivOverlay {
 			dy = containerPos.y - paddingTL.y;
 		}
 
-		// @namespace Map
+		// @namespace LeafletMap
 		// @section Popup events
 		// @event autopanstart: Event
 		// Fired when the map starts autopanning when opening a popup.
@@ -9957,7 +9957,7 @@ class Popup extends DivOverlay {
 }
 
 
-/* @namespace Map
+/* @namespace LeafletMap
  * @section Interaction Options
  * @option closePopupOnClick: Boolean = true
  * Set it to `false` if you don't want popups to close when user clicks the map.
@@ -9967,7 +9967,7 @@ Map$1.mergeOptions({
 });
 
 
-// @namespace Map
+// @namespace LeafletMap
 // @section Methods for Layers and Controls
 Map$1.include({
 	// @method openPopup(popup: Popup): this
@@ -10208,7 +10208,7 @@ class Tooltip extends DivOverlay {
 		super.onAdd(map);
 		this.setOpacity(this.options.opacity);
 
-		// @namespace Map
+		// @namespace LeafletMap
 		// @section Tooltip events
 		// @event tooltipopen: TooltipEvent
 		// Fired when a tooltip is opened in the map.
@@ -10228,7 +10228,7 @@ class Tooltip extends DivOverlay {
 	onRemove(map) {
 		super.onRemove(map);
 
-		// @namespace Map
+		// @namespace LeafletMap
 		// @section Tooltip events
 		// @event tooltipclose: TooltipEvent
 		// Fired when a tooltip in the map is closed.
@@ -10342,7 +10342,7 @@ class Tooltip extends DivOverlay {
 
 }
 
-// @namespace Map
+// @namespace LeafletMap
 // @section Methods for Layers and Controls
 Map$1.include({
 
@@ -11621,8 +11621,8 @@ class TileLayer extends GridLayer {
 		options = setOptions(this, options);
 
 		// in case the attribution hasn't been specified, check for known hosts that require attribution
-		if (options.attribution === null && URL.canParse(url)) {
-			const urlHostname = new URL(url).hostname;
+		if (options.attribution === null) {
+			const urlHostname = new URL(url, location.href).hostname;
 
 			// check for Open Street Map hosts
 			const osmHosts = ['tile.openstreetmap.org', 'tile.osm.org'];
@@ -12031,7 +12031,7 @@ class Renderer extends BlanketOverlay {
  * Use Canvas by default for all paths in the map:
  *
  * ```js
- * const map = new Map('map', {
+ * const map = new LeafletMap('map', {
  * 	renderer: new Canvas()
  * });
  * ```
@@ -12039,7 +12039,7 @@ class Renderer extends BlanketOverlay {
  * Use a Canvas renderer with extra padding for specific vector geometries:
  *
  * ```js
- * const map = new Map('map');
+ * const map = new LeafletMap('map');
  * const myRenderer = new Canvas({ padding: 0.5 });
  * const line = new Polyline( coordinates, { renderer: myRenderer } );
  * const circle =  new Circle( center, { renderer: myRenderer, radius: 100 } );
@@ -12528,7 +12528,7 @@ const create = svgCreate;
  * Use SVG by default for all paths in the map:
  *
  * ```js
- * const map = new Map('map', {
+ * const map = new LeafletMap('map', {
  * 	renderer: new SVG()
  * });
  * ```
@@ -12536,7 +12536,7 @@ const create = svgCreate;
  * Use a SVG renderer with extra padding for specific vector geometries:
  *
  * ```js
- * const map = new Map('map');
+ * const map = new LeafletMap('map');
  * const myRenderer = new SVG({ padding: 0.5 });
  * const line = new Polyline( coordinates, { renderer: myRenderer } );
  * const circle = new Circle( center, { renderer: myRenderer, radius: 100 } );
@@ -12702,7 +12702,7 @@ class SVG extends Renderer {
 }
 
 Map$1.include({
-	// @namespace Map; @method getRenderer(layer: Path): Renderer
+	// @namespace LeafletMap; @method getRenderer(layer: Path): Renderer
 	// Returns the instance of `Renderer` that should be used to render the given
 	// `Path`. It will ensure that the `renderer` options of the map and paths
 	// are respected, and that the renderers do exist on the map.
@@ -12737,7 +12737,7 @@ Map$1.include({
 	},
 
 	_createRenderer(options) {
-		// @namespace Map; @option preferCanvas: Boolean = false
+		// @namespace LeafletMap; @option preferCanvas: Boolean = false
 		// Whether `Path`s should be rendered on a `Canvas` renderer.
 		// By default, all `Path`s are rendered in a `SVG` renderer.
 		return (this.options.preferCanvas && new Canvas(options)) || new SVG(options);
@@ -12800,7 +12800,7 @@ SVG.pointsToPath = pointsToPath;
  * (zoom to a selected bounding box), enabled by default.
  */
 
-// @namespace Map
+// @namespace LeafletMap
 // @section Interaction Options
 Map$1.mergeOptions({
 	// @option boxZoom: Boolean = true
@@ -12944,7 +12944,7 @@ Map$1.addInitHook('addHandler', 'boxZoom', BoxZoom);
  * Handler.DoubleClickZoom is used to handle double-click zoom on the map, enabled by default.
  */
 
-// @namespace Map
+// @namespace LeafletMap
 // @section Interaction Options
 
 Map$1.mergeOptions({
@@ -12997,7 +12997,7 @@ Map$1.addInitHook('addHandler', 'doubleClickZoom', DoubleClickZoom);
  * Handler.MapDrag is used to make the map draggable (with panning inertia), enabled by default.
  */
 
-// @namespace Map
+// @namespace LeafletMap
 // @section Interaction Options
 Map$1.mergeOptions({
 	// @option dragging: Boolean = true
@@ -13224,7 +13224,7 @@ Map$1.addInitHook('addHandler', 'dragging', Drag);
  * Map.Keyboard is handling keyboard interaction with the map, enabled by default.
  */
 
-// @namespace Map
+// @namespace LeafletMap
 // @section Keyboard Navigation Options
 Map$1.mergeOptions({
 	// @option keyboard: Boolean = true
@@ -13404,7 +13404,7 @@ Map$1.addInitHook('addHandler', 'keyboard', Keyboard);
  * Handler.ScrollWheelZoom is used by Map to enable mouse scroll wheel zoom on the map.
  */
 
-// @namespace Map
+// @namespace LeafletMap
 // @section Interaction Options
 Map$1.mergeOptions({
 	// @section Mouse wheel options
@@ -13495,7 +13495,7 @@ Map$1.addInitHook('addHandler', 'scrollWheelZoom', ScrollWheelZoom);
 
 const tapHoldDelay = 600;
 
-// @namespace Map
+// @namespace LeafletMap
 // @section Interaction Options
 Map$1.mergeOptions({
 	// @section Touch interaction options
@@ -13587,7 +13587,7 @@ Map$1.addInitHook('addHandler', 'tapHold', TapHold);
  * Handler.PinchZoom is used by Map to add pinch zoom on supported mobile browsers.
  */
 
-// @namespace Map
+// @namespace LeafletMap
 // @section Interaction Options
 Map$1.mergeOptions({
 	// @section Touch interaction options
