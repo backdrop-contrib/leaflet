@@ -140,10 +140,10 @@ function applyDomUtilPolyfill() {
 
 	L.DomUtil.TRANSFORM = L.DomUtil.testProp(['transform', 'webkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
 	L.DomUtil.setTransform = function(el, offset, scale) {
-		var pos = offset || new Point(0, 0);
+		var pos = offset || new L.Point(0, 0);
 
 		el.style[L.DomUtil.TRANSFORM] =
-			(Browser.ie3d ?
+			(L.Browser.ie3d ?
 				'translate(' + pos.x + 'px,' + pos.y + 'px)' :
 				'translate3d(' + pos.x + 'px,' + pos.y + 'px,0)') +
 			(scale ? ' scale(' + scale + ')' : '');
@@ -346,7 +346,7 @@ function applyDomEventPolyfill() {
 	}
 
 	L.DomEvent.getWheelDelta = function(e) {
-		return (e.deltaY && e.deltaMode === 0) ? -e.deltaY / getWheelPxFactor() : // Pixels
+		return (e.deltaY && e.deltaMode === 0) ? -e.deltaY / L.DomEvent.getWheelPxFactor() : // Pixels
 			(e.deltaY && e.deltaMode === 1) ? -e.deltaY * 20 : // Lines
 			(e.deltaY && e.deltaMode === 2) ? -e.deltaY * 60 : // Pages
 			(e.deltaX || e.deltaZ) ? 0 :	// Skip horizontal/depth wheel events
