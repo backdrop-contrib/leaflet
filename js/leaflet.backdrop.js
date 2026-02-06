@@ -179,7 +179,7 @@
         // add scale control //+
         if (controls.ControlScale) {
           // @todo Evaluate options for dynamic options (imperial).
-          let scaleControl = new L.control.scale({imperial: false});
+          let scaleControl = new L.Control.Scale({imperial: false});
           lMap.scaleControl = scaleControl;
           lMap.addControl(scaleControl);
         }
