@@ -32,12 +32,6 @@ function leaflet_library_info() {
     'version' => '1.9.4',
     'website' => 'https://leafletjs.com/',
     'js' => array(
-      // This setting is needed in order to properly render market images.
-      'leaflet_root_url' => array(
-        'type' => 'inline',
-        'data' => 'L_ROOT_URL = "' . base_path() . $library_path . '";',
-        'group' => JS_LIBRARY,
-      ),
       $library_path . 'leaflet.js' => array(
         'type' => 'file',
         'group' => JS_LIBRARY,
