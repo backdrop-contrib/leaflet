@@ -226,7 +226,7 @@
         else if (this.map.center === undefined) {
           // No points, for instance an empty views result and no default
           // center set. This prevents js errors in the library.
-          lMap.setView(new L.LatLng(0, 0), this.map.settings.minZoom);
+          lMap.setView(new L.LatLng(0, 0), zoom);
 
           // Center to current position, if module geoip_tokens is available.
           // We get the values via ajax, so there might be a slight delay.
