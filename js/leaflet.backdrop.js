@@ -234,6 +234,9 @@
             if (typeof Backdrop.geoipTokens.getData === 'function') {
               Backdrop.geoipTokens.getData('latlon').done(function (data) {
                 lMap.setView(new L.LatLng(data.latitude, data.longitude), zoom);
+                if (typeof lMap.viewCenterControl === 'object') {
+                  lMap.viewCenterControl.options.vcLatLng = [data.latitude, data.longitude];
+                }
               });
             }
           }
@@ -258,6 +261,8 @@
           });
 
           lMap.addControl(viewCenter);
+          // Expose for later adaption by geoipTokens.
+          lMap.viewCenterControl = viewCenter;
         }
 
         // add attribution
