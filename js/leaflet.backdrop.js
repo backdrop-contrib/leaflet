@@ -212,19 +212,6 @@
         }
 
         let zoom = this.map.settings.zoom ? this.map.settings.zoom : this.map.settings.zoomDefault;
-        // Init ViewCenter plugin with some defaults.
-        let viewCenter = new L.Control.ViewCenter({
-          position: 'topleft',
-          title: Backdrop.t('Back to the starting point'),
-          forceSeparateButton: true,
-          vcLatLng: [0, 0],
-          vcZoom: zoom
-        });
-        // @todo viewCenter is in use further down. Might need restructuring.
-        if (controls.ControlViewCenter) {
-          lMap.viewCenterControl = viewCenter;
-          lMap.addControl(viewCenter);
-        }
 
         // center the map
         if (this.map.center && (this.map.center.force || this.features.length === 0)) {
@@ -247,7 +234,6 @@
             if (typeof Backdrop.geoipTokens.getData === 'function') {
               Backdrop.geoipTokens.getData('latlon').done(function (data) {
                 lMap.setView(new L.LatLng(data.latitude, data.longitude), zoom);
-                viewCenter.options.vcLatLng = [data.latitude, data.longitude];
               });
             }
           }
@@ -258,9 +244,21 @@
         lMap.center = lMap.getCenter();
         lMap.zoom = lMap.getZoom();
 
-        // Update viewCenter options.
-        viewCenter.options.vcLatLng = [lMap.center.lat, lMap.center.lng];
-        viewCenter.options.vcZoom = lMap.zoom;
+        // Init viewCenter plugin, if enabled.
+        if (controls.ControlViewCenter) {
+          // Depending on zoom settings, we need either that, or the
+          // automatically determined value.
+          let zoomInitial = this.map.settings.zoom ? zoom : lMap.zoom;
+          let viewCenter = new L.Control.ViewCenter({
+            position: 'topleft',
+            title: Backdrop.t('Back to the starting point'),
+            forceSeparateButton: true,
+            vcLatLng: lMap.center,
+            vcZoom: zoomInitial
+          });
+
+          lMap.addControl(viewCenter);
+        }
 
         // add attribution
         if (this.map.settings.attributionControl && this.map.attribution) {
