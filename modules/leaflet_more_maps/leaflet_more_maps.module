@@ -27,6 +27,7 @@ function leaflet_more_maps_default_settings() {
     // Don't specify, if you want to use Auto-box.
     // @codingStandardsIgnoreLine
     // 'zoom'               =>  2,
+    'zoomDefault'        => 10,
     'zoomAnimation'      => TRUE,
     'zoomControl'        => TRUE,
   );
