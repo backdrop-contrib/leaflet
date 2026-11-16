@@ -25,3 +25,12 @@ function leaflet_more_maps_update_1001() {
   $config->set('google_satellite_version', '1001');
   $config->save();
 }
+
+/**
+ * Delete obsolete google_satellite_version config value.
+ */
+function leaflet_more_maps_update_1002() {
+  $config = config('leaflet_more_maps.settings');
+  $config->clear('google_satellite_version');
+  $config->save();
+}
