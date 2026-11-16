@@ -17,12 +17,6 @@ function leaflet_more_maps_admin_configure() {
     '#collapsed' => FALSE,
     '#title' => t('Global settings'),
   );
-  $form['global_settings']['google_satellite_version'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Google satellite map version'),
-    '#default_value' => isset($config['google_satellite_version']) ? $config['google_satellite_version'] : '899',
-    '#description' => t('If you find that tiles have gone missing, it is time to increase this number.'),
-  );
   $form['global_settings']['thunderforest_api_key'] = array(
     '#type' => 'textfield',
     '#title' => t('Thunderforest API Key'),
@@ -119,7 +113,6 @@ function leaflet_more_maps_admin_configure_form_submit($form, &$form_state) {
   $config = config('leaflet_more_maps.settings');
 
   // form_state_values_clean($form_state);
-  $config->set('google_satellite_version', $form_state['values']['google_satellite_version']);
   $config->set('thunderforest_api_key', $form_state['values']['thunderforest_api_key']);
   $config->set('mapbox_access_token', $form_state['values']['mapbox_access_token']);
   $custom_maps = $form_state['values']['map'];
